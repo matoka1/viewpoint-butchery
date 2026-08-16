@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Viewpoint POS</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --primary: #8B0000;
+            --primary-dark: #5C0000;
+            --primary-light: #C41E3A;
+            --secondary: #1a1a2e;
+            --accent: #e94560;
+            --success: #28a745;
+            --warning: #ffc107;
+            --danger: #dc3545;
+            --light: #f8f9fa;
+            --dark: #343a40;
+            --gray: #6c757d;
+            --shadow: 0 4px 6px rgba(0,0,0,0.1);
+            --radius: 12px;
+            --transition: all 0.3s ease;
+        }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f2f5; color: #333; }
+        
+        .dashboard { display: flex; min-height: 100vh; }
+        
+        .sidebar {
+            width: 250px;
+            background: var(--secondary);
+            color: white;
+            padding: 20px 0;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+            z-index: 100;
+        }
+        .sidebar-brand {
+            padding: 0 20px 20px;
+            font-size: 22px;
+            font-weight: bold;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            margin-bottom: 20px;
+        }
+        .sidebar-brand i { color: var(--accent); margin-right: 10px; }
+        .sidebar-menu { list-style: none; padding: 0; }
+        .sidebar-menu li {
+            padding: 14px 20px;
+            cursor: pointer;
+            transition: var(--transition);
+            border-left: 3px solid transparent;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .sidebar-menu li:hover, .sidebar-menu li.active {
+            background: rgba(255,255,255,0.1);
+            border-left-color: var(--accent);
+        }
+        .sidebar-menu li i { width: 20px; }
+        #logoutBtn { margin-top: 20px; border-top: 1px solid rgba(255,255,255,0.1); }
+        
+        .main-content {
+            margin-left: 250px;
+            flex: 1;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            background: white;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            margin-bottom: 20px;
+        }
+        .top-bar .page-title h2 { color: var(--primary); }
+        .user-info { display: flex; align-items: center; gap: 15px; }
+        .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--primary);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+        
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+        }
+        .stat-card .stat-icon { font-size: 24px; color: var(--primary); margin-bottom: 10px; }
+        .stat-card .stat-value { font-size: 28px; font-weight: bold; color: var(--primary); }
+        .stat-card .stat-label { color: var(--gray); font-size: 13px; margin-top: 5px; }
+        
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+        }
+        .card h3 { margin-bottom: 15px; color: var(--dark); }
+        
+        .grid-2 { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; }
+        @media (max-width: 768px) { 
+            .sidebar { width: 60px; }
+            .sidebar-brand span, .sidebar-menu li span { display: none; }
+            .main-content { margin-left: 60px; }
+            .grid-2 { grid-template-columns: 1fr; }
+        }
+        
+        .data-table { width: 100%; border-collapse: collapse; }
+        .data-table th, .data-table td { padding: 10px; text-align: left; border-bottom: 1px solid #eee; }
+        .data-table th { background: #f8f9fa; font-weight: 600; }
+        .status-badge { padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+        .status-badge.paid { background: #d4edda; color: #155724; }
+        .status-badge.pending { background: #fff3cd; color: #856404; }
+        .status-badge.processing { background: #cce5ff; color: #004085; }
+        .status-badge.ready { background: #d1ecf1; color: #0c5460; }
+        .status-badge.draft { background: #e2e3e5; color: #383d41; }
+        
+        .badge.butchery { background: #8B0000; color: white; padding: 2px 10px; border-radius: 12px; font-size: 11px; }
+        .badge.restaurant { background: #28a745; color: white; padding: 2px 10px; border-radius: 12px; font-size: 11px; }
+        
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; }
+        .modal-content { background: white; max-width: 500px; margin: 50px auto; padding: 30px; border-radius: var(--radius); }
+        .modal-header { display: flex; justify-content: space-between; margin-bottom: 20px; }
+        .close { cursor: pointer; font-size: 24px; }
+        
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-primary:hover { background: var(--primary-dark); }
+        .btn-success { background: var(--success); color: white; }
+        .btn-danger { background: var(--danger); color: white; }
+        .btn-warning { background: var(--warning); color: var(--dark); }
+        .btn-block { width: 100%; }
+        
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: 600; }
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        .form-group input:focus, .form-group select:focus {
+            border-color: var(--primary);
+            outline: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard">
+        <!-- Sidebar -->
+        <nav class="sidebar">
+            <div class="sidebar-brand">
+                <i class="fas fa-store"></i>
+                <span>Viewpoint</span>
+            </div>
+            <ul class="sidebar-menu">
+                <li class="active" data-section="dashboard"><i class="fas fa-tachometer-alt"></i><span>Dashboard</span></li>
+                <li data-section="products"><i class="fas fa-boxes"></i><span>Products</span></li>
+                <li data-section="users"><i class="fas fa-users"></i><span>Users</span></li>
+                <li id="logoutBtn"><i class="fas fa-sign-out-alt"></i><span>Logout</span></li>
+            </ul>
+        </nav>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <div class="top-bar">
+                <div class="page-title"><h2>Dashboard</h2></div>
+                <div class="user-info">
+                    <span id="currentTime"></span>
+                    <div class="avatar" id="userAvatar">A</div>
+                    <span id="userName">Admin</span>
+                </div>
+            </div>
+
+            <!-- Dashboard -->
+            <div id="dashboardContent">
+                <div class="card-grid" id="statsGrid">
+                    <div class="stat-card"><div class="stat-icon"><i class="fas fa-money-bill-wave"></i></div><div class="stat-value" id="todaySales">KES 0</div><div class="stat-label">Today's Sales</div></div>
+                    <div class="stat-card"><div class="stat-icon"><i class="fas fa-drumstick-bite"></i></div><div class="stat-value" id="butcherySales">KES 0</div><div class="stat-label">Butchery Sales</div></div>
+                    <div class="stat-card"><div class="stat-icon"><i class="fas fa-utensils"></i></div><div class="stat-value" id="restaurantSales">KES 0</div><div class="stat-label">Restaurant Sales</div></div>
+                    <div class="stat-card"><div class="stat-icon"><i class="fas fa-clock"></i></div><div class="stat-value" id="pendingOrders">0</div><div class="stat-label">Pending Orders</div></div>
+                    <div class="stat-card"><div class="stat-icon"><i class="fas fa-exclamation-triangle"></i></div><div class="stat-value" id="lowStock">0</div><div class="stat-label">Low Stock</div></div>
+                </div>
+                <div class="grid-2">
+                    <div class="card"><h3>Sales Overview</h3><canvas id="salesChart"></canvas></div>
+                    <div class="card"><h3>Top Products</h3><div id="topProductsList"></div></div>
+                </div>
+                <div class="card" style="margin-top:20px;"><h3>Recent Orders</h3><div id="recentOrdersTable"></div></div>
+            </div>
+
+            <!-- Products -->
+            <div id="productsContent" style="display:none;">
+                <div class="card">
+                    <div style="display:flex;justify-content:space-between;margin-bottom:20px;">
+                        <h3>Products</h3>
+                        <button class="btn btn-primary" onclick="showAddProduct()"><i class="fas fa-plus"></i> Add Product</button>
+                    </div>
+                    <div id="productsTable"></div>
+                </div>
+            </div>
+
+            <!-- Users -->
+            <div id="usersContent" style="display:none;">
+                <div class="card">
+                    <h3>Users</h3>
+                    <div id="usersTable"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Product Modal -->
+    <div id="productModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header"><h3 id="productModalTitle">Add Product</h3><span class="close" onclick="closeModal('productModal')">&times;</span></div>
+            <form id="productForm">
+                <input type="hidden" id="productId">
+                <div class="form-group"><label>Name</label><input type="text" id="productName" required></div>
+                <div class="form-group"><label>Type</label><select id="productType"><option value="butchery">Butchery</option><option value="restaurant">Restaurant</option></select></div>
+                <div class="form-group"><label>Price (KES)</label><input type="number" id="productPrice" step="0.01" required></div>
+                <div class="form-group"><label>Unit</label><input type="text" id="productUnit" value="KG"></div>
+                <div class="form-group"><label>Stock</label><input type="number" id="productStock" step="0.001" required></div>
+                <div class="form-group"><label>Reorder Level</label><input type="number" id="productReorder" step="0.001" required></div>
+                <button type="submit" class="btn btn-primary btn-block">Save</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        // ===== CONFIGURATION =====
+        const SUPABASE_CONFIG = {
+            url: 'https://sipgnykshaxrxwdeswfc.supabase.co',
+            anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNpcGdueWtzaGF4cnh3ZGVzd2ZjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY4OTA2MzMsImV4cCI6MjEwMjQ2NjYzM30.xJtq_3jNMLnXCyVSurdIuUnrlmZEyMWNO1-Azk_4k2E'
+        };
+
+        const supabase = supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.anonKey);
+        let currentUser = null;
+        let salesChart = null;
+
+        // ===== AUTH =====
+        async function checkAuth() {
+            const stored = localStorage.getItem('viewpoint_session');
+            if (!stored) { window.location.href = '/'; return null; }
+            const { user } = JSON.parse(stored);
+            currentUser = user;
+            if (user.roles.name !== 'admin') { window.location.href = '/'; return null; }
+            document.getElementById('userAvatar').textContent = user.full_name.charAt(0).toUpperCase();
+            document.getElementById('userName').textContent = user.full_name;
+            return user;
+        }
+
+        async function logout() {
+            await supabase.auth.signOut();
+            localStorage.removeItem('viewpoint_session');
+            window.location.href = '/';
+        }
+
+        // ===== DASHBOARD =====
+        async function loadDashboard() {
+            try {
+                const today = new Date().toISOString().split('T')[0];
+                
+                // Get orders
+                const { data: orders } = await supabase
+                    .from('orders')
+                    .select('*')
+                    .gte('created_at', today)
+                    .eq('status', 'paid');
+                
+                let total = 0, butchery = 0, restaurant = 0;
+                orders?.forEach(o => {
+                    total += o.total;
+                    if (o.order_type === 'butchery') butchery += o.total;
+                    else restaurant += o.total;
+                });
+                
+                document.getElementById('todaySales').textContent = `KES ${total.toFixed(2)}`;
+                document.getElementById('butcherySales').textContent = `KES ${butchery.toFixed(2)}`;
+                document.getElementById('restaurantSales').textContent = `KES ${restaurant.toFixed(2)}`;
+                
+                // Pending orders
+                const { data: pending } = await supabase
+                    .from('orders')
+                    .select('*')
+                    .eq('status', 'paid');
+                document.getElementById('pendingOrders').textContent = pending?.length || 0;
+                
+                // Low stock
+                const { data: products } = await supabase
+                    .from('products')
+                    .select('stock_quantity, reorder_level');
+                const low = products?.filter(p => p.stock_quantity <= p.reorder_level) || [];
+                document.getElementById('lowStock').textContent = low.length;
+                
+                // Recent orders
+                await loadRecentOrders();
+                await loadTopProducts();
+                await createSalesChart(orders || []);
+            } catch (e) { console.error('Dashboard error:', e); }
+        }
+
+        async function loadRecentOrders() {
+            const { data: orders } = await supabase
+                .from('orders')
+                .select('*')
+                .order('created_at', { ascending: false })
+                .limit(10);
+            
+            const table = document.getElementById('recentOrdersTable');
+            if (!orders?.length) { table.innerHTML = '<p style="color:var(--gray);text-align:center;">No orders</p>'; return; }
+            
+            let html = '<table class="data-table"><thead><tr><th>Order</th><th>Type</th><th>Total</th><th>Status</th><th>Time</th></tr></thead><tbody>';
+            orders.forEach(o => {
+                html += `<tr>
+                    <td>#${o.order_number || 'N/A'}</td>
+                    <td><span class="badge ${o.order_type}">${o.order_type}</span></td>
+                    <td>KES ${o.total.toFixed(2)}</td>
+                    <td><span class="status-badge ${o.status}">${o.status}</span></td>
+                    <td>${new Date(o.created_at).toLocaleTimeString()}</td>
+                </tr>`;
+            });
+            html += '</tbody></table>';
+            table.innerHTML = html;
+        }
+
+        async function loadTopProducts() {
+            const { data: items } = await supabase
+                .from('order_items')
+                .select('product_id, quantity, products(name)')
+                .limit(20);
+            
+            const list = document.getElementById('topProductsList');
+            if (!items?.length) { list.innerHTML = '<p style="color:var(--gray);">No data</p>'; return; }
+            
+            const counts = {};
+            items.forEach(item => {
+                const name = item.products?.name || 'Unknown';
+                counts[name] = (counts[name] || 0) + item.quantity;
+            });
+            
+            const sorted = Object.entries(counts).sort((a,b) => b[1] - a[1]).slice(0,5);
+            let html = '';
+            sorted.forEach(([name, qty]) => {
+                html += `<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f0f0f0;">
+                    <span>${name}</span>
+                    <span style="font-weight:bold;color:var(--primary);">${qty.toFixed(1)}</span>
+                </div>`;
+            });
+            list.innerHTML = html;
+        }
+
+        async function createSalesChart(orders) {
+            const daily = {};
+            orders.forEach(o => {
+                const date = new Date(o.created_at).toLocaleDateString();
+                daily[date] = (daily[date] || 0) + o.total;
+            });
+            
+            const ctx = document.getElementById('salesChart').getContext('2d');
+            if (salesChart) salesChart.destroy();
+            
+            salesChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: Object.keys(daily).length ? Object.keys(daily) : ['No Data'],
+                    datasets: [{
+                        label: 'Sales (KES)',
+                        data: Object.values(daily).length ? Object.values(daily) : [0],
+                        borderColor: '#8B0000',
+                        backgroundColor: 'rgba(139,0,0,0.1)',
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { display: false } }
+                }
+            });
+        }
+
+        // ===== PRODUCTS =====
+        async function loadProducts() {
+            const { data: products } = await supabase.from('products').select('*').order('name');
+            const table = document.getElementById('productsTable');
+            if (!products?.length) { table.innerHTML = '<p style="color:var(--gray);text-align:center;">No products</p>'; return; }
+            
+            let html = '<table class="data-table"><thead><tr><th>Name</th><th>Type</th><th>Price</th><th>Stock</th><th>Reorder</th><th>Actions</th></tr></thead><tbody>';
+            products.forEach(p => {
+                html += `<tr>
+                    <td>${p.name}</td>
+                    <td><span class="badge ${p.product_type}">${p.product_type}</span></td>
+                    <td>KES ${p.selling_price}</td>
+                    <td>${p.stock_quantity} ${p.unit}</td>
+                    <td>${p.reorder_level}</td>
+                    <td><button class="btn btn-warning" onclick="editProduct('${p.id}')" style="padding:4px 12px;font-size:12px;">Edit</button></td>
+                </tr>`;
+            });
+            html += '</tbody></table>';
+            table.innerHTML = html;
+        }
+
+        function showAddProduct() {
+            document.getElementById('productModalTitle').textContent = 'Add Product';
+            document.getElementById('productId').value = '';
+            document.getElementById('productForm').reset();
+            document.getElementById('productModal').style.display = 'block';
+        }
+
+        async function editProduct(id) {
+            const { data: p } = await supabase.from('products').select('*').eq('id', id).single();
+            if (!p) return;
+            document.getElementById('productModalTitle').textContent = 'Edit Product';
+            document.getElementById('productId').value = p.id;
+            document.getElementById('productName').value = p.name;
+            document.getElementById('productType').value = p.product_type;
+            document.getElementById('productPrice').value = p.selling_price;
+            document.getElementById('productUnit').value = p.unit;
+            document.getElementById('productStock').value = p.stock_quantity;
+            document.getElementById('productReorder').value = p.reorder_level;
+            document.getElementById('productModal').style.display = 'block';
+        }
+
+        document.getElementById('productForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const id = document.getElementById('productId').value;
+            const data = {
+                name: document.getElementById('productName').value,
+                product_type: document.getElementById('productType').value,
+                selling_price: parseFloat(document.getElementById('productPrice').value),
+                unit: document.getElementById('productUnit').value,
+                stock_quantity: parseFloat(document.getElementById('productStock').value),
+                reorder_level: parseFloat(document.getElementById('productReorder').value)
+            };
+            
+            if (id) {
+                await supabase.from('products').update(data).eq('id', id);
+            } else {
+                await supabase.from('products').insert(data);
+            }
+            
+            closeModal('productModal');
+            loadProducts();
+        });
+
+        // ===== USERS =====
+        async function loadUsers() {
+            const { data: users } = await supabase
+                .from('users')
+                .select('*, roles(name)')
+                .order('full_name');
+            
+            const table = document.getElementById('usersTable');
+            if (!users?.length) { table.innerHTML = '<p style="color:var(--gray);text-align:center;">No users</p>'; return; }
+            
+            let html = '<table class="data-table"><thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Status</th></tr></thead><tbody>';
+            users.forEach(u => {
+                html += `<tr>
+                    <td>${u.full_name}</td>
+                    <td>${u.email}</td>
+                    <td>${u.roles?.name || 'Unknown'}</td>
+                    <td><span class="status-badge ${u.status}">${u.status}</span></td>
+                </tr>`;
+            });
+            html += '</tbody></table>';
+            table.innerHTML = html;
+        }
+
+        // ===== UI HELPERS =====
+        function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+        
+        function startClock() {
+            setInterval(() => {
+                document.getElementById('currentTime').textContent = new Date().toLocaleTimeString();
+            }, 1000);
+        }
+
+        // ===== NAVIGATION =====
+        function setupNavigation() {
+            document.querySelectorAll('.sidebar-menu li[data-section]').forEach(item => {
+                item.addEventListener('click', () => {
+                    document.querySelectorAll('.sidebar-menu li').forEach(l => l.classList.remove('active'));
+                    item.classList.add('active');
+                    
+                    const section = item.dataset.section;
+                    ['dashboardContent', 'productsContent', 'usersContent'].forEach(id => {
+                        document.getElementById(id).style.display = 'none';
+                    });
+                    document.getElementById(section + 'Content').style.display = 'block';
+                });
+            });
+        }
+
+        // ===== INIT =====
+        document.addEventListener('DOMContentLoaded', async () => {
+            await checkAuth();
+            startClock();
+            setupNavigation();
+            await loadDashboard();
+            await loadProducts();
+            await loadUsers();
+            
+            document.getElementById('logoutBtn').addEventListener('click', logout);
+        });
+
+        // Close modal on outside click
+        window.onclick = (e) => {
+            if (e.target.classList.contains('modal')) {
+                e.target.style.display = 'none';
+            }
+        };
+    </script>
+</body>
+</html>
