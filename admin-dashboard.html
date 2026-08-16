@@ -3,28 +3,43 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard - Viewpoint POS</title>
+    <title>Viewpoint POS - Admin Dashboard</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
-        /* ===== COMPLETE ADMIN STYLES ===== */
+        /* ===== COMPLETE ULTIMATE STYLES ===== */
         * { margin: 0; padding: 0; box-sizing: border-box; }
         :root {
-            --primary: #6C3CE1; --primary-light: #8B5CF6; --primary-dark: #5B21B6;
+            --primary: #6C3CE1;
+            --primary-light: #8B5CF6;
+            --primary-dark: #5B21B6;
             --primary-gradient: linear-gradient(135deg, #6C3CE1, #8B5CF6);
-            --secondary: #1E293B; --success: #10B981; --danger: #EF4444;
-            --warning: #F59E0B; --info: #3B82F6;
-            --bg: #F0F2F5; --bg-card: #FFFFFF;
-            --text-primary: #0F172A; --text-secondary: #475569; --text-muted: #94A3B8;
+            --secondary: #1E293B;
+            --success: #10B981;
+            --danger: #EF4444;
+            --warning: #F59E0B;
+            --info: #3B82F6;
+            --bg: #F0F2F5;
+            --bg-card: #FFFFFF;
+            --text-primary: #0F172A;
+            --text-secondary: #475569;
+            --text-muted: #94A3B8;
             --border: #E2E8F0;
-            --shadow: 0 1px 3px rgba(0,0,0,0.06); --shadow-lg: 0 10px 40px rgba(0,0,0,0.08);
-            --radius: 16px; --radius-sm: 10px; --radius-full: 9999px;
-            --font: 'Inter', sans-serif; --transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
+            --shadow: 0 1px 3px rgba(0,0,0,0.06);
+            --shadow-lg: 0 10px 40px rgba(0,0,0,0.08);
+            --radius: 16px;
+            --radius-sm: 10px;
+            --radius-full: 9999px;
+            --font: 'Inter', sans-serif;
+            --transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
         }
         [data-theme="dark"] {
-            --bg: #0F172A; --bg-card: #1E293B;
-            --text-primary: #F1F5F9; --text-secondary: #94A3B8; --text-muted: #64748B;
+            --bg: #0F172A;
+            --bg-card: #1E293B;
+            --text-primary: #F1F5F9;
+            --text-secondary: #94A3B8;
+            --text-muted: #64748B;
             --border: #334155;
         }
         body { font-family: var(--font); background: var(--bg); color: var(--text-primary); min-height: 100vh; transition: var(--transition); overflow-x: hidden; }
@@ -244,7 +259,7 @@
         <ul class="sidebar-menu">
             <li class="menu-label">Main</li>
             <li class="active" data-section="dashboard"><i class="fas fa-th-large"></i> Dashboard</li>
-            <li data-section="pos"><i class="fas fa-shopping-cart"></i> POS</li>
+            <li data-section="pos"><i class="fas fa-shopping-cart"></i> POS <span class="badge">Live</span></li>
             <li data-section="orders"><i class="fas fa-clipboard-list"></i> Orders <span class="badge" id="orderBadge">0</span></li>
             <li class="menu-label">Management</li>
             <li data-section="products"><i class="fas fa-boxes"></i> Products</li>
