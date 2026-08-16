@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Viewpoint POS - Login</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         * {
             margin: 0;
@@ -208,16 +208,16 @@
         <div class="demo-credentials">
             <p><strong>Demo Credentials:</strong></p>
             <div class="credential-grid">
-                <div onclick="fillCredentials('admin@viewpoint.com', 'admin123')">
+                <div onclick="fillAndLogin('admin@viewpoint.com', 'admin123')">
                     <span class="badge badge-admin">Admin</span> admin@viewpoint.com / admin123
                 </div>
-                <div onclick="fillCredentials('cashier@viewpoint.com', 'cashier123')">
+                <div onclick="fillAndLogin('cashier@viewpoint.com', 'cashier123')">
                     <span class="badge badge-cashier">Cashier</span> cashier@viewpoint.com / cashier123
                 </div>
-                <div onclick="fillCredentials('butcher@viewpoint.com', 'butcher123')">
+                <div onclick="fillAndLogin('butcher@viewpoint.com', 'butcher123')">
                     <span class="badge badge-butcher">Butcher</span> butcher@viewpoint.com / butcher123
                 </div>
-                <div onclick="fillCredentials('kitchen@viewpoint.com', 'kitchen123')">
+                <div onclick="fillAndLogin('kitchen@viewpoint.com', 'kitchen123')">
                     <span class="badge badge-kitchen">Kitchen</span> kitchen@viewpoint.com / kitchen123
                 </div>
             </div>
@@ -239,13 +239,17 @@
             SUPABASE_CONFIG.anonKey
         );
 
-        // ===== FILL CREDENTIALS =====
-        function fillCredentials(email, password) {
+        // ===== FILL AND LOGIN =====
+        function fillAndLogin(email, password) {
             document.getElementById('email').value = email;
             document.getElementById('password').value = password;
+            // Auto-submit after a tiny delay
+            setTimeout(() => {
+                document.getElementById('loginForm').dispatchEvent(new Event('submit'));
+            }, 300);
         }
 
-        // ===== LOGIN HANDLER (ONLY LOGIN, NO USER CREATION) =====
+        // ===== LOGIN HANDLER =====
         document.getElementById('loginForm').addEventListener('submit', async (e) => {
             e.preventDefault();
 
@@ -272,7 +276,7 @@
                     throw authError;
                 }
 
-                // 2. Get user from database (MUST exist)
+                // 2. Get user from database (should exist now!)
                 const { data: userData, error: userError } = await supabaseClient
                     .from('users')
                     .select('*, roles!inner(name, permissions)')
@@ -283,13 +287,19 @@
                     throw new Error('User profile not found. Please contact admin.');
                 }
 
-                // 3. Store session
+                // 3. Update last login
+                await supabaseClient
+                    .from('users')
+                    .update({ last_login: new Date().toISOString() })
+                    .eq('id', userData.id);
+
+                // 4. Store session
                 localStorage.setItem('viewpoint_session', JSON.stringify({
                     user: userData,
                     session: authData.session
                 }));
 
-                // 4. Redirect based on role
+                // 5. Redirect based on role
                 const role = userData.roles?.name || 'cashier';
                 const redirectMap = {
                     'admin': 'admin-dashboard.html',
