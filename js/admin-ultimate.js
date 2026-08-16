@@ -1,6 +1,6 @@
 // ============================================================
 //  ULTIMATE ADMIN DASHBOARD - COMPLETE JAVASCRIPT
-//  ALL FEATURES INCLUDED
+//  ALL FEATURES INCLUDED - FIXED INFINITE LOOP
 // ============================================================
 
 // ===== CONFIG =====
@@ -23,13 +23,23 @@ let selectedProduct = null;
 let posMode = 'butchery';
 let isDark = localStorage.getItem('theme') === 'dark';
 let sessionTimer = null;
-let sessionTimeout = 30; // minutes
+let sessionTimeout = 30;
 
 // ===== EMOJIS =====
 const PRODUCT_EMOJIS = {
-    'Beef': '🥩', 'Goat Meat': '🐐', 'Chicken': '🍗', 'Liver': '❤️',
-    'Minced Meat': '🥩', 'Sausages': '🌭', 'Ugali': '🌽', 'Beef Stew': '🍲',
-    'Chapati': '🫓', 'Rice': '🍚', 'Chips': '🍟', 'Soda': '🥤', 'Water': '💧',
+    'Beef': '🥩',
+    'Goat Meat': '🐐',
+    'Chicken': '🍗',
+    'Liver': '❤️',
+    'Minced Meat': '🥩',
+    'Sausages': '🌭',
+    'Ugali': '🌽',
+    'Beef Stew': '🍲',
+    'Chapati': '🫓',
+    'Rice': '🍚',
+    'Chips': '🍟',
+    'Soda': '🥤',
+    'Water': '💧',
     'default': '📦'
 };
 
@@ -91,39 +101,86 @@ function resetSessionTimer() {
     }, timeout);
 }
 
-// Reset timer on user activity
 document.addEventListener('click', resetSessionTimer);
 document.addEventListener('keypress', resetSessionTimer);
 document.addEventListener('mousemove', resetSessionTimer);
 
 // ============================================================
-//  AUTH
+//  AUTH - FIXED! No Infinite Loop
 // ============================================================
 async function checkAuth() {
-    const stored = localStorage.getItem('viewpoint_session');
-    if (!stored) {
-        window.location.href = 'login.html';
-        return null;
-    }
     try {
-        const { user } = JSON.parse(stored);
-        currentUser = user;
-        if (user.roles?.name !== 'admin') {
+        const stored = localStorage.getItem('viewpoint_session');
+        if (!stored) {
+            console.log('❌ No session found');
             window.location.href = 'login.html';
             return null;
         }
-        document.getElementById('userAvatar').textContent = user.full_name.charAt(0).toUpperCase();
-        document.getElementById('userName').textContent = user.full_name;
-        resetSessionTimer();
-        return user;
-    } catch (e) {
+
+        let sessionData;
+        try {
+            sessionData = JSON.parse(stored);
+        } catch (e) {
+            console.log('❌ Invalid session');
+            localStorage.removeItem('viewpoint_session');
+            window.location.href = 'login.html';
+            return null;
+        }
+
+        const { user, session } = sessionData;
+
+        if (!user || !session) {
+            console.log('❌ Missing user or session');
+            localStorage.removeItem('viewpoint_session');
+            window.location.href = 'login.html';
+            return null;
+        }
+
+        console.log('📊 User data:', user);
+
+        // FIX: Check role_id instead of roles.name
+        if (user.role_id === 1) {
+            console.log('✅ User is admin (role_id: 1)');
+            if (!user.roles) {
+                user.roles = { name: 'admin', permissions: { all: true } };
+                localStorage.setItem('viewpoint_session', JSON.stringify({
+                    user: user,
+                    session: session
+                }));
+            }
+            currentUser = user;
+            document.getElementById('userAvatar').textContent = user.full_name?.charAt(0).toUpperCase() || 'A';
+            document.getElementById('userName').textContent = user.full_name || 'Admin';
+            resetSessionTimer();
+            return user;
+        }
+
+        if (user.roles?.name === 'admin') {
+            console.log('✅ User is admin (roles.name: admin)');
+            currentUser = user;
+            document.getElementById('userAvatar').textContent = user.full_name?.charAt(0).toUpperCase() || 'A';
+            document.getElementById('userName').textContent = user.full_name || 'Admin';
+            resetSessionTimer();
+            return user;
+        }
+
+        console.log('❌ User is not admin. role_id:', user.role_id, 'roles:', user.roles);
+        localStorage.removeItem('viewpoint_session');
+        window.location.href = 'login.html';
+        return null;
+
+    } catch (error) {
+        console.error('❌ Auth error:', error);
+        localStorage.removeItem('viewpoint_session');
         window.location.href = 'login.html';
         return null;
     }
 }
 
 async function logout() {
-    await supabaseClient.auth.signOut();
+    try {
+        await supabaseClient.auth.signOut();
+    } catch (e) {}
     localStorage.removeItem('viewpoint_session');
     window.location.href = 'login.html';
 }
@@ -218,7 +275,11 @@ async function loadDashboard() {
         const today = new Date().toISOString().split('T')[0];
         const { data: orders } = await supabaseClient.from('orders').select('*').gte('created_at', today);
 
-        let total = 0, butchery = 0, restaurant = 0, mpesa = 0, pending = 0;
+        let total = 0,
+            butchery = 0,
+            restaurant = 0,
+            mpesa = 0,
+            pending = 0;
         orders?.forEach(o => {
             if (o.status === 'paid' || o.status === 'completed') {
                 total += o.total;
@@ -242,8 +303,7 @@ async function loadDashboard() {
         await loadRecentOrders();
         await loadTopProducts();
         await createSalesChart(orders || []);
-        
-        // Check low stock and send alerts
+
         if (low.length > 0) {
             showToast(`⚠️ ${low.length} items are low on stock!`, 'warning');
         }
@@ -253,13 +313,15 @@ async function loadDashboard() {
 }
 
 async function loadRecentOrders() {
-    const { data: orders } = await supabaseClient.from('orders').select('*').order('created_at', { ascending: false }).limit(8);
+    const { data: orders } = await supabaseClient.from('orders').select('*').order('created_at', { ascending: false })
+        .limit(8);
     const table = document.getElementById('recentOrdersTable');
     if (!orders?.length) {
         table.innerHTML = '<div class="empty-state"><i class="fas fa-inbox"></i><p>No recent orders</p></div>';
         return;
     }
-    let html = '<div class="table-wrapper"><table class="data-table"><thead><tr><th>🔢 Order</th><th>📂 Type</th><th>💰 Total</th><th>📊 Status</th><th>⏰ Time</th></tr></thead><tbody>';
+    let html =
+        '<div class="table-wrapper"><table class="data-table"><thead><tr><th>🔢 Order</th><th>📂 Type</th><th>💰 Total</th><th>📊 Status</th><th>⏰ Time</th></tr></thead><tbody>';
     orders.forEach(o => {
         html += `<tr>
                 <td><strong>#${o.order_number || o.id.slice(0,8)}</strong></td>
@@ -274,7 +336,8 @@ async function loadRecentOrders() {
 }
 
 async function loadTopProducts() {
-    const { data: items } = await supabaseClient.from('order_items').select('product_id, quantity, products(name)').limit(30);
+    const { data: items } = await supabaseClient.from('order_items').select('product_id, quantity, products(name)')
+        .limit(30);
     const list = document.getElementById('topProductsList');
     if (!items?.length) {
         list.innerHTML = '<div class="empty-state"><p>No sales data</p></div>';
@@ -358,11 +421,13 @@ function switchPOS(mode) {
 }
 
 async function loadPOSProducts(type) {
-    const { data: productsData } = await supabaseClient.from('products').select('*').eq('product_type', type).eq('is_active', true);
+    const { data: productsData } = await supabaseClient.from('products').select('*').eq('product_type', type).eq(
+        'is_active', true);
     products = productsData || [];
     const container = document.getElementById('posContainer');
     if (!products.length) {
-        container.innerHTML = `<div class="empty-state"><i class="fas fa-box-open"></i><p>No ${type} products available</p></div>`;
+        container.innerHTML =
+            `<div class="empty-state"><i class="fas fa-box-open"></i><p>No ${type} products available</p></div>`;
         return;
     }
 
@@ -421,7 +486,8 @@ function selectPOSProduct(id) {
 
 function quickAmount(amount) {
     const el = document.getElementById('posAmount');
-    if (el) { el.value = amount || ''; calculateTotalPOS(); }
+    if (el) { el.value = amount || '';
+        calculateTotalPOS(); }
 }
 
 function calculateTotalPOS() {
@@ -443,7 +509,14 @@ function addToCartPOS() {
     if (!qty && !amount) { showToast('Enter quantity or amount', 'warning'); return; }
     const total = amount || (qty * product.selling_price);
     const quantity = qty || (amount / product.selling_price);
-    cart.push({ product_id: product.id, name: product.name, quantity, total, unit_price: product.selling_price, emoji: getEmoji(product.name) });
+    cart.push({
+        product_id: product.id,
+        name: product.name,
+        quantity,
+        total,
+        unit_price: product.selling_price,
+        emoji: getEmoji(product.name)
+    });
     updateCartDisplayPOS();
     showToast(`✅ ${product.name} added to cart`, 'success');
     document.getElementById('posQty').value = '';
@@ -452,7 +525,8 @@ function addToCartPOS() {
     document.querySelectorAll('.product-card').forEach(el => el.classList.remove('selected'));
 }
 
-function clearCartPOS() { cart = []; updateCartDisplayPOS(); }
+function clearCartPOS() { cart = [];
+    updateCartDisplayPOS(); }
 
 function updateCartDisplayPOS() {
     const container = document.getElementById('posCartItems');
@@ -479,20 +553,19 @@ async function processPaymentPOS(method) {
     const phone = document.getElementById('posPhone')?.value || '';
     if (method === 'mpesa' && !phone) { showToast('Enter customer phone number', 'error'); return; }
     const total = cart.reduce((sum, item) => sum + item.total, 0);
-    
-    // Check if customer exists, create if not
+
     if (phone) {
         const { data: existing } = await supabaseClient.from('customers').select('id').eq('phone', phone).single();
         if (!existing) {
             await supabaseClient.from('customers').insert({
                 name: phone,
                 phone: phone,
-                loyalty_points: 10 // Welcome bonus
+                loyalty_points: 10
             });
             showToast('🎉 New customer registered with 10 loyalty points!', 'success');
         }
     }
-    
+
     try {
         const { data: order, error } = await supabaseClient.from('orders').insert({
             order_type: posMode,
@@ -519,8 +592,7 @@ async function processPaymentPOS(method) {
             amount: total,
             status: 'pending'
         });
-        
-        // Audit log
+
         await supabaseClient.from('audit_logs').insert({
             user_id: currentUser.id,
             action: 'Payment Initiated',
@@ -528,26 +600,28 @@ async function processPaymentPOS(method) {
             entity_id: order.id,
             new_value: { total, method, items: cart.length }
         });
-        
+
         showToast(`⏳ Processing ${method.toUpperCase()} payment...`, 'info');
         await new Promise(resolve => setTimeout(resolve, 2000));
         await supabaseClient.from('orders').update({ status: 'paid', payment_status: 'completed' }).eq('id', order.id);
         await supabaseClient.from('payments').update({ status: 'completed' }).eq('order_id', order.id);
-        
-        // Update customer loyalty points
+
         if (phone) {
-            const { data: customer } = await supabaseClient.from('customers').select('loyalty_points').eq('phone', phone).single();
+            const { data: customer } = await supabaseClient.from('customers').select('loyalty_points').eq('phone', phone)
+                .single();
             if (customer) {
                 const points = Math.floor(total / 100);
-                await supabaseClient.from('customers').update({ loyalty_points: customer.loyalty_points + points }).eq('phone', phone);
+                await supabaseClient.from('customers').update({ loyalty_points: customer.loyalty_points + points })
+                    .eq('phone', phone);
             }
         }
-        
-        // Update inventory
+
         for (const item of items) {
-            const { data: product } = await supabaseClient.from('products').select('stock_quantity').eq('id', item.product_id).single();
+            const { data: product } = await supabaseClient.from('products').select('stock_quantity').eq('id', item
+                .product_id).single();
             if (product) {
-                await supabaseClient.from('products').update({ stock_quantity: product.stock_quantity - item.quantity }).eq('id', item.product_id);
+                await supabaseClient.from('products').update({ stock_quantity: product.stock_quantity - item
+                        .quantity }).eq('id', item.product_id);
             }
         }
         showToast(`✅ Payment successful! Order #${order.order_number || order.id.slice(0,8)}`, 'success');
@@ -567,11 +641,13 @@ async function processPaymentPOS(method) {
 // ============================================================
 async function loadOrders() {
     try {
-        const { data: orders } = await supabaseClient.from('orders').select('*, order_items(*, products(*))').order('created_at', { ascending: false });
+        const { data: orders } = await supabaseClient.from('orders').select('*, order_items(*, products(*))')
+            .order('created_at', { ascending: false });
         allOrders = orders || [];
         renderOrders(allOrders);
         updateOrderCounts(allOrders);
-        document.getElementById('orderBadge').textContent = allOrders.filter(o => o.status === 'paid' || o.status === 'preparing').length;
+        document.getElementById('orderBadge').textContent = allOrders.filter(o => o.status === 'paid' || o.status ===
+            'preparing').length;
         resetSessionTimer();
     } catch (e) { console.error('Orders error:', e); }
 }
@@ -586,7 +662,8 @@ function renderOrders(orders) {
     const container = document.getElementById('ordersContainer');
     document.getElementById('orderCount').textContent = filtered.length;
     if (!filtered.length) {
-        container.innerHTML = `<div class="empty-state"><i class="fas fa-inbox"></i><p>No ${currentFilter === 'all' ? '' : currentFilter} orders</p></div>`;
+        container.innerHTML =
+            `<div class="empty-state"><i class="fas fa-inbox"></i><p>No ${currentFilter === 'all' ? '' : currentFilter} orders</p></div>`;
         return;
     }
     container.innerHTML = `<div class="orders-grid">${filtered.map(order => {
@@ -652,7 +729,8 @@ async function updateOrderStatus(orderId, status) {
 }
 
 async function viewOrderDetails(orderId) {
-    const { data: order } = await supabaseClient.from('orders').select('*, order_items(*, products(*))').eq('id', orderId).single();
+    const { data: order } = await supabaseClient.from('orders').select('*, order_items(*, products(*))').eq('id', orderId)
+        .single();
     if (!order) return;
     document.getElementById('orderDetailTitle').textContent = `📋 Order #${order.order_number || order.id.slice(0,10)}`;
     const items = order.order_items || [];
@@ -715,20 +793,20 @@ async function loadKitchenOrders() {
             .select('*, order_items(*, products(*))')
             .in('status', ['paid', 'preparing', 'ready'])
             .order('created_at', { ascending: false });
-        
+
         const container = document.getElementById('kitchenOrders');
         document.getElementById('kitchenOrderCount').textContent = orders?.length || 0;
-        
+
         if (!orders?.length) {
             container.innerHTML = '<div class="empty-state"><i class="fas fa-utensils"></i><p>No kitchen orders</p></div>';
             return;
         }
-        
+
         let filtered = orders;
         if (kitchenFilter !== 'all') {
             filtered = orders.filter(o => o.status === kitchenFilter);
         }
-        
+
         container.innerHTML = `<div class="orders-grid">${filtered.map(order => {
             const items = order.order_items || [];
             return `
@@ -781,7 +859,8 @@ async function loadProducts() {
         table.innerHTML = '<div class="empty-state"><i class="fas fa-box-open"></i><p>No products</p></div>';
         return;
     }
-    let html = '<div class="table-wrapper"><table class="data-table"><thead><tr><th>📦 Name</th><th>📂 Type</th><th>💰 Price</th><th>📊 Stock</th><th>📌 Status</th><th>⚙️ Actions</th></tr></thead><tbody>';
+    let html =
+        '<div class="table-wrapper"><table class="data-table"><thead><tr><th>📦 Name</th><th>📂 Type</th><th>💰 Price</th><th>📊 Stock</th><th>📌 Status</th><th>⚙️ Actions</th></tr></thead><tbody>';
     products.forEach(p => {
         html += `<tr>
                 <td><strong>${getEmoji(p.name)} ${p.name}</strong></td>
@@ -869,7 +948,8 @@ async function loadInventory() {
         table.innerHTML = '<div class="empty-state"><i class="fas fa-warehouse"></i><p>No inventory</p></div>';
         return;
     }
-    let html = '<div class="table-wrapper"><table class="data-table"><thead><tr><th>📦 Product</th><th>📂 Type</th><th>📊 Stock</th><th>📏 Unit</th><th>⚠️ Reorder</th><th>📌 Status</th></tr></thead><tbody>';
+    let html =
+        '<div class="table-wrapper"><table class="data-table"><thead><tr><th>📦 Product</th><th>📂 Type</th><th>📊 Stock</th><th>📏 Unit</th><th>⚠️ Reorder</th><th>📌 Status</th></tr></thead><tbody>';
     products.forEach(p => {
         const isLow = p.stock_quantity <= p.reorder_level;
         html += `<tr style="${isLow ? 'background:rgba(245,158,11,0.08);' : ''}">
@@ -884,13 +964,15 @@ async function loadInventory() {
     html += '</tbody></table></div>';
     table.innerHTML = html;
 
-    const { data: movements } = await supabaseClient.from('inventory_movements').select('*, products(name)').order('created_at', { ascending: false }).limit(15);
+    const { data: movements } = await supabaseClient.from('inventory_movements').select('*, products(name)')
+        .order('created_at', { ascending: false }).limit(15);
     const movementTable = document.getElementById('stockMovementsTable');
     if (!movements?.length) {
         movementTable.innerHTML = '<div class="empty-state"><p>No movements</p></div>';
         return;
     }
-    let mHtml = '<div class="table-wrapper"><table class="data-table"><thead><tr><th>📦 Product</th><th>📂 Type</th><th>📊 Quantity</th><th>📅 Date</th></tr></thead><tbody>';
+    let mHtml =
+        '<div class="table-wrapper"><table class="data-table"><thead><tr><th>📦 Product</th><th>📂 Type</th><th>📊 Quantity</th><th>📅 Date</th></tr></thead><tbody>';
     movements.forEach(m => {
         const isAdd = m.quantity > 0;
         mHtml += `<tr>
@@ -921,7 +1003,8 @@ document.getElementById('stockForm').addEventListener('submit', async (e) => {
     const type = document.getElementById('adjustmentType').value;
     const qty = parseFloat(document.getElementById('adjustmentQty').value);
     const reason = document.getElementById('adjustmentReason').value || 'Manual adjustment';
-    const { data: product } = await supabaseClient.from('products').select('stock_quantity').eq('id', productId).single();
+    const { data: product } = await supabaseClient.from('products').select('stock_quantity').eq('id', productId)
+        .single();
     const newStock = type === 'add' ? product.stock_quantity + qty : product.stock_quantity - qty;
     await supabaseClient.from('products').update({ stock_quantity: newStock }).eq('id', productId);
     await supabaseClient.from('inventory_movements').insert({
@@ -970,13 +1053,26 @@ document.getElementById('userForm').addEventListener('submit', async (e) => {
         const phone = document.getElementById('userPhone').value;
         if (!fullName || !email || !password || !roleId) throw new Error('Fill all required fields');
         const { data: authData, error: authError } = await supabaseClient.auth.signUp({
-            email, password,
-            options: { data: { full_name: fullName, role: roleId === 1 ? 'admin' : roleId === 2 ? 'cashier' : roleId === 3 ? 'butcher' : 'kitchen' } }
+            email,
+            password,
+            options: {
+                data: {
+                    full_name: fullName,
+                    role: roleId === 1 ? 'admin' : roleId === 2 ? 'cashier' : roleId === 3 ? 'butcher' :
+                        'kitchen'
+                }
+            }
         });
         if (authError) throw new Error(authError.message);
         const username = email.replace(/[^a-zA-Z0-9]/g, '_').toLowerCase();
         await supabaseClient.from('users').insert({
-            username, email, full_name: fullName, phone: phone || null, role_id: roleId, status, two_fa_enabled: twoFA
+            username,
+            email,
+            full_name: fullName,
+            phone: phone || null,
+            role_id: roleId,
+            status,
+            two_fa_enabled: twoFA
         });
         await supabaseClient.from('audit_logs').insert({
             user_id: currentUser.id,
@@ -1002,10 +1098,13 @@ async function loadUsers() {
         table.innerHTML = '<div class="empty-state"><i class="fas fa-users"></i><p>No users</p></div>';
         return;
     }
-    let html = '<div class="table-wrapper"><table class="data-table"><thead><tr><th>👤 Name</th><th>📧 Email</th><th>👑 Role</th><th>🔐 2FA</th><th>📊 Status</th><th>⚙️ Actions</th></tr></thead><tbody>';
+    let html =
+        '<div class="table-wrapper"><table class="data-table"><thead><tr><th>👤 Name</th><th>📧 Email</th><th>👑 Role</th><th>🔐 2FA</th><th>📊 Status</th><th>⚙️ Actions</th></tr></thead><tbody>';
     usersData.forEach(u => {
-        const roleClass = u.roles?.name === 'admin' ? 'admin' : u.roles?.name === 'cashier' ? 'cashier' : u.roles?.name === 'butcher' ? 'butcher-role' : 'kitchen';
-        const roleEmoji = u.roles?.name === 'admin' ? '👑' : u.roles?.name === 'cashier' ? '💰' : u.roles?.name === 'butcher' ? '🥩' : '🍳';
+        const roleClass = u.roles?.name === 'admin' ? 'admin' : u.roles?.name === 'cashier' ? 'cashier' :
+            u.roles?.name === 'butcher' ? 'butcher-role' : 'kitchen';
+        const roleEmoji = u.roles?.name === 'admin' ? '👑' : u.roles?.name === 'cashier' ? '💰' : u.roles
+            ?.name === 'butcher' ? '🥩' : '🍳';
         html += `<tr>
                 <td><strong>${u.full_name}</strong></td>
                 <td>${u.email}</td>
@@ -1070,7 +1169,8 @@ async function loadCustomers() {
         table.innerHTML = '<div class="empty-state"><i class="fas fa-users"></i><p>No customers</p></div>';
         return;
     }
-    let html = '<div class="table-wrapper"><table class="data-table"><thead><tr><th>👤 Name</th><th>📱 Phone</th><th>📧 Email</th><th>⭐ Points</th><th>⚙️ Actions</th></tr></thead><tbody>';
+    let html =
+        '<div class="table-wrapper"><table class="data-table"><thead><tr><th>👤 Name</th><th>📱 Phone</th><th>📧 Email</th><th>⭐ Points</th><th>⚙️ Actions</th></tr></thead><tbody>';
     customers.forEach(c => {
         html += `<tr>
                 <td><strong>${c.name}</strong></td>
@@ -1130,7 +1230,8 @@ async function loadSuppliers() {
         table.innerHTML = '<div class="empty-state"><i class="fas fa-truck"></i><p>No suppliers</p></div>';
         return;
     }
-    let html = '<div class="table-wrapper"><table class="data-table"><thead><tr><th>🏢 Company</th><th>👤 Contact</th><th>📱 Phone</th><th>📦 Products</th><th>⚙️ Actions</th></tr></thead><tbody>';
+    let html =
+        '<div class="table-wrapper"><table class="data-table"><thead><tr><th>🏢 Company</th><th>👤 Contact</th><th>📱 Phone</th><th>📦 Products</th><th>⚙️ Actions</th></tr></thead><tbody>';
     suppliers.forEach(s => {
         html += `<tr>
                 <td><strong>${s.company}</strong></td>
@@ -1158,8 +1259,10 @@ async function deleteSupplier(id) {
 // ============================================================
 async function loadProfitData() {
     try {
-        const { data: orders } = await supabaseClient.from('orders').select('*, order_items(*, products(*))').eq('status', 'paid');
-        let revenue = 0, cost = 0;
+        const { data: orders } = await supabaseClient.from('orders').select('*, order_items(*, products(*))').eq('status',
+            'paid');
+        let revenue = 0,
+            cost = 0;
         orders?.forEach(order => {
             revenue += order.total;
             order.order_items?.forEach(item => {
@@ -1170,8 +1273,7 @@ async function loadProfitData() {
         document.getElementById('totalRevenue').textContent = `KES ${revenue.toFixed(2)}`;
         document.getElementById('totalCost').textContent = `KES ${cost.toFixed(2)}`;
         document.getElementById('netProfit').textContent = `KES ${profit.toFixed(2)}`;
-        
-        // Create profit chart
+
         const ctx = document.getElementById('profitChart').getContext('2d');
         if (profitChart) profitChart.destroy();
         profitChart = new Chart(ctx, {
@@ -1209,7 +1311,8 @@ async function loadAuditLogs() {
             table.innerHTML = '<div class="empty-state"><i class="fas fa-history"></i><p>No audit logs found</p></div>';
             return;
         }
-        let html = '<div class="table-wrapper"><table class="data-table"><thead><tr><th>👤 User</th><th>📋 Action</th><th>📂 Type</th><th>📅 Date</th></tr></thead><tbody>';
+        let html =
+            '<div class="table-wrapper"><table class="data-table"><thead><tr><th>👤 User</th><th>📋 Action</th><th>📂 Type</th><th>📅 Date</th></tr></thead><tbody>';
         logs.forEach(log => {
             html += `<tr>
                     <td>${log.users?.full_name || 'System'}</td>
@@ -1235,10 +1338,15 @@ async function generateReport() {
         .lte('created_at', end + 'T23:59:59');
     const container = document.getElementById('reportContent');
     if (!orders?.length) {
-        container.innerHTML = '<div class="empty-state"><i class="fas fa-calendar-alt"></i><p>No orders in this period</p></div>';
+        container.innerHTML =
+            '<div class="empty-state"><i class="fas fa-calendar-alt"></i><p>No orders in this period</p></div>';
         return;
     }
-    let total = 0, mpesa = 0, cash = 0, butchery = 0, restaurant = 0;
+    let total = 0,
+        mpesa = 0,
+        cash = 0,
+        butchery = 0,
+        restaurant = 0;
     orders.forEach(o => {
         total += o.total;
         if (o.payment_method === 'mpesa') mpesa += o.total;
@@ -1314,16 +1422,25 @@ document.getElementById('mpesaForm').addEventListener('submit', (e) => {
 });
 
 // ============================================================
-//  INIT
+//  INIT - FIXED!
 // ============================================================
 document.addEventListener('DOMContentLoaded', async () => {
-    await checkAuth();
+    console.log('🚀 Admin dashboard loading...');
+    const user = await checkAuth();
+    if (!user) {
+        console.log('❌ Auth failed, redirecting...');
+        return;
+    }
+
+    console.log('✅ User authenticated:', user.email);
     startClock();
+
     const today = new Date().toISOString().split('T')[0];
     const lastWeek = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
     document.getElementById('reportStart').value = lastWeek;
     document.getElementById('reportEnd').value = today;
     document.getElementById('auditDate').value = today;
+
     await loadDashboard();
     await loadProducts();
     await loadUsers();
@@ -1334,4 +1451,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     await loadKitchenOrders();
     await loadProfitData();
     await loadAuditLogs();
+
+    console.log('✅ Admin dashboard loaded successfully!');
 });
