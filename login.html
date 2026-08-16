@@ -239,29 +239,13 @@
             SUPABASE_CONFIG.anonKey
         );
 
-        // ===== FILL CREDENTIALS (click on demo) =====
+        // ===== FILL CREDENTIALS =====
         function fillCredentials(email, password) {
             document.getElementById('email').value = email;
             document.getElementById('password').value = password;
-            // Auto-submit
-            document.getElementById('loginForm').dispatchEvent(new Event('submit'));
         }
 
-        // ===== GET ROLE ID FROM EMAIL =====
-        function getRoleIdFromEmail(email) {
-            const roleMap = {
-                'admin': 1,
-                'cashier': 2,
-                'butcher': 3,
-                'kitchen': 4
-            };
-            for (const [role, id] of Object.entries(roleMap)) {
-                if (email.includes(role)) return id;
-            }
-            return 2; // Default to cashier
-        }
-
-        // ===== LOGIN HANDLER =====
+        // ===== LOGIN HANDLER (ONLY LOGIN, NO USER CREATION) =====
         document.getElementById('loginForm').addEventListener('submit', async (e) => {
             e.preventDefault();
 
@@ -277,51 +261,26 @@
             loginBtn.disabled = true;
 
             try {
-                // 1. Authenticate with Supabase
+                // 1. Authenticate with Supabase Auth
                 const { data: authData, error: authError } = await supabaseClient.auth
                     .signInWithPassword({ email, password });
 
                 if (authError) {
-                    // If user doesn't exist in Auth, try to create them
                     if (authError.message.includes('Invalid login credentials')) {
                         throw new Error('Invalid email or password. Please check your credentials.');
                     }
                     throw authError;
                 }
 
-                // 2. Get or create user in users table
-                let userData;
-                const { data: existingUser, error: userError } = await supabaseClient
+                // 2. Get user from database (MUST exist)
+                const { data: userData, error: userError } = await supabaseClient
                     .from('users')
                     .select('*, roles!inner(name, permissions)')
                     .eq('email', email)
-                    .maybeSingle();
+                    .single();
 
-                if (existingUser) {
-                    userData = existingUser;
-                } else {
-                    // Create user in users table with unique username
-                    const baseUsername = email.split('@')[0];
-                    // Use email as username to avoid duplicate
-                    const username = email.replace('@', '_').replace('.', '_');
-
-                    const { data: newUser, error: createError } = await supabaseClient
-                        .from('users')
-                        .insert({
-                            username: username,
-                            email: email,
-                            full_name: email.split('@')[0].charAt(0).toUpperCase() + email.split('@')[0].slice(1),
-                            role_id: getRoleIdFromEmail(email),
-                            status: 'active'
-                        })
-                        .select('*, roles!inner(name, permissions)')
-                        .single();
-
-                    if (createError) {
-                        console.error('Create user error:', createError);
-                        throw new Error('Failed to create user profile. Please contact admin.');
-                    }
-                    userData = newUser;
+                if (userError || !userData) {
+                    throw new Error('User profile not found. Please contact admin.');
                 }
 
                 // 3. Store session
