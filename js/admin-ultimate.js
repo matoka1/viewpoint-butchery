@@ -1,6 +1,7 @@
 // ============================================================
 //  ULTIMATE ADMIN DASHBOARD - COMPLETE JAVASCRIPT
 //  ALL FEATURES INCLUDED - FIXED INFINITE LOOP
+//  WITH EDIT USER & ADMIN RECEIPT GENERATION
 // ============================================================
 
 // ===== CONFIG =====
@@ -695,6 +696,10 @@ function renderOrders(orders) {
                         ${order.status === 'preparing' ? `<button class="btn btn-sm btn-success" onclick="updateOrderStatus('${order.id}','ready')"><i class="fas fa-check"></i> Ready</button>` : ''}
                         ${order.status === 'ready' ? `<button class="btn btn-sm btn-primary" onclick="updateOrderStatus('${order.id}','completed')"><i class="fas fa-flag-checkered"></i> Complete</button>` : ''}
                         <button class="btn btn-sm btn-outline" onclick="viewOrderDetails('${order.id}')"><i class="fas fa-eye"></i> View</button>
+                        <!-- NEW: Receipt Button -->
+                        <button class="btn btn-sm btn-success" onclick="generateAdminReceipt('${order.id}')" title="Generate Receipt">
+                            <i class="fas fa-receipt"></i> Receipt
+                        </button>
                     </div>
                 </div>
             `;
@@ -1091,6 +1096,7 @@ document.getElementById('userForm').addEventListener('submit', async (e) => {
     }
 });
 
+// ===== UPDATED loadUsers() with Edit Button =====
 async function loadUsers() {
     const { data: usersData } = await supabaseClient.from('users').select('*, roles(name)').order('full_name');
     const table = document.getElementById('usersTable');
@@ -1112,7 +1118,12 @@ async function loadUsers() {
                 <td>${u.two_fa_enabled ? '✅ Enabled' : '❌ Disabled'}</td>
                 <td><span class="status-badge ${u.status}">${u.status}</span></td>
                 <td>
-                    <button class="btn btn-sm btn-danger" onclick="deleteUser('${u.id}')"><i class="fas fa-trash"></i></button>
+                    <button class="btn btn-sm btn-warning" onclick="editUser('${u.id}')" title="Edit User">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="btn btn-sm btn-danger" onclick="deleteUser('${u.id}')" title="Delete User">
+                        <i class="fas fa-trash"></i>
+                    </button>
                 </td>
             </tr>`;
     });
@@ -1131,6 +1142,150 @@ async function deleteUser(id) {
     });
     showToast('User deleted', 'success');
     loadUsers();
+}
+
+// ============================================================
+//  EDIT USER - NEW FUNCTION
+// ============================================================
+async function editUser(userId) {
+    try {
+        const { data: user, error } = await supabaseClient
+            .from('users')
+            .select('*')
+            .eq('id', userId)
+            .single();
+
+        if (error || !user) {
+            showToast('❌ User not found!', 'error');
+            return;
+        }
+
+        document.getElementById('editUserId').value = user.id;
+        document.getElementById('editUserFullName').value = user.full_name || '';
+        document.getElementById('editUserEmail').value = user.email || '';
+        document.getElementById('editUserPhone').value = user.phone || '';
+        document.getElementById('editUserRole').value = user.role_id || 2;
+        document.getElementById('editUser2FA').value = user.two_fa_enabled ? 1 : 0;
+        document.getElementById('editUserStatus').value = user.status || 'active';
+        document.getElementById('editUserModalTitle').textContent = `✏️ Edit User: ${user.full_name}`;
+        
+        openModal('editUserModal');
+        
+    } catch (error) {
+        console.error('Edit user error:', error);
+        showToast('❌ Error loading user: ' + error.message, 'error');
+    }
+}
+
+// ============================================================
+//  EDIT USER FORM SUBMIT
+// ============================================================
+document.getElementById('editUserForm')?.addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const btn = document.getElementById('editUserSubmitBtn');
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<span class="spinner"></span> Updating...';
+    btn.disabled = true;
+
+    try {
+        const userId = document.getElementById('editUserId').value;
+        const data = {
+            full_name: document.getElementById('editUserFullName').value.trim(),
+            email: document.getElementById('editUserEmail').value.trim(),
+            phone: document.getElementById('editUserPhone').value.trim() || null,
+            role_id: parseInt(document.getElementById('editUserRole').value),
+            two_fa_enabled: parseInt(document.getElementById('editUser2FA').value) === 1,
+            status: document.getElementById('editUserStatus').value
+        };
+
+        const { error: updateError } = await supabaseClient
+            .from('users')
+            .update(data)
+            .eq('id', userId);
+
+        if (updateError) throw updateError;
+
+        await supabaseClient.from('audit_logs').insert({
+            user_id: currentUser.id,
+            action: 'User Updated',
+            entity_type: 'user',
+            entity_id: userId,
+            new_value: data
+        });
+
+        showToast('✅ User updated successfully!', 'success');
+        closeModal('editUserModal');
+        loadUsers();
+
+    } catch (error) {
+        console.error('Update user error:', error);
+        showToast('❌ Error updating user: ' + error.message, 'error');
+    } finally {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+    }
+});
+
+// ============================================================
+//  ADMIN RECEIPT GENERATION - NEW FUNCTION
+// ============================================================
+async function generateAdminReceipt(orderId) {
+    try {
+        const { data: order, error } = await supabaseClient
+            .from('orders')
+            .select('*, order_items(*, products(*)), users(full_name)')
+            .eq('id', orderId)
+            .single();
+
+        if (error || !order) {
+            showToast('❌ Order not found!', 'error');
+            return;
+        }
+
+        const items = order.order_items || [];
+        const businessName = 'Viewpoint Butchery & Restaurant';
+
+        let receipt = `
+╔════════════════════════════════════╗
+║       VIEWPOINT BUTCHERY           ║
+║          & RESTAURANT              ║
+╠════════════════════════════════════╣
+║  Receipt: ${order.order_number || order.id.slice(0,10)}
+║  Date: ${new Date().toLocaleDateString()}
+║  Time: ${new Date().toLocaleTimeString()}
+║  Cashier: ${order.users?.full_name || 'System'}
+║  ${order.customer_phone ? `Phone: ${order.customer_phone}` : ''}
+╠════════════════════════════════════╣
+║  ITEM                 QTY   AMOUNT ║
+╠════════════════════════════════════╣`;
+
+        items.forEach(item => {
+            const name = (item.products?.name || 'Unknown').padEnd(20);
+            const qty = item.quantity.toFixed(3).padEnd(8);
+            const amount = `KES ${item.total.toFixed(2)}`.padStart(10);
+            receipt += `
+║  ${name} ${qty} ${amount} ║`;
+        });
+
+        receipt += `
+╠════════════════════════════════════╣
+║  TOTAL:                    KES ${order.total.toFixed(2).padStart(8)} ║
+║  PAYMENT: ${(order.payment_method || 'N/A').toUpperCase().padEnd(22)} ║
+║  STATUS: PAID ✅                      ║
+╠════════════════════════════════════╣
+║  Thank you for shopping with us! 🙏 ║
+╚════════════════════════════════════╝`;
+
+        document.getElementById('receiptContent').textContent = receipt;
+        document.getElementById('receiptModal').classList.add('active');
+        
+        showToast('🧾 Receipt generated!', 'success');
+
+    } catch (error) {
+        console.error('Receipt error:', error);
+        showToast('❌ Error generating receipt: ' + error.message, 'error');
+    }
 }
 
 // ============================================================
