@@ -1,0 +1,1030 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sales Dashboard - Viewpoint POS</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --primary: #8B0000;
+            --primary-dark: #5C0000;
+            --primary-light: #C41E3A;
+            --secondary: #1a1a2e;
+            --accent: #e94560;
+            --success: #28a745;
+            --warning: #ffc107;
+            --danger: #dc3545;
+            --light: #f8f9fa;
+            --dark: #343a40;
+            --gray: #6c757d;
+            --shadow: 0 4px 6px rgba(0,0,0,0.1);
+            --radius: 12px;
+            --transition: all 0.3s ease;
+        }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f2f5; color: #333; }
+        
+        .dashboard { display: flex; min-height: 100vh; }
+        
+        .sidebar {
+            width: 220px;
+            background: var(--secondary);
+            color: white;
+            padding: 20px 0;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+            z-index: 100;
+        }
+        .sidebar-brand {
+            padding: 0 20px 20px;
+            font-size: 20px;
+            font-weight: bold;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            margin-bottom: 20px;
+        }
+        .sidebar-brand i { color: var(--accent); margin-right: 10px; }
+        .sidebar-menu { list-style: none; padding: 0; }
+        .sidebar-menu li {
+            padding: 12px 20px;
+            cursor: pointer;
+            transition: var(--transition);
+            border-left: 3px solid transparent;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .sidebar-menu li:hover, .sidebar-menu li.active {
+            background: rgba(255,255,255,0.1);
+            border-left-color: var(--accent);
+        }
+        .sidebar-menu li i { width: 20px; }
+        #logoutBtn { margin-top: 20px; border-top: 1px solid rgba(255,255,255,0.1); }
+        
+        .main-content {
+            margin-left: 220px;
+            flex: 1;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            background: white;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .top-bar .page-title h2 { color: var(--primary); }
+        .top-bar .page-title small { color: var(--gray); font-size: 14px; font-weight: normal; }
+        .user-info { display: flex; align-items: center; gap: 15px; }
+        .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--primary);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        .stat-card {
+            background: white;
+            padding: 18px 20px;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            border-left: 4px solid var(--primary);
+        }
+        .stat-card .stat-icon { font-size: 20px; color: var(--primary); margin-bottom: 5px; }
+        .stat-card .stat-value { font-size: 24px; font-weight: bold; color: var(--primary); }
+        .stat-card .stat-label { color: var(--gray); font-size: 12px; margin-top: 3px; }
+        .stat-card.butchery { border-left-color: #dc3545; }
+        .stat-card.restaurant { border-left-color: #28a745; }
+        .stat-card.mpesa { border-left-color: #17a2b8; }
+        .stat-card.cash { border-left-color: #ffc107; }
+        
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            margin-bottom: 20px;
+        }
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .card-header h3 { color: var(--dark); }
+        .card-header .badge-count {
+            background: var(--primary);
+            color: white;
+            padding: 2px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+        }
+        
+        .grid-2 { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; }
+        .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+        
+        @media (max-width: 992px) {
+            .grid-2, .grid-3 { grid-template-columns: 1fr; }
+        }
+        @media (max-width: 768px) {
+            .sidebar { width: 60px; }
+            .sidebar-brand span, .sidebar-menu li span { display: none; }
+            .main-content { margin-left: 60px; }
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+        
+        .filter-tabs {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+        }
+        .filter-btn {
+            padding: 8px 18px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            background: white;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 13px;
+            transition: var(--transition);
+        }
+        .filter-btn:hover { border-color: var(--primary); }
+        .filter-btn.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+        .filter-btn .count {
+            background: rgba(255,255,255,0.3);
+            padding: 0 8px;
+            border-radius: 10px;
+            font-size: 11px;
+            margin-left: 5px;
+        }
+        .filter-btn.active .count { background: rgba(255,255,255,0.2); }
+        
+        .orders-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 15px;
+        }
+        .order-card {
+            background: #f8f9fa;
+            border-radius: var(--radius);
+            padding: 16px;
+            border-left: 4px solid var(--primary);
+            transition: var(--transition);
+        }
+        .order-card:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
+        .order-card.butchery { border-left-color: #dc3545; }
+        .order-card.restaurant { border-left-color: #28a745; }
+        
+        .order-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .order-number { font-weight: bold; color: var(--dark); font-size: 15px; }
+        .order-type {
+            padding: 2px 12px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+        .order-type.butchery { background: #f8d7da; color: #721c24; }
+        .order-type.restaurant { background: #d4edda; color: #155724; }
+        
+        .status-badge {
+            padding: 3px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+        .status-badge.paid { background: #d4edda; color: #155724; }
+        .status-badge.preparing { background: #fff3cd; color: #856404; }
+        .status-badge.ready { background: #cce5ff; color: #004085; }
+        .status-badge.completed { background: #d1ecf1; color: #0c5460; }
+        .status-badge.pending { background: #e2e3e5; color: #383d41; }
+        
+        .order-items { margin: 10px 0; }
+        .order-item-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 4px 0;
+            font-size: 14px;
+            border-bottom: 1px solid #eee;
+        }
+        .order-item-row:last-child { border-bottom: none; }
+        
+        .order-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 2px solid #eee;
+        }
+        .order-total { font-weight: bold; color: var(--primary); font-size: 16px; }
+        .order-time { font-size: 12px; color: var(--gray); }
+        .order-phone { font-size: 12px; color: var(--gray); }
+        
+        .order-actions { display: flex; gap: 6px; margin-top: 10px; flex-wrap: wrap; }
+        .order-actions button {
+            padding: 5px 14px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 12px;
+            transition: var(--transition);
+        }
+        .btn-prepare { background: var(--warning); color: #333; }
+        .btn-ready { background: var(--success); color: white; }
+        .btn-complete { background: #17a2b8; color: white; }
+        .btn-cancel { background: var(--danger); color: white; }
+        .order-actions button:hover { opacity: 0.8; transform: scale(0.98); }
+        
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            font-size: 13px;
+        }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-primary:hover { background: var(--primary-dark); }
+        .btn-success { background: var(--success); color: white; }
+        .btn-danger { background: var(--danger); color: white; }
+        .btn-sm { padding: 4px 12px; font-size: 12px; }
+        
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: var(--gray);
+            grid-column: 1/-1;
+        }
+        .empty-state i { font-size: 48px; margin-bottom: 15px; opacity: 0.3; }
+        
+        .refresh-btn {
+            background: none;
+            border: none;
+            color: var(--primary);
+            cursor: pointer;
+            font-size: 18px;
+            transition: var(--transition);
+        }
+        .refresh-btn:hover { transform: rotate(180deg); }
+        
+        /* Scrollable order list */
+        .orders-scroll {
+            max-height: 70vh;
+            overflow-y: auto;
+            padding-right: 5px;
+        }
+        .orders-scroll::-webkit-scrollbar { width: 6px; }
+        .orders-scroll::-webkit-scrollbar-thumb { background: var(--primary); border-radius: 3px; }
+        .orders-scroll::-webkit-scrollbar-track { background: #f0f0f0; border-radius: 3px; }
+        
+        /* Quick stats mini cards */
+        .mini-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .mini-stat {
+            background: white;
+            padding: 12px 16px;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            text-align: center;
+        }
+        .mini-stat .number { font-size: 20px; font-weight: bold; }
+        .mini-stat .label { font-size: 11px; color: var(--gray); }
+        
+        .order-detail-modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        .order-detail-modal.active { display: flex; }
+        .modal-content {
+            background: white;
+            max-width: 500px;
+            width: 90%;
+            padding: 25px;
+            border-radius: var(--radius);
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #eee;
+        }
+        .modal-header .close {
+            cursor: pointer;
+            font-size: 24px;
+            color: var(--gray);
+            transition: var(--transition);
+        }
+        .modal-header .close:hover { color: var(--danger); }
+        
+        .receipt-content {
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            background: #f9f9f9;
+            padding: 20px;
+            border-radius: 8px;
+            white-space: pre-wrap;
+            line-height: 1.6;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        .pulse { animation: pulse 2s infinite; }
+    </style>
+</head>
+<body>
+    <div class="dashboard">
+        <!-- Sidebar -->
+        <nav class="sidebar">
+            <div class="sidebar-brand">
+                <i class="fas fa-store"></i>
+                <span>Viewpoint</span>
+            </div>
+            <ul class="sidebar-menu">
+                <li class="active" data-section="dashboard">
+                    <i class="fas fa-chart-line"></i>
+                    <span>Sales Dashboard</span>
+                </li>
+                <li data-section="pos" onclick="window.location.href='cashier-pos.html'">
+                    <i class="fas fa-shopping-cart"></i>
+                    <span>POS</span>
+                </li>
+                <li id="logoutBtn">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Logout</span>
+                </li>
+            </ul>
+        </nav>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Top Bar -->
+            <div class="top-bar">
+                <div class="page-title">
+                    <h2>📊 Sales Dashboard <small>Real-time order management</small></h2>
+                </div>
+                <div class="user-info">
+                    <span id="currentTime"></span>
+                    <button class="refresh-btn" onclick="loadAllData()" title="Refresh">
+                        <i class="fas fa-sync-alt"></i>
+                    </button>
+                    <div class="avatar" id="userAvatar">S</div>
+                    <span id="userName">Staff</span>
+                </div>
+            </div>
+
+            <!-- Quick Stats -->
+            <div class="mini-stats" id="quickStats">
+                <div class="mini-stat"><div class="number" id="totalOrders">0</div><div class="label">Total Orders</div></div>
+                <div class="mini-stat" style="border-top:3px solid #dc3545;"><div class="number" id="butcheryOrders">0</div><div class="label">Butchery</div></div>
+                <div class="mini-stat" style="border-top:3px solid #28a745;"><div class="number" id="restaurantOrders">0</div><div class="label">Restaurant</div></div>
+                <div class="mini-stat" style="border-top:3px solid #ffc107;"><div class="number" id="pendingOrders">0</div><div class="label">Pending</div></div>
+                <div class="mini-stat" style="border-top:3px solid #17a2b8;"><div class="number" id="completedOrders">0</div><div class="label">Completed</div></div>
+            </div>
+
+            <!-- Stats Cards -->
+            <div class="stats-grid">
+                <div class="stat-card"><div class="stat-icon"><i class="fas fa-money-bill-wave"></i></div><div class="stat-value" id="todaySales">KES 0</div><div class="stat-label">Today's Sales</div></div>
+                <div class="stat-card butchery"><div class="stat-icon"><i class="fas fa-drumstick-bite"></i></div><div class="stat-value" id="butcheryTotal">KES 0</div><div class="stat-label">Butchery Sales</div></div>
+                <div class="stat-card restaurant"><div class="stat-icon"><i class="fas fa-utensils"></i></div><div class="stat-value" id="restaurantTotal">KES 0</div><div class="stat-label">Restaurant Sales</div></div>
+                <div class="stat-card mpesa"><div class="stat-icon"><i class="fas fa-mobile-alt"></i></div><div class="stat-value" id="mpesaTotal">KES 0</div><div class="stat-label">M-Pesa Payments</div></div>
+                <div class="stat-card cash"><div class="stat-icon"><i class="fas fa-money-bill"></i></div><div class="stat-value" id="cashTotal">KES 0</div><div class="stat-label">Cash Payments</div></div>
+            </div>
+
+            <!-- Filter Tabs -->
+            <div class="filter-tabs" id="filterTabs">
+                <button class="filter-btn active" data-filter="all">📋 All Orders <span class="count" id="countAll">0</span></button>
+                <button class="filter-btn" data-filter="butchery">🥩 Butchery <span class="count" id="countButchery">0</span></button>
+                <button class="filter-btn" data-filter="restaurant">🍽️ Restaurant <span class="count" id="countRestaurant">0</span></button>
+                <button class="filter-btn" data-filter="paid">💰 Paid <span class="count" id="countPaid">0</span></button>
+                <button class="filter-btn" data-filter="preparing">🔪 Preparing <span class="count" id="countPreparing">0</span></button>
+                <button class="filter-btn" data-filter="ready">✅ Ready <span class="count" id="countReady">0</span></button>
+                <button class="filter-btn" data-filter="completed">🏁 Completed <span class="count" id="countCompleted">0</span></button>
+            </div>
+
+            <!-- Orders Grid -->
+            <div class="card">
+                <div class="card-header">
+                    <h3><i class="fas fa-clipboard-list"></i> Orders <span class="badge-count" id="orderCount">0</span></h3>
+                    <div>
+                        <span style="font-size:13px;color:var(--gray);margin-right:10px;">Auto-refresh: <span id="autoRefreshStatus">ON</span></span>
+                        <button class="btn btn-primary btn-sm" onclick="toggleAutoRefresh()">
+                            <i class="fas fa-pause"></i> Pause
+                        </button>
+                    </div>
+                </div>
+                <div class="orders-scroll" id="ordersContainer">
+                    <div class="empty-state">
+                        <i class="fas fa-inbox"></i>
+                        <p>No orders to display</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts Section -->
+            <div class="grid-2">
+                <div class="card">
+                    <div class="card-header"><h3>📈 Sales Trend</h3></div>
+                    <canvas id="salesChart" height="200"></canvas>
+                </div>
+                <div class="card">
+                    <div class="card-header"><h3>🏆 Top Products</h3></div>
+                    <div id="topProductsList">
+                        <p style="color:var(--gray);text-align:center;padding:20px 0;">Loading...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Order Detail Modal -->
+    <div id="orderDetailModal" class="order-detail-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalOrderTitle">Order Details</h3>
+                <span class="close" onclick="closeModal()">&times;</span>
+            </div>
+            <div id="modalBody"></div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        // ===== CONFIGURATION =====
+        const SUPABASE_CONFIG = {
+            url: 'https://sipgnykshaxrxwdeswfc.supabase.co',
+            anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNpcGdueWtzaGF4cnh3ZGVzd2ZjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY4OTA2MzMsImV4cCI6MjEwMjQ2NjYzM30.xJtq_3jNMLnXCyVSurdIuUnrlmZEyMWNO1-Azk_4k2E'
+        };
+
+        const supabase = supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.anonKey);
+        
+        // ===== STATE =====
+        let currentUser = null;
+        let currentFilter = 'all';
+        let allOrders = [];
+        let autoRefreshInterval = null;
+        let salesChart = null;
+        let isAutoRefresh = true;
+
+        // ===== AUTH =====
+        async function checkAuth() {
+            const stored = localStorage.getItem('viewpoint_session');
+            if (!stored) { window.location.href = '/'; return null; }
+            try {
+                const { user } = JSON.parse(stored);
+                currentUser = user;
+                document.getElementById('userAvatar').textContent = user.full_name.charAt(0).toUpperCase();
+                document.getElementById('userName').textContent = user.full_name;
+                return user;
+            } catch (e) {
+                window.location.href = '/';
+                return null;
+            }
+        }
+
+        // ===== LOAD ALL DATA =====
+        async function loadAllData() {
+            await loadOrders();
+            await loadStats();
+            await loadTopProducts();
+            await loadChartData();
+        }
+
+        // ===== LOAD ORDERS =====
+        async function loadOrders() {
+            try {
+                let query = supabase
+                    .from('orders')
+                    .select(`
+                        *,
+                        order_items(
+                            *,
+                            products(*)
+                        )
+                    `)
+                    .in('status', ['paid', 'preparing', 'ready', 'completed'])
+                    .order('created_at', { ascending: false })
+                    .limit(100);
+
+                const { data: orders, error } = await query;
+                
+                if (error) throw error;
+                
+                allOrders = orders || [];
+                renderOrders(allOrders);
+                updateCounts(allOrders);
+                
+            } catch (error) {
+                console.error('Error loading orders:', error);
+                document.getElementById('ordersContainer').innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-exclamation-triangle" style="color:var(--danger);"></i>
+                        <p>Error loading orders: ${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+
+        // ===== RENDER ORDERS =====
+        function renderOrders(orders) {
+            const container = document.getElementById('ordersContainer');
+            
+            // Apply filter
+            let filtered = orders;
+            if (currentFilter === 'butchery') {
+                filtered = orders.filter(o => o.order_type === 'butchery');
+            } else if (currentFilter === 'restaurant') {
+                filtered = orders.filter(o => o.order_type === 'restaurant');
+            } else if (['paid', 'preparing', 'ready', 'completed'].includes(currentFilter)) {
+                filtered = orders.filter(o => o.status === currentFilter);
+            }
+            
+            document.getElementById('orderCount').textContent = filtered.length;
+            
+            if (!filtered.length) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-inbox"></i>
+                        <p>No ${currentFilter === 'all' ? '' : currentFilter} orders</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = filtered.map(order => {
+                const items = order.order_items || [];
+                const isButchery = order.order_type === 'butchery';
+                const statusColors = {
+                    paid: 'paid',
+                    preparing: 'preparing',
+                    ready: 'ready',
+                    completed: 'completed',
+                    pending: 'pending'
+                };
+                
+                return `
+                    <div class="order-card ${order.order_type}">
+                        <div class="order-header">
+                            <span class="order-number">#${order.order_number || order.id.slice(0, 10)}</span>
+                            <span class="order-type ${order.order_type}">${order.order_type}</span>
+                            <span class="status-badge ${statusColors[order.status] || 'pending'}">${order.status.toUpperCase()}</span>
+                        </div>
+                        <div class="order-items">
+                            ${items.slice(0, 4).map(item => `
+                                <div class="order-item-row">
+                                    <span>${item.products?.name || 'Unknown'}</span>
+                                    <span>${item.quantity.toFixed(3)} ${item.products?.unit || ''}</span>
+                                    <span>KES ${item.total.toFixed(2)}</span>
+                                </div>
+                            `).join('')}
+                            ${items.length > 4 ? `<div class="order-item-row" style="color:var(--gray);font-style:italic;">+ ${items.length - 4} more items</div>` : ''}
+                        </div>
+                        <div class="order-footer">
+                            <span class="order-total">KES ${order.total.toFixed(2)}</span>
+                            <span class="order-time">${new Date(order.created_at).toLocaleTimeString()}</span>
+                        </div>
+                        ${order.customer_phone ? `<div class="order-phone"><i class="fas fa-phone"></i> ${order.customer_phone}</div>` : ''}
+                        <div class="order-actions">
+                            ${order.status === 'paid' ? `
+                                <button class="btn-prepare" onclick="updateOrderStatus('${order.id}', 'preparing')">
+                                    <i class="fas fa-play"></i> Start
+                                </button>
+                            ` : ''}
+                            ${order.status === 'preparing' ? `
+                                <button class="btn-ready" onclick="updateOrderStatus('${order.id}', 'ready')">
+                                    <i class="fas fa-check"></i> Ready
+                                </button>
+                            ` : ''}
+                            ${order.status === 'ready' ? `
+                                <button class="btn-complete" onclick="updateOrderStatus('${order.id}', 'completed')">
+                                    <i class="fas fa-flag-checkered"></i> Complete
+                                </button>
+                            ` : ''}
+                            ${order.status === 'completed' ? `
+                                <span style="color:var(--success);padding:5px 10px;font-size:12px;">
+                                    <i class="fas fa-check-circle"></i> Done
+                                </span>
+                            ` : ''}
+                            <button class="btn-cancel" onclick="viewOrderDetails('${order.id}')" style="padding:5px 10px;font-size:12px;">
+                                <i class="fas fa-eye"></i> View
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // ===== UPDATE ORDER STATUS =====
+        async function updateOrderStatus(orderId, status) {
+            try {
+                const { error } = await supabase
+                    .from('orders')
+                    .update({ 
+                        status: status, 
+                        updated_at: new Date().toISOString(),
+                        ...(status === 'completed' ? { completed_at: new Date().toISOString() } : {})
+                    })
+                    .eq('id', orderId);
+                
+                if (error) throw error;
+                
+                // Refresh data
+                await loadAllData();
+                
+            } catch (error) {
+                alert('Error updating order: ' + error.message);
+            }
+        }
+
+        // ===== VIEW ORDER DETAILS =====
+        async function viewOrderDetails(orderId) {
+            try {
+                const { data: order, error } = await supabase
+                    .from('orders')
+                    .select(`
+                        *,
+                        order_items(
+                            *,
+                            products(*)
+                        )
+                    `)
+                    .eq('id', orderId)
+                    .single();
+                
+                if (error) throw error;
+                
+                const modal = document.getElementById('orderDetailModal');
+                const body = document.getElementById('modalBody');
+                
+                document.getElementById('modalOrderTitle').textContent = `Order #${order.order_number || order.id.slice(0, 10)}`;
+                
+                const items = order.order_items || [];
+                
+                let receipt = `
+================================
+     VIEWPOINT BUTCHERY
+     & RESTAURANT
+================================
+Order: ${order.order_number || order.id.slice(0, 10)}
+Type: ${order.order_type.toUpperCase()}
+Date: ${new Date(order.created_at).toLocaleDateString()}
+Time: ${new Date(order.created_at).toLocaleTimeString()}
+Status: ${order.status.toUpperCase()}
+${order.customer_phone ? `Phone: ${order.customer_phone}` : ''}
+--------------------------------
+ITEM              QTY      AMOUNT
+`;
+                items.forEach(item => {
+                    const name = item.products?.name || 'Unknown';
+                    const paddedName = name.padEnd(18);
+                    receipt += `${paddedName} ${item.quantity.toFixed(3)}${item.products?.unit || ''}  KES ${item.total.toFixed(2)}\n`;
+                });
+                
+                receipt += `
+--------------------------------
+TOTAL:                    KES ${order.total.toFixed(2)}
+PAYMENT: ${(order.payment_method || 'N/A').toUpperCase()}
+================================
+${BUSINESS_CONFIG?.receiptFooter || 'Thank you for shopping with Viewpoint!'}
+================================
+`;
+                
+                body.innerHTML = `
+                    <div class="receipt-content">${receipt}</div>
+                    <div style="margin-top:15px;display:flex;gap:10px;flex-wrap:wrap;">
+                        ${order.status === 'paid' ? `
+                            <button class="btn btn-warning" onclick="updateOrderStatus('${order.id}', 'preparing');closeModal();">
+                                <i class="fas fa-play"></i> Start Preparing
+                            </button>
+                        ` : ''}
+                        ${order.status === 'preparing' ? `
+                            <button class="btn btn-success" onclick="updateOrderStatus('${order.id}', 'ready');closeModal();">
+                                <i class="fas fa-check"></i> Mark Ready
+                            </button>
+                        ` : ''}
+                        ${order.status === 'ready' ? `
+                            <button class="btn btn-primary" onclick="updateOrderStatus('${order.id}', 'completed');closeModal();">
+                                <i class="fas fa-flag-checkered"></i> Complete
+                            </button>
+                        ` : ''}
+                        <button class="btn btn-danger" onclick="closeModal();">
+                            <i class="fas fa-times"></i> Close
+                        </button>
+                    </div>
+                `;
+                
+                modal.classList.add('active');
+                
+            } catch (error) {
+                alert('Error loading order details: ' + error.message);
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('orderDetailModal').classList.remove('active');
+        }
+
+        // ===== LOAD STATS =====
+        async function loadStats() {
+            try {
+                const today = new Date().toISOString().split('T')[0];
+                
+                const { data: orders, error } = await supabase
+                    .from('orders')
+                    .select('*')
+                    .gte('created_at', today);
+                
+                if (error) throw error;
+                
+                let total = 0, butchery = 0, restaurant = 0, mpesa = 0, cash = 0;
+                
+                orders?.forEach(o => {
+                    if (o.status === 'paid' || o.status === 'completed') {
+                        total += o.total;
+                        if (o.order_type === 'butchery') butchery += o.total;
+                        else restaurant += o.total;
+                        if (o.payment_method === 'mpesa') mpesa += o.total;
+                        else if (o.payment_method === 'cash') cash += o.total;
+                    }
+                });
+                
+                document.getElementById('todaySales').textContent = `KES ${total.toFixed(2)}`;
+                document.getElementById('butcheryTotal').textContent = `KES ${butchery.toFixed(2)}`;
+                document.getElementById('restaurantTotal').textContent = `KES ${restaurant.toFixed(2)}`;
+                document.getElementById('mpesaTotal').textContent = `KES ${mpesa.toFixed(2)}`;
+                document.getElementById('cashTotal').textContent = `KES ${cash.toFixed(2)}`;
+                
+                // Quick stats
+                const allCompleted = orders?.filter(o => o.status === 'completed' || o.status === 'paid') || [];
+                const butcheryOrders = allCompleted.filter(o => o.order_type === 'butchery');
+                const restaurantOrders = allCompleted.filter(o => o.order_type === 'restaurant');
+                const pending = orders?.filter(o => o.status === 'paid' || o.status === 'preparing') || [];
+                const completed = orders?.filter(o => o.status === 'completed') || [];
+                
+                document.getElementById('totalOrders').textContent = allCompleted.length;
+                document.getElementById('butcheryOrders').textContent = butcheryOrders.length;
+                document.getElementById('restaurantOrders').textContent = restaurantOrders.length;
+                document.getElementById('pendingOrders').textContent = pending.length;
+                document.getElementById('completedOrders').textContent = completed.length;
+                
+            } catch (error) {
+                console.error('Stats error:', error);
+            }
+        }
+
+        // ===== UPDATE COUNTS =====
+        function updateCounts(orders) {
+            const total = orders.length;
+            const butchery = orders.filter(o => o.order_type === 'butchery').length;
+            const restaurant = orders.filter(o => o.order_type === 'restaurant').length;
+            const paid = orders.filter(o => o.status === 'paid').length;
+            const preparing = orders.filter(o => o.status === 'preparing').length;
+            const ready = orders.filter(o => o.status === 'ready').length;
+            const completed = orders.filter(o => o.status === 'completed').length;
+            
+            document.getElementById('countAll').textContent = total;
+            document.getElementById('countButchery').textContent = butchery;
+            document.getElementById('countRestaurant').textContent = restaurant;
+            document.getElementById('countPaid').textContent = paid;
+            document.getElementById('countPreparing').textContent = preparing;
+            document.getElementById('countReady').textContent = ready;
+            document.getElementById('countCompleted').textContent = completed;
+        }
+
+        // ===== LOAD TOP PRODUCTS =====
+        async function loadTopProducts() {
+            try {
+                const { data: items, error } = await supabase
+                    .from('order_items')
+                    .select('product_id, quantity, products(name)')
+                    .limit(50);
+                
+                if (error) throw error;
+                
+                const list = document.getElementById('topProductsList');
+                if (!items?.length) {
+                    list.innerHTML = '<p style="color:var(--gray);text-align:center;padding:20px 0;">No sales data</p>';
+                    return;
+                }
+                
+                const counts = {};
+                items.forEach(item => {
+                    const name = item.products?.name || 'Unknown';
+                    counts[name] = (counts[name] || 0) + (item.quantity || 0);
+                });
+                
+                const sorted = Object.entries(counts).sort((a,b) => b[1] - a[1]).slice(0, 6);
+                
+                let html = '';
+                const colors = ['#8B0000', '#dc3545', '#ffc107', '#28a745', '#17a2b8', '#6f42c1'];
+                sorted.forEach(([name, qty], i) => {
+                    html += `
+                        <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #f0f0f0;">
+                            <span>
+                                <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${colors[i % colors.length]};margin-right:10px;"></span>
+                                ${name}
+                            </span>
+                            <span style="font-weight:bold;color:var(--primary);">${qty.toFixed(1)}</span>
+                        </div>
+                    `;
+                });
+                
+                list.innerHTML = html || '<p style="color:var(--gray);text-align:center;padding:20px 0;">No data</p>';
+                
+            } catch (error) {
+                console.error('Top products error:', error);
+            }
+        }
+
+        // ===== LOAD CHART =====
+        async function loadChartData() {
+            try {
+                const { data: orders, error } = await supabase
+                    .from('orders')
+                    .select('created_at, total, status')
+                    .in('status', ['paid', 'completed'])
+                    .order('created_at', { ascending: true })
+                    .limit(50);
+                
+                if (error) throw error;
+                
+                const daily = {};
+                orders?.forEach(o => {
+                    const date = new Date(o.created_at).toLocaleDateString();
+                    daily[date] = (daily[date] || 0) + o.total;
+                });
+                
+                const ctx = document.getElementById('salesChart').getContext('2d');
+                if (salesChart) salesChart.destroy();
+                
+                const labels = Object.keys(daily);
+                const data = Object.values(daily);
+                
+                salesChart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: labels.length ? labels : ['No Data'],
+                        datasets: [{
+                            label: 'Sales (KES)',
+                            data: data.length ? data : [0],
+                            borderColor: '#8B0000',
+                            backgroundColor: 'rgba(139,0,0,0.1)',
+                            fill: true,
+                            tension: 0.4,
+                            pointBackgroundColor: '#8B0000',
+                            pointBorderColor: '#fff',
+                            pointBorderWidth: 2
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: true,
+                        plugins: {
+                            legend: { display: false }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    callback: function(value) {
+                                        return 'KES ' + value.toLocaleString();
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+                
+            } catch (error) {
+                console.error('Chart error:', error);
+            }
+        }
+
+        // ===== FILTER TABS =====
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentFilter = btn.dataset.filter;
+                renderOrders(allOrders);
+            });
+        });
+
+        // ===== AUTO REFRESH =====
+        function startAutoRefresh() {
+            if (autoRefreshInterval) clearInterval(autoRefreshInterval);
+            autoRefreshInterval = setInterval(() => {
+                if (isAutoRefresh) {
+                    loadAllData();
+                }
+            }, 15000); // Refresh every 15 seconds
+        }
+
+        function toggleAutoRefresh() {
+            isAutoRefresh = !isAutoRefresh;
+            document.getElementById('autoRefreshStatus').textContent = isAutoRefresh ? 'ON' : 'OFF';
+            document.querySelector('[onclick="toggleAutoRefresh()"]').innerHTML = 
+                isAutoRefresh ? '<i class="fas fa-pause"></i> Pause' : '<i class="fas fa-play"></i> Resume';
+        }
+
+        // ===== LOGOUT =====
+        document.getElementById('logoutBtn').addEventListener('click', async () => {
+            await supabase.auth.signOut();
+            localStorage.removeItem('viewpoint_session');
+            if (autoRefreshInterval) clearInterval(autoRefreshInterval);
+            window.location.href = '/';
+        });
+
+        // ===== CLOCK =====
+        function startClock() {
+            setInterval(() => {
+                document.getElementById('currentTime').textContent = new Date().toLocaleTimeString();
+            }, 1000);
+        }
+
+        // ===== REAL-TIME SUBSCRIPTION =====
+        function setupRealtime() {
+            supabase
+                .channel('sales-dashboard')
+                .on(
+                    'postgres_changes',
+                    { event: '*', schema: 'public', table: 'orders' },
+                    () => { 
+                        if (isAutoRefresh) loadAllData(); 
+                    }
+                )
+                .on(
+                    'postgres_changes',
+                    { event: '*', schema: 'public', table: 'order_items' },
+                    () => { 
+                        if (isAutoRefresh) loadAllData(); 
+                    }
+                )
+                .subscribe();
+        }
+
+        // ===== INIT =====
+        document.addEventListener('DOMContentLoaded', async () => {
+            await checkAuth();
+            startClock();
+            await loadAllData();
+            setupRealtime();
+            startAutoRefresh();
+            
+            // Close modal on outside click
+            document.getElementById('orderDetailModal').addEventListener('click', (e) => {
+                if (e.target === e.currentTarget) closeModal();
+            });
+        });
+    </script>
+</body>
+</html>
