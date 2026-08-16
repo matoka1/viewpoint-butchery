@@ -1,6 +1,5 @@
 // ============================================================
-//  ADMIN DASHBOARD - COMPLETE JAVASCRIPT
-//  Place this in js/admin.js
+//  ADMIN DASHBOARD - COMPLETE UPDATED JAVASCRIPT
 // ============================================================
 
 // ===== CONFIG =====
@@ -8,11 +7,7 @@ const SUPABASE_CONFIG = {
     url: 'https://sipgnykshaxrxwdeswfc.supabase.co',
     anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNpcGdueWtzaGF4cnh3ZGVzd2ZjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY4OTA2MzMsImV4cCI6MjEwMjQ2NjYzM30.xJtq_3jNMLnXCyVSurdIuUnrlmZEyMWNO1-Azk_4k2E'
 };
-
-const supabaseClient = supabase.createClient(
-    SUPABASE_CONFIG.url,
-    SUPABASE_CONFIG.anonKey
-);
+const supabaseClient = supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.anonKey);
 
 // ===== STATE =====
 let currentUser = null;
@@ -27,19 +22,9 @@ let isDark = localStorage.getItem('theme') === 'dark';
 
 // ===== EMOJIS =====
 const PRODUCT_EMOJIS = {
-    'Beef': '🥩',
-    'Goat Meat': '🐐',
-    'Chicken': '🍗',
-    'Liver': '❤️',
-    'Minced Meat': '🥩',
-    'Sausages': '🌭',
-    'Ugali': '🌽',
-    'Beef Stew': '🍲',
-    'Chapati': '🫓',
-    'Rice': '🍚',
-    'Chips': '🍟',
-    'Soda': '🥤',
-    'Water': '💧',
+    'Beef': '🥩', 'Goat Meat': '🐐', 'Chicken': '🍗', 'Liver': '❤️',
+    'Minced Meat': '🥩', 'Sausages': '🌭', 'Ugali': '🌽', 'Beef Stew': '🍲',
+    'Chapati': '🫓', 'Rice': '🍚', 'Chips': '🍟', 'Soda': '🥤', 'Water': '💧',
     'default': '📦'
 };
 
@@ -75,7 +60,6 @@ function setTheme(dark) {
     localStorage.setItem('theme', dark ? 'dark' : 'light');
     document.getElementById('themeToggle').innerHTML = `<i class="fas ${dark ? 'fa-sun' : 'fa-moon'}"></i>`;
 }
-
 document.getElementById('themeToggle').addEventListener('click', () => setTheme(!isDark));
 setTheme(isDark);
 
