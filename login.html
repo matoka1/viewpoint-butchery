@@ -99,9 +99,25 @@
             vertical-align: middle; margin-right: 8px;
         }
         @keyframes spin { to { transform: rotate(360deg); } }
-        @media (max-width: 480px) {
-            .login-box { padding: 24px 20px; }
+
+        /* Debug console */
+        .debug-console {
+            margin-top: 16px;
+            padding: 12px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            color: #00ff00;
+            max-height: 120px;
+            overflow-y: auto;
+            display: none;
+            border: 1px solid rgba(0,255,0,0.1);
         }
+        .debug-console .debug-line { padding: 2px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .debug-console .error { color: #ff4444; }
+        .debug-console .success { color: #44ff44; }
+        .debug-console .info { color: #44aaff; }
     </style>
 </head>
 <body>
@@ -145,6 +161,11 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Debug Console -->
+            <div id="debugConsole" class="debug-console">
+                <div class="debug-line info">🔍 Debug console ready...</div>
+            </div>
         </div>
     </div>
 
@@ -156,6 +177,19 @@
             anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNpcGdueWtzaGF4cnh3ZGVzd2ZjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY4OTA2MzMsImV4cCI6MjEwMjQ2NjYzM30.xJtq_3jNMLnXCyVSurdIuUnrlmZEyMWNO1-Azk_4k2E'
         };
         const supabaseClient = supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.anonKey);
+
+        // ===== DEBUG LOG =====
+        function debugLog(message, type = 'info') {
+            const console = document.getElementById('debugConsole');
+            console.style.display = 'block';
+            const line = document.createElement('div');
+            line.className = `debug-line ${type}`;
+            const time = new Date().toLocaleTimeString();
+            line.textContent = `[${time}] ${message}`;
+            console.appendChild(line);
+            console.scrollTop = console.scrollHeight;
+            console.log(`[${type.toUpperCase()}] ${message}`);
+        }
 
         // ===== FILL LOGIN =====
         function fillLogin(email, password) {
@@ -177,13 +211,25 @@
             loginBtn.innerHTML = '<span class="spinner"></span> Logging in...';
             loginBtn.disabled = true;
 
+            // Clear debug
+            document.getElementById('debugConsole').innerHTML = '';
+            debugLog('🚀 Starting login process...', 'info');
+            debugLog(`📧 Email: ${email}`, 'info');
+
             try {
                 // 1. Authenticate with Supabase Auth
+                debugLog('🔐 Authenticating with Supabase Auth...', 'info');
                 const { data: authData, error: authError } = await supabaseClient.auth
                     .signInWithPassword({ email, password });
-                if (authError) throw new Error(authError.message);
 
-                // 2. Get user from database
+                if (authError) {
+                    debugLog(`❌ Auth error: ${authError.message}`, 'error');
+                    throw new Error(authError.message);
+                }
+                debugLog('✅ Auth successful!', 'success');
+
+                // 2. Get user from database with role
+                debugLog('📊 Fetching user from database...', 'info');
                 const { data: userData, error: userError } = await supabaseClient
                     .from('users')
                     .select('*')
@@ -191,31 +237,42 @@
                     .single();
 
                 if (userError || !userData) {
+                    debugLog(`❌ User fetch error: ${userError?.message || 'User not found'}`, 'error');
                     throw new Error('User profile not found. Please contact admin.');
                 }
 
+                debugLog(`✅ User found: ${userData.full_name} (role_id: ${userData.role_id})`, 'success');
+
                 // 3. Get the role separately
+                debugLog('👑 Fetching role...', 'info');
                 const { data: roleData, error: roleError } = await supabaseClient
                     .from('roles')
                     .select('*')
                     .eq('id', userData.role_id)
                     .single();
 
+                let roleName = 'cashier';
                 if (roleError) {
-                    // Default to cashier if role not found
-                    userData.roles = { name: 'cashier', permissions: {} };
+                    debugLog(`⚠️ Role fetch error: ${roleError.message}`, 'warning');
+                    debugLog('⚠️ Defaulting to "cashier"', 'warning');
                 } else {
-                    userData.roles = roleData;
+                    roleName = roleData.name;
+                    debugLog(`✅ Role found: ${roleName}`, 'success');
                 }
 
-                // 4. Store session
+                // 4. Store session with role
+                const userWithRole = {
+                    ...userData,
+                    roles: roleData || { name: 'cashier', permissions: {} }
+                };
+
+                debugLog(`💾 Storing session for ${email} with role: ${roleName}`, 'info');
                 localStorage.setItem('viewpoint_session', JSON.stringify({
-                    user: userData,
+                    user: userWithRole,
                     session: authData.session
                 }));
 
                 // 5. Redirect based on role
-                const role = userData.roles?.name || 'cashier';
                 const redirectMap = {
                     'admin': 'admin-dashboard.html',
                     'cashier': 'cashier-pos.html',
@@ -223,10 +280,16 @@
                     'kitchen': 'sales-dashboard.html'
                 };
 
-                window.location.href = redirectMap[role] || 'admin-dashboard.html';
+                const redirectUrl = redirectMap[roleName] || 'admin-dashboard.html';
+                debugLog(`🔄 Redirecting to: ${redirectUrl} (role: ${roleName})`, 'success');
+
+                // Show success briefly before redirect
+                setTimeout(() => {
+                    window.location.href = redirectUrl;
+                }, 500);
 
             } catch (error) {
-                console.error('Login error:', error);
+                debugLog(`❌ Login failed: ${error.message}`, 'error');
                 errorDiv.textContent = error.message || 'Login failed. Please try again.';
                 errorDiv.style.display = 'block';
                 loginBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Login';
@@ -248,10 +311,22 @@
                             'butcher': 'sales-dashboard.html',
                             'kitchen': 'sales-dashboard.html'
                         };
-                        window.location.href = redirectMap[role] || 'admin-dashboard.html';
+                        const url = redirectMap[role] || 'admin-dashboard.html';
+                        debugLog(`🔄 Existing session found, redirecting to: ${url}`, 'info');
+                        window.location.href = url;
                     }
-                } catch (e) {}
+                } catch (e) {
+                    debugLog(`⚠️ Session check error: ${e.message}`, 'warning');
+                }
             }
+        });
+
+        // Auto-show debug console after page load
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(() => {
+                document.getElementById('debugConsole').style.display = 'block';
+                debugLog('💡 Click a demo credential or enter credentials and login', 'info');
+            }, 1000);
         });
     </script>
 </body>
