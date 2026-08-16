@@ -1,12 +1,16 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Viewpoint POS - Login</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             min-height: 100vh;
@@ -20,7 +24,7 @@
             background: white;
             padding: 40px;
             border-radius: 16px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
             width: 100%;
             max-width: 420px;
         }
@@ -64,7 +68,7 @@
         .form-group input:focus {
             border-color: #8B0000;
             outline: none;
-            box-shadow: 0 0 0 3px rgba(139,0,0,0.1);
+            box-shadow: 0 0 0 3px rgba(139, 0, 0, 0.1);
         }
         .btn {
             padding: 12px 24px;
@@ -83,7 +87,12 @@
         .btn-primary:hover {
             background: #5C0000;
             transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(139,0,0,0.3);
+            box-shadow: 0 4px 12px rgba(139, 0, 0, 0.3);
+        }
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
         }
         .error-message {
             background: #f8d7da;
@@ -121,12 +130,21 @@
             font-weight: 600;
             margin-right: 5px;
         }
-        .badge-admin { background: #8B0000; color: white; }
-        .badge-cashier { background: #28a745; color: white; }
-        .badge-butcher { background: #ffc107; color: #333; }
-        .badge-kitchen { background: #17a2b8; color: white; }
-        @media (max-width: 480px) {
-            .login-box { padding: 24px; }
+        .badge-admin {
+            background: #8B0000;
+            color: white;
+        }
+        .badge-cashier {
+            background: #28a745;
+            color: white;
+        }
+        .badge-butcher {
+            background: #ffc107;
+            color: #333;
+        }
+        .badge-kitchen {
+            background: #17a2b8;
+            color: white;
         }
         .loading-spinner {
             display: inline-block;
@@ -137,10 +155,20 @@
             border-radius: 50%;
             animation: spin 1s linear infinite;
             margin-right: 8px;
+            vertical-align: middle;
         }
         @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+            0% {
+                transform: rotate(0deg);
+            }
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+        @media (max-width: 480px) {
+            .login-box {
+                padding: 24px;
+            }
         }
     </style>
 </head>
@@ -151,25 +179,25 @@
             <h1>Viewpoint</h1>
             <p class="subtitle">Butchery & Restaurant POS</p>
         </div>
-        
+
         <form id="loginForm">
             <div id="loginError" class="error-message"></div>
-            
+
             <div class="form-group">
                 <label><i class="fas fa-envelope"></i> Email</label>
-                <input type="email" id="email" placeholder="Enter your email" required>
+                <input type="email" id="email" placeholder="Enter your email" required />
             </div>
-            
+
             <div class="form-group">
                 <label><i class="fas fa-lock"></i> Password</label>
-                <input type="password" id="password" placeholder="Enter your password" required>
+                <input type="password" id="password" placeholder="Enter your password" required />
             </div>
-            
+
             <button type="submit" class="btn btn-primary" id="loginBtn">
                 <i class="fas fa-sign-in-alt"></i> Login
             </button>
         </form>
-        
+
         <div class="demo-credentials">
             <p><strong>Demo Credentials:</strong></p>
             <div class="credential-grid">
@@ -181,7 +209,8 @@
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
+    </script>
     <script>
         // ===== SUPABASE CONFIGURATION =====
         const SUPABASE_CONFIG = {
@@ -195,83 +224,6 @@
             SUPABASE_CONFIG.anonKey
         );
 
-        // ===== LOGIN HANDLER =====
-        document.getElementById('loginForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            const email = document.getElementById('email').value.trim();
-            const password = document.getElementById('password').value;
-            const errorDiv = document.getElementById('loginError');
-            const loginBtn = document.getElementById('loginBtn');
-            
-            // Reset error
-            errorDiv.style.display = 'none';
-            errorDiv.textContent = '';
-            
-            // Show loading state
-            loginBtn.innerHTML = '<span class="loading-spinner"></span> Logging in...';
-            loginBtn.disabled = true;
-            
-            try {
-                // 1. Authenticate with Supabase
-                const { data: authData, error: authError } = await supabaseClient.auth
-                    .signInWithPassword({ 
-                        email: email, 
-                        password: password 
-                    });
-                
-                if (authError) throw new Error(authError.message);
-                
-                // 2. Get user role from database
-                const { data: userData, error: userError } = await supabaseClient
-                    .from('users')
-                    .select('*, roles(name, permissions)')
-                    .eq('email', email)
-                    .single();
-                
-                if (userError) {
-                    // If user not found in custom table, create entry
-                    const { data: newUser, error: createError } = await supabaseClient
-                        .from('users')
-                        .insert({
-                            email: email,
-                            username: email.split('@')[0],
-                            full_name: email.split('@')[0].charAt(0).toUpperCase() + email.split('@')[0].slice(1),
-                            role_id: getRoleIdFromEmail(email),
-                            status: 'active'
-                        })
-                        .select('*, roles(name, permissions)')
-                        .single();
-                    
-                    if (createError) throw new Error('User not found in system');
-                    userData = newUser;
-                }
-                
-                // 3. Store session
-                localStorage.setItem('viewpoint_session', JSON.stringify({
-                    user: userData,
-                    session: authData.session
-                }));
-                
-                // 4. Redirect based on role
-                const role = userData.roles.name;
-                const redirectMap = {
-                    'admin': 'admin-dashboard.html',
-                    'cashier': 'cashier-pos.html',
-                    'butcher': 'sales-dashboard.html',
-                    'kitchen': 'sales-dashboard.html'
-                };
-                
-                window.location.href = redirectMap[role] || 'admin-dashboard.html';
-                
-            } catch (error) {
-                errorDiv.textContent = error.message || 'Login failed. Please try again.';
-                errorDiv.style.display = 'block';
-                loginBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Login';
-                loginBtn.disabled = false;
-            }
-        });
-
         // ===== HELPER: Get role ID from email =====
         function getRoleIdFromEmail(email) {
             const roleMap = {
@@ -280,12 +232,84 @@
                 'butcher': 3,
                 'kitchen': 4
             };
-            
+
             for (const [role, id] of Object.entries(roleMap)) {
                 if (email.includes(role)) return id;
             }
             return 2; // Default to cashier
         }
+
+        // ===== LOGIN HANDLER =====
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+            const errorDiv = document.getElementById('loginError');
+            const loginBtn = document.getElementById('loginBtn');
+
+            errorDiv.style.display = 'none';
+            errorDiv.textContent = '';
+
+            loginBtn.innerHTML = '<span class="loading-spinner"></span> Logging in...';
+            loginBtn.disabled = true;
+
+            try {
+                // 1. Authenticate with Supabase
+                const { data: authData, error: authError } = await supabaseClient.auth
+                    .signInWithPassword({ email, password });
+
+                if (authError) throw new Error(authError.message);
+
+                // 2. Get user role from database
+                let { data: userData, error: userError } = await supabaseClient
+                    .from('users')
+                    .select('*, roles!inner(name, permissions)')
+                    .eq('email', email)
+                    .single();
+
+                if (userError) {
+                    // If user not found in custom table, create entry
+                    const roleId = getRoleIdFromEmail(email);
+                    const { data: newUser, error: createError } = await supabaseClient
+                        .from('users')
+                        .insert({
+                            email: email,
+                            username: email.split('@')[0],
+                            full_name: email.split('@')[0].charAt(0).toUpperCase() + email.split('@')[0].slice(1),
+                            role_id: roleId,
+                            status: 'active'
+                        })
+                        .select('*, roles!inner(name, permissions)')
+                        .single();
+
+                    if (createError) throw new Error('Failed to create user: ' + createError.message);
+                    userData = newUser;
+                }
+
+                // 3. Store session
+                localStorage.setItem('viewpoint_session', JSON.stringify({
+                    user: userData,
+                    session: authData.session
+                }));
+
+                // 4. Redirect based on role
+                const role = userData.roles?.name || 'cashier';
+                const redirectMap = {
+                    'admin': 'admin-dashboard.html',
+                    'cashier': 'cashier-pos.html',
+                    'butcher': 'sales-dashboard.html',
+                    'kitchen': 'sales-dashboard.html'
+                };
+                window.location.href = redirectMap[role] || 'admin-dashboard.html';
+
+            } catch (error) {
+                errorDiv.textContent = error.message || 'Login failed. Please try again.';
+                errorDiv.style.display = 'block';
+                loginBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Login';
+                loginBtn.disabled = false;
+            }
+        });
 
         // ===== CHECK FOR EXISTING SESSION =====
         document.addEventListener('DOMContentLoaded', () => {
@@ -303,9 +327,7 @@
                         };
                         window.location.href = redirectMap[role] || 'admin-dashboard.html';
                     }
-                } catch (e) {
-                    // Invalid session, ignore
-                }
+                } catch (e) { /* ignore */ }
             }
         });
     </script>
