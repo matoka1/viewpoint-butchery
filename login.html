@@ -121,6 +121,13 @@
             padding: 4px 0;
             font-size: 12px;
             color: #555;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .credential-grid div:hover {
+            background: #f8f0f0;
+            padding-left: 8px;
+            border-radius: 4px;
         }
         .badge {
             display: inline-block;
@@ -201,10 +208,18 @@
         <div class="demo-credentials">
             <p><strong>Demo Credentials:</strong></p>
             <div class="credential-grid">
-                <div><span class="badge badge-admin">Admin</span> admin@viewpoint.com / admin123</div>
-                <div><span class="badge badge-cashier">Cashier</span> cashier@viewpoint.com / cashier123</div>
-                <div><span class="badge badge-butcher">Butcher</span> butcher@viewpoint.com / butcher123</div>
-                <div><span class="badge badge-kitchen">Kitchen</span> kitchen@viewpoint.com / kitchen123</div>
+                <div onclick="fillCredentials('admin@viewpoint.com', 'admin123')">
+                    <span class="badge badge-admin">Admin</span> admin@viewpoint.com / admin123
+                </div>
+                <div onclick="fillCredentials('cashier@viewpoint.com', 'cashier123')">
+                    <span class="badge badge-cashier">Cashier</span> cashier@viewpoint.com / cashier123
+                </div>
+                <div onclick="fillCredentials('butcher@viewpoint.com', 'butcher123')">
+                    <span class="badge badge-butcher">Butcher</span> butcher@viewpoint.com / butcher123
+                </div>
+                <div onclick="fillCredentials('kitchen@viewpoint.com', 'kitchen123')">
+                    <span class="badge badge-kitchen">Kitchen</span> kitchen@viewpoint.com / kitchen123
+                </div>
             </div>
         </div>
     </div>
@@ -218,13 +233,21 @@
             anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNpcGdueWtzaGF4cnh3ZGVzd2ZjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY4OTA2MzMsImV4cCI6MjEwMjQ2NjYzM30.xJtq_3jNMLnXCyVSurdIuUnrlmZEyMWNO1-Azk_4k2E'
         };
 
-        // ===== INITIALIZE SUPABASE (ONLY ONCE) =====
+        // ===== INITIALIZE SUPABASE =====
         const supabaseClient = supabase.createClient(
             SUPABASE_CONFIG.url,
             SUPABASE_CONFIG.anonKey
         );
 
-        // ===== HELPER: Get role ID from email =====
+        // ===== FILL CREDENTIALS (click on demo) =====
+        function fillCredentials(email, password) {
+            document.getElementById('email').value = email;
+            document.getElementById('password').value = password;
+            // Auto-submit
+            document.getElementById('loginForm').dispatchEvent(new Event('submit'));
+        }
+
+        // ===== GET ROLE ID FROM EMAIL =====
         function getRoleIdFromEmail(email) {
             const roleMap = {
                 'admin': 1,
@@ -232,7 +255,6 @@
                 'butcher': 3,
                 'kitchen': 4
             };
-
             for (const [role, id] of Object.entries(roleMap)) {
                 if (email.includes(role)) return id;
             }
@@ -259,31 +281,46 @@
                 const { data: authData, error: authError } = await supabaseClient.auth
                     .signInWithPassword({ email, password });
 
-                if (authError) throw new Error(authError.message);
+                if (authError) {
+                    // If user doesn't exist in Auth, try to create them
+                    if (authError.message.includes('Invalid login credentials')) {
+                        throw new Error('Invalid email or password. Please check your credentials.');
+                    }
+                    throw authError;
+                }
 
-                // 2. Get user role from database
-                let { data: userData, error: userError } = await supabaseClient
+                // 2. Get or create user in users table
+                let userData;
+                const { data: existingUser, error: userError } = await supabaseClient
                     .from('users')
                     .select('*, roles!inner(name, permissions)')
                     .eq('email', email)
-                    .single();
+                    .maybeSingle();
 
-                if (userError) {
-                    // If user not found in custom table, create entry
-                    const roleId = getRoleIdFromEmail(email);
+                if (existingUser) {
+                    userData = existingUser;
+                } else {
+                    // Create user in users table with unique username
+                    const baseUsername = email.split('@')[0];
+                    // Use email as username to avoid duplicate
+                    const username = email.replace('@', '_').replace('.', '_');
+
                     const { data: newUser, error: createError } = await supabaseClient
                         .from('users')
                         .insert({
+                            username: username,
                             email: email,
-                            username: email.split('@')[0],
                             full_name: email.split('@')[0].charAt(0).toUpperCase() + email.split('@')[0].slice(1),
-                            role_id: roleId,
+                            role_id: getRoleIdFromEmail(email),
                             status: 'active'
                         })
                         .select('*, roles!inner(name, permissions)')
                         .single();
 
-                    if (createError) throw new Error('Failed to create user: ' + createError.message);
+                    if (createError) {
+                        console.error('Create user error:', createError);
+                        throw new Error('Failed to create user profile. Please contact admin.');
+                    }
                     userData = newUser;
                 }
 
@@ -304,6 +341,7 @@
                 window.location.href = redirectMap[role] || 'admin-dashboard.html';
 
             } catch (error) {
+                console.error('Login error:', error);
                 errorDiv.textContent = error.message || 'Login failed. Please try again.';
                 errorDiv.style.display = 'block';
                 loginBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Login';
