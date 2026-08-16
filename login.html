@@ -6,6 +6,7 @@
     <title>Viewpoint POS - Login</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
+        /* Same as before */
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -92,6 +93,7 @@
             border-radius: 8px;
             margin-bottom: 15px;
             border: 1px solid #f5c6cb;
+            display: none;
         }
         .demo-credentials {
             margin-top: 25px;
@@ -138,7 +140,7 @@
         </div>
         
         <form id="loginForm">
-            <div id="loginError" class="error-message" style="display: none;"></div>
+            <div id="loginError" class="error-message"></div>
             
             <div class="form-group">
                 <label><i class="fas fa-envelope"></i> Email</label>
@@ -168,16 +170,13 @@
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
-        // Supabase Configuration - Your Project
+        // Supabase Configuration
         const SUPABASE_CONFIG = {
             url: 'https://sipgnykshaxrxwdeswfc.supabase.co',
             anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNpcGdueWtzaGF4cnh3ZGVzd2ZjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY4OTA2MzMsImV4cCI6MjEwMjQ2NjYzM30.xJtq_3jNMLnXCyVSurdIuUnrlmZEyMWNO1-Azk_4k2E'
         };
 
-        const supabase = supabase.createClient(
-            SUPABASE_CONFIG.url,
-            SUPABASE_CONFIG.anonKey
-        );
+        const supabase = supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.anonKey);
 
         document.getElementById('loginForm').addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -186,13 +185,11 @@
             const errorDiv = document.getElementById('loginError');
             
             try {
-                // Authenticate with Supabase
                 const { data: authData, error: authError } = await supabase.auth
                     .signInWithPassword({ email, password });
                 
                 if (authError) throw new Error(authError.message);
                 
-                // Get user role from database
                 const { data: userData, error: userError } = await supabase
                     .from('users')
                     .select('*, roles(name, permissions)')
@@ -201,22 +198,22 @@
                 
                 if (userError) throw new Error('User not found in system');
                 
-                // Store session
                 localStorage.setItem('viewpoint_session', JSON.stringify({
                     user: userData,
                     session: authData.session
                 }));
                 
-                // Redirect based on role
+                // ✅ UPDATED: Both butcher and kitchen go to sales-dashboard.html
                 const role = userData.roles.name;
                 const redirectMap = {
                     'admin': 'admin-dashboard.html',
                     'cashier': 'cashier-pos.html',
-                    'butcher': 'butcher-dashboard.html',
-                    'kitchen': 'kitchen-dashboard.html'
+                    'butcher': 'sales-dashboard.html',   // ← Redirects to unified dashboard
+                    'kitchen': 'sales-dashboard.html'    // ← Redirects to unified dashboard
                 };
                 
                 window.location.href = redirectMap[role] || 'admin-dashboard.html';
+                
             } catch (error) {
                 errorDiv.textContent = error.message || 'Login failed. Please try again.';
                 errorDiv.style.display = 'block';
