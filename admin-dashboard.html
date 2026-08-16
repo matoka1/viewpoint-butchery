@@ -3,7 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Viewpoint POS - Admin Dashboard</title>
+    <title>Viewpoint POS - Ultimate Admin Dashboard</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icon-192.png">
+    <meta name="theme-color" content="#6C3CE1">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -47,7 +50,7 @@
         ::-webkit-scrollbar-track { background: var(--bg); }
         ::-webkit-scrollbar-thumb { background: var(--primary); border-radius: var(--radius-full); }
 
-        /* SIDEBAR */
+        /* ===== SIDEBAR ===== */
         .sidebar { position: fixed; top: 0; left: 0; width: 250px; height: 100vh; background: var(--secondary); padding: 24px 16px; overflow-y: auto; z-index: 1000; transition: var(--transition); }
         .sidebar-brand { display: flex; align-items: center; gap: 12px; padding: 0 8px 20px; border-bottom: 1px solid rgba(255,255,255,0.08); margin-bottom: 20px; }
         .sidebar-brand .logo-icon { width: 44px; height: 44px; background: var(--primary-gradient); border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; font-size: 22px; color: #fff; flex-shrink: 0; box-shadow: 0 4px 12px rgba(108,60,225,0.3); }
@@ -64,10 +67,10 @@
         .sidebar-menu .logout-btn:hover { background: var(--danger); color: #fff; }
         .sidebar-toggle { display: none; position: fixed; bottom: 24px; right: 24px; z-index: 999; width: 56px; height: 56px; border-radius: 50%; background: var(--primary-gradient); color: #fff; border: none; font-size: 22px; box-shadow: 0 8px 24px rgba(108,60,225,0.4); cursor: pointer; transition: var(--transition); }
 
-        /* MAIN CONTENT */
+        /* ===== MAIN CONTENT ===== */
         .main-content { margin-left: 250px; padding: 20px 28px 40px; min-height: 100vh; transition: var(--transition); }
 
-        /* TOP BAR */
+        /* ===== TOP BAR ===== */
         .top-bar { display: flex; justify-content: space-between; align-items: center; padding: 14px 24px; background: var(--bg-card); border-radius: var(--radius); border: 1px solid var(--border); margin-bottom: 24px; flex-wrap: wrap; gap: 12px; box-shadow: var(--shadow); transition: var(--transition); }
         .top-bar .page-title h1 { font-size: 22px; font-weight: 700; background: var(--primary-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
         .top-bar .page-title p { font-size: 13px; color: var(--text-muted); margin-top: 2px; -webkit-text-fill-color: var(--text-muted); }
@@ -80,7 +83,7 @@
         .user-profile .user-name { font-size: 14px; font-weight: 600; transition: var(--transition); }
         .user-profile .user-role { font-size: 12px; color: var(--text-muted); transition: var(--transition); }
 
-        /* STATS */
+        /* ===== STATS ===== */
         .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 24px; }
         .stat-card { background: var(--bg-card); border-radius: var(--radius); padding: 20px 22px; border: 1px solid var(--border); transition: var(--transition); position: relative; overflow: hidden; }
         .stat-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); }
@@ -98,7 +101,7 @@
         .stat-card .stat-change.down { background: rgba(239,68,68,0.12); color: var(--danger); }
         .stat-card .stat-glow { position: absolute; top: -50%; right: -20%; width: 120px; height: 120px; border-radius: 50%; background: var(--primary-gradient); opacity: 0.04; pointer-events: none; }
 
-        /* CARDS */
+        /* ===== CARDS ===== */
         .card { background: var(--bg-card); border-radius: var(--radius); padding: 22px 24px; border: 1px solid var(--border); transition: var(--transition); margin-bottom: 20px; box-shadow: var(--shadow); }
         .card:hover { box-shadow: var(--shadow-lg); }
         .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px; }
@@ -107,7 +110,7 @@
         .card-header .card-action:hover { color: var(--primary-dark); transform: translateX(4px); }
         .grid-2 { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; }
 
-        /* TABLES */
+        /* ===== TABLES ===== */
         .table-wrapper { overflow-x: auto; border-radius: var(--radius-sm); }
         .data-table { width: 100%; border-collapse: collapse; font-size: 14px; }
         .data-table thead { background: var(--bg); }
@@ -115,7 +118,7 @@
         .data-table td { padding: 10px 14px; border-bottom: 1px solid var(--border); color: var(--text-secondary); transition: var(--transition); }
         .data-table tbody tr:hover { background: var(--bg); }
 
-        /* BADGES */
+        /* ===== BADGES ===== */
         .badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 12px; border-radius: var(--radius-full); font-size: 12px; font-weight: 600; }
         .badge.primary { background: rgba(108,60,225,0.12); color: var(--primary); }
         .badge.success { background: rgba(16,185,129,0.12); color: var(--success); }
@@ -136,7 +139,7 @@
         .status-badge.active::before { background: var(--success); }
         .status-badge.inactive::before { background: var(--danger); }
 
-        /* BUTTONS */
+        /* ===== BUTTONS ===== */
         .btn { display: inline-flex; align-items: center; gap: 8px; padding: 9px 18px; border: none; border-radius: var(--radius-sm); font-weight: 600; font-size: 14px; cursor: pointer; transition: var(--transition); font-family: var(--font); }
         .btn-primary { background: var(--primary-gradient); color: #fff; box-shadow: 0 4px 12px rgba(108,60,225,0.3); }
         .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(108,60,225,0.4); }
@@ -151,7 +154,7 @@
         .btn-sm { padding: 5px 12px; font-size: 12px; }
         .btn-block { width: 100%; justify-content: center; }
 
-        /* MODALS */
+        /* ===== MODALS ===== */
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); backdrop-filter: blur(8px); z-index: 2000; justify-content: center; align-items: center; padding: 20px; }
         .modal-overlay.active { display: flex; }
         .modal { background: var(--bg-card); border-radius: var(--radius); max-width: 520px; width: 100%; max-height: 90vh; overflow-y: auto; padding: 28px 32px; border: 1px solid var(--border); box-shadow: var(--shadow-lg); animation: slideUp 0.3s ease; }
@@ -164,7 +167,7 @@
         .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 10px 14px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 14px; font-family: var(--font); background: var(--bg); color: var(--text-primary); transition: var(--transition); }
         .form-group input:focus, .form-group select:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 4px rgba(108,60,225,0.1); }
 
-        /* TOAST */
+        /* ===== TOAST ===== */
         .toast-container { position: fixed; top: 24px; right: 24px; z-index: 3000; display: flex; flex-direction: column; gap: 10px; max-width: 400px; }
         .toast { padding: 14px 20px; border-radius: var(--radius-sm); color: #fff; font-weight: 500; font-size: 14px; box-shadow: var(--shadow-lg); animation: slideInRight 0.4s ease; display: flex; align-items: center; gap: 12px; border: 1px solid rgba(255,255,255,0.1); }
         .toast.success { background: var(--success); }
@@ -172,24 +175,24 @@
         .toast.info { background: var(--primary); }
         .toast.warning { background: var(--warning); }
 
-        /* ANIMATIONS */
+        /* ===== ANIMATIONS ===== */
         @keyframes slideUp { from { transform: translateY(30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
         @keyframes slideInRight { from { transform: translateX(100px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         @keyframes spin { to { transform: rotate(360deg); } }
         .spinner { display: inline-block; width: 18px; height: 18px; border: 2px solid var(--border); border-top-color: var(--primary); border-radius: 50%; animation: spin 0.7s linear infinite; }
 
-        /* SECTION PAGES */
+        /* ===== SECTION PAGES ===== */
         .section-page { display: none; animation: fadeIn 0.4s ease; }
         .section-page.active { display: block; }
 
-        /* EMPTY STATE */
+        /* ===== EMPTY STATE ===== */
         .empty-state { text-align: center; padding: 40px 20px; color: var(--text-muted); }
         .empty-state i { font-size: 44px; margin-bottom: 12px; opacity: 0.3; }
         .empty-state h4 { font-size: 18px; color: var(--text-secondary); margin-bottom: 6px; }
         .empty-state p { font-size: 14px; }
 
-        /* FILTER TABS */
+        /* ===== FILTER TABS ===== */
         .filter-tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
         .filter-tabs .filter-btn { padding: 5px 14px; border: 1px solid var(--border); border-radius: var(--radius-full); background: var(--bg-card); color: var(--text-secondary); cursor: pointer; font-size: 13px; font-weight: 500; transition: var(--transition); font-family: var(--font); }
         .filter-tabs .filter-btn:hover { border-color: var(--primary); color: var(--primary); }
@@ -197,7 +200,7 @@
         .filter-tabs .filter-btn .count { background: rgba(0,0,0,0.08); padding: 0 8px; border-radius: var(--radius-full); font-size: 11px; margin-left: 4px; }
         .filter-tabs .filter-btn.active .count { background: rgba(255,255,255,0.2); }
 
-        /* ORDER CARDS */
+        /* ===== ORDER CARDS ===== */
         .orders-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px; }
         .order-card { background: var(--bg-card); border-radius: var(--radius-sm); padding: 16px 18px; border: 1px solid var(--border); transition: var(--transition); }
         .order-card:hover { box-shadow: var(--shadow-lg); transform: translateY(-2px); }
@@ -210,7 +213,7 @@
         .order-card .order-time { font-size: 12px; color: var(--text-muted); }
         .order-card .order-actions { display: flex; gap: 6px; margin-top: 10px; flex-wrap: wrap; }
 
-        /* PRODUCT GRID */
+        /* ===== PRODUCT GRID ===== */
         .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 10px; margin-bottom: 14px; max-height: 350px; overflow-y: auto; padding-right: 4px; }
         .product-grid::-webkit-scrollbar { width: 4px; }
         .product-grid::-webkit-scrollbar-thumb { background: var(--primary); border-radius: var(--radius-full); }
@@ -222,17 +225,17 @@
         .product-card .product-price { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
         .product-card .product-stock { font-size: 11px; color: var(--text-muted); }
 
-        /* QUICK AMOUNTS */
+        /* ===== QUICK AMOUNTS ===== */
         .quick-amounts { display: flex; gap: 6px; flex-wrap: wrap; margin: 10px 0; }
         .quick-amounts .quick-btn { padding: 5px 12px; border: 1px solid var(--border); border-radius: var(--radius-full); background: var(--bg-card); cursor: pointer; font-weight: 500; font-size: 13px; transition: var(--transition); color: var(--text-secondary); font-family: var(--font); }
         .quick-amounts .quick-btn:hover { border-color: var(--primary); color: var(--primary); }
         .pos-cart-item { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid var(--border); align-items: center; font-size: 14px; }
         .pos-cart-item .remove-btn { color: var(--danger); cursor: pointer; background: none; border: none; font-size: 16px; }
 
-        /* RECEIPT */
+        /* ===== RECEIPT ===== */
         .receipt-content { font-family: 'Courier New', monospace; font-size: 13px; background: var(--bg); padding: 18px; border-radius: var(--radius-sm); white-space: pre-wrap; line-height: 1.7; border: 1px solid var(--border); max-height: 400px; overflow-y: auto; }
 
-        /* RESPONSIVE */
+        /* ===== RESPONSIVE ===== */
         @media (max-width: 1024px) { .grid-2 { grid-template-columns: 1fr; } }
         @media (max-width: 768px) {
             .sidebar { transform: translateX(-100%); width: 280px; }
@@ -250,11 +253,11 @@
 </head>
 <body>
 
-    <!-- SIDEBAR -->
+    <!-- ===== SIDEBAR ===== -->
     <nav class="sidebar" id="sidebar">
         <div class="sidebar-brand">
             <div class="logo-icon"><i class="fas fa-store"></i></div>
-            <div><span class="brand-text">Viewpoint</span><span class="brand-sub">Admin Panel</span></div>
+            <div><span class="brand-text">Viewpoint</span><span class="brand-sub">Ultimate Admin</span></div>
         </div>
         <ul class="sidebar-menu">
             <li class="menu-label">Main</li>
@@ -265,8 +268,14 @@
             <li data-section="products"><i class="fas fa-boxes"></i> Products</li>
             <li data-section="inventory"><i class="fas fa-warehouse"></i> Inventory</li>
             <li data-section="users"><i class="fas fa-users"></i> Users</li>
+            <li class="menu-label">Advanced</li>
+            <li data-section="customers"><i class="fas fa-user-friends"></i> Customers</li>
+            <li data-section="suppliers"><i class="fas fa-truck"></i> Suppliers</li>
+            <li data-section="kitchen"><i class="fas fa-utensils"></i> Kitchen Display</li>
             <li class="menu-label">Analytics</li>
             <li data-section="reports"><i class="fas fa-chart-bar"></i> Reports</li>
+            <li data-section="profit"><i class="fas fa-coins"></i> Profit/Loss</li>
+            <li data-section="audit"><i class="fas fa-history"></i> Audit Trail</li>
             <li data-section="settings"><i class="fas fa-cog"></i> Settings</li>
             <li class="logout-btn" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Logout</li>
         </ul>
@@ -274,14 +283,14 @@
 
     <button class="sidebar-toggle" id="sidebarToggle"><i class="fas fa-bars"></i></button>
 
-    <!-- MAIN CONTENT -->
+    <!-- ===== MAIN CONTENT ===== -->
     <div class="main-content">
 
-        <!-- TOP BAR -->
+        <!-- ===== TOP BAR ===== -->
         <header class="top-bar">
             <div class="page-title">
                 <h1 id="pageTitle">📊 Dashboard</h1>
-                <p id="pageSubtitle">Overview of your business performance</p>
+                <p id="pageSubtitle">Complete business overview</p>
             </div>
             <div class="page-actions">
                 <span class="time-display" id="currentTime">--:--:--</span>
@@ -296,7 +305,7 @@
             </div>
         </header>
 
-        <!-- DASHBOARD -->
+        <!-- ===== DASHBOARD ===== -->
         <section id="dashboardSection" class="section-page active">
             <div class="stats-grid" id="statsGrid">
                 <div class="stat-card"><div class="stat-glow"></div><div class="stat-icon purple"><i class="fas fa-money-bill-wave"></i></div><div class="stat-value" id="todaySales">KES 0</div><div class="stat-label">Today's Sales</div><div class="stat-change up"><i class="fas fa-arrow-up"></i> 12.5%</div></div>
@@ -313,12 +322,12 @@
             <div class="card"><div class="card-header"><h3>📋 Recent Orders</h3><button class="card-action" onclick="navigateTo('orders')">View All →</button></div><div id="recentOrdersTable"><div class="empty-state"><p>Loading orders...</p></div></div></div>
         </section>
 
-        <!-- POS -->
+        <!-- ===== POS ===== -->
         <section id="posSection" class="section-page">
             <div class="card"><div class="card-header"><h3>🛒 Point of Sale</h3><div style="display:flex;gap:8px;"><button class="btn btn-sm btn-primary" onclick="switchPOS('butchery')"><i class="fas fa-drumstick-bite"></i> Butchery</button><button class="btn btn-sm btn-success" onclick="switchPOS('restaurant')"><i class="fas fa-utensils"></i> Restaurant</button></div></div><div id="posContainer"><div class="empty-state"><i class="fas fa-store"></i><p>Select a category to start</p></div></div></div>
         </section>
 
-        <!-- ORDERS -->
+        <!-- ===== ORDERS ===== -->
         <section id="ordersSection" class="section-page">
             <div class="card"><div class="card-header"><h3>📋 All Orders</h3><span class="badge primary" id="orderCount">0</span></div>
                 <div class="filter-tabs" id="orderFilters">
@@ -334,12 +343,12 @@
             </div>
         </section>
 
-        <!-- PRODUCTS -->
+        <!-- ===== PRODUCTS ===== -->
         <section id="productsSection" class="section-page">
             <div class="card"><div class="card-header"><h3>📦 Products</h3><button class="btn btn-primary" onclick="openModal('productModal')"><i class="fas fa-plus"></i> Add Product</button></div><div id="productsTable"><div class="empty-state"><p>Loading products...</p></div></div></div>
         </section>
 
-        <!-- INVENTORY -->
+        <!-- ===== INVENTORY ===== -->
         <section id="inventorySection" class="section-page">
             <div class="grid-2">
                 <div class="card"><div class="card-header"><h3>🏪 Inventory</h3><button class="btn btn-warning btn-sm" onclick="openModal('stockModal')"><i class="fas fa-edit"></i> Adjust Stock</button></div><div id="inventoryTable"><div class="empty-state"><p>Loading inventory...</p></div></div></div>
@@ -347,12 +356,35 @@
             </div>
         </section>
 
-        <!-- USERS -->
+        <!-- ===== USERS ===== -->
         <section id="usersSection" class="section-page">
             <div class="card"><div class="card-header"><h3>👥 Users</h3><button class="btn btn-primary" onclick="openModal('userModal')"><i class="fas fa-user-plus"></i> Add User</button></div><div id="usersTable"><div class="empty-state"><p>Loading users...</p></div></div></div>
         </section>
 
-        <!-- REPORTS -->
+        <!-- ===== CUSTOMERS ===== -->
+        <section id="customersSection" class="section-page">
+            <div class="card"><div class="card-header"><h3>👤 Customers</h3><button class="btn btn-primary" onclick="openModal('customerModal')"><i class="fas fa-user-plus"></i> Add Customer</button></div><div id="customersTable"><div class="empty-state"><p>Loading customers...</p></div></div></div>
+        </section>
+
+        <!-- ===== SUPPLIERS ===== -->
+        <section id="suppliersSection" class="section-page">
+            <div class="card"><div class="card-header"><h3>🚚 Suppliers</h3><button class="btn btn-primary" onclick="openModal('supplierModal')"><i class="fas fa-truck"></i> Add Supplier</button></div><div id="suppliersTable"><div class="empty-state"><p>Loading suppliers...</p></div></div></div>
+        </section>
+
+        <!-- ===== KITCHEN DISPLAY ===== -->
+        <section id="kitchenSection" class="section-page">
+            <div class="card"><div class="card-header"><h3>🍳 Kitchen Display</h3><span class="badge primary" id="kitchenOrderCount">0</span></div>
+                <div class="filter-tabs" id="kitchenFilters">
+                    <button class="filter-btn active" data-filter="all">All</button>
+                    <button class="filter-btn" data-filter="paid">New</button>
+                    <button class="filter-btn" data-filter="preparing">Preparing</button>
+                    <button class="filter-btn" data-filter="ready">Ready</button>
+                </div>
+                <div id="kitchenOrders"><div class="empty-state"><p>No kitchen orders</p></div></div>
+            </div>
+        </section>
+
+        <!-- ===== REPORTS ===== -->
         <section id="reportsSection" class="section-page">
             <div class="grid-2">
                 <div class="card"><div class="card-header"><h3>📊 Sales Report</h3></div>
@@ -373,7 +405,39 @@
             </div>
         </section>
 
-        <!-- SETTINGS -->
+        <!-- ===== PROFIT/LOSS ===== -->
+        <section id="profitSection" class="section-page">
+            <div class="card"><div class="card-header"><h3>💰 Profit & Loss</h3></div>
+                <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:16px;">
+                    <div style="background:var(--bg);padding:16px;border-radius:var(--radius-sm);text-align:center;">
+                        <div style="font-size:12px;color:var(--text-muted);">Total Revenue</div>
+                        <div style="font-size:24px;font-weight:700;color:var(--success);" id="totalRevenue">KES 0</div>
+                    </div>
+                    <div style="background:var(--bg);padding:16px;border-radius:var(--radius-sm);text-align:center;">
+                        <div style="font-size:12px;color:var(--text-muted);">Total Cost</div>
+                        <div style="font-size:24px;font-weight:700;color:var(--danger);" id="totalCost">KES 0</div>
+                    </div>
+                    <div style="background:var(--bg);padding:16px;border-radius:var(--radius-sm);text-align:center;">
+                        <div style="font-size:12px;color:var(--text-muted);">Net Profit</div>
+                        <div style="font-size:24px;font-weight:700;color:var(--primary);" id="netProfit">KES 0</div>
+                    </div>
+                </div>
+                <div id="profitChartContainer"><canvas id="profitChart" height="200"></canvas></div>
+            </div>
+        </section>
+
+        <!-- ===== AUDIT TRAIL ===== -->
+        <section id="auditSection" class="section-page">
+            <div class="card"><div class="card-header"><h3>📜 Audit Trail</h3>
+                <div style="display:flex;gap:8px;">
+                    <input type="date" id="auditDate" style="padding:6px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg);color:var(--text-primary);">
+                    <button class="btn btn-sm btn-primary" onclick="loadAuditLogs()"><i class="fas fa-search"></i> Search</button>
+                </div>
+            </div>
+            <div id="auditTable"><div class="empty-state"><p>Loading audit logs...</p></div></div>
+        </section>
+
+        <!-- ===== SETTINGS ===== -->
         <section id="settingsSection" class="section-page">
             <div class="grid-2">
                 <div class="card"><div class="card-header"><h3>🏢 Business Settings</h3></div>
@@ -383,6 +447,7 @@
                         <div class="form-group"><label>Email</label><input type="email" id="businessEmail" value="info@viewpoint.com"></div>
                         <div class="form-group"><label>Location</label><input type="text" id="businessLocation" value="Nairobi, Kenya"></div>
                         <div class="form-group"><label>Receipt Footer</label><input type="text" id="receiptFooter" value="Thank you for shopping with Viewpoint! 🙏"></div>
+                        <div class="form-group"><label>Session Timeout (minutes)</label><input type="number" id="sessionTimeout" value="30"></div>
                         <button type="submit" class="btn btn-primary btn-block">💾 Save Settings</button>
                     </form>
                 </div>
@@ -401,18 +466,30 @@
 
     </div>
 
-    <!-- MODALS -->
+    <!-- ===== MODALS ===== -->
+
+    <!-- Product Modal -->
     <div class="modal-overlay" id="productModal"><div class="modal"><div class="modal-header"><h3>📦 <span id="productModalTitle">Add Product</span></h3><button class="close" onclick="closeModal('productModal')">&times;</button></div><form id="productForm"><input type="hidden" id="productId"><div class="form-group"><label>Name *</label><input type="text" id="productName" required></div><div class="form-group"><label>Type *</label><select id="productType" required><option value="butchery">🥩 Butchery</option><option value="restaurant">🍽️ Restaurant</option></select></div><div class="form-group"><label>Selling Price (KES) *</label><input type="number" id="productPrice" step="0.01" required></div><div class="form-group"><label>Cost Price (KES)</label><input type="number" id="productCost" step="0.01"></div><div class="form-group"><label>Unit *</label><input type="text" id="productUnit" value="KG" required></div><div class="form-group"><label>Stock Quantity</label><input type="number" id="productStock" step="0.001"></div><div class="form-group"><label>Reorder Level</label><input type="number" id="productReorder" step="0.001"></div><div class="form-group"><label>Status</label><select id="productStatus"><option value="active">✅ Active</option><option value="inactive">❌ Inactive</option></select></div><button type="submit" class="btn btn-primary btn-block">💾 Save Product</button></form></div></div>
 
-    <div class="modal-overlay" id="userModal"><div class="modal"><div class="modal-header"><h3>👤 <span id="userModalTitle">Add New User</span></h3><button class="close" onclick="closeModal('userModal')">&times;</button></div><form id="userForm"><div class="form-group"><label>Full Name *</label><input type="text" id="userFullName" required></div><div class="form-group"><label>Email *</label><input type="email" id="userEmail" required></div><div class="form-group"><label>Password *</label><input type="password" id="userPassword" minlength="6" required></div><div class="form-group"><label>Phone</label><input type="text" id="userPhone"></div><div class="form-group"><label>Role *</label><select id="userRole" required><option value="">Select role...</option><option value="1">👑 Admin</option><option value="2">💰 Cashier</option><option value="3">🥩 Butcher</option><option value="4">🍳 Kitchen</option></select></div><div class="form-group"><label>Status</label><select id="userStatus"><option value="active">✅ Active</option><option value="inactive">❌ Inactive</option></select></div><button type="submit" class="btn btn-primary btn-block" id="userSubmitBtn"><i class="fas fa-save"></i> Create User</button></form></div></div>
+    <!-- User Modal -->
+    <div class="modal-overlay" id="userModal"><div class="modal"><div class="modal-header"><h3>👤 <span id="userModalTitle">Add New User</span></h3><button class="close" onclick="closeModal('userModal')">&times;</button></div><form id="userForm"><div class="form-group"><label>Full Name *</label><input type="text" id="userFullName" required></div><div class="form-group"><label>Email *</label><input type="email" id="userEmail" required></div><div class="form-group"><label>Password *</label><input type="password" id="userPassword" minlength="6" required></div><div class="form-group"><label>Phone</label><input type="text" id="userPhone"></div><div class="form-group"><label>Role *</label><select id="userRole" required><option value="">Select role...</option><option value="1">👑 Admin</option><option value="2">💰 Cashier</option><option value="3">🥩 Butcher</option><option value="4">🍳 Kitchen</option></select></div><div class="form-group"><label>2FA Enabled</label><select id="user2FA"><option value="0">❌ Disabled</option><option value="1">✅ Enabled</option></select></div><div class="form-group"><label>Status</label><select id="userStatus"><option value="active">✅ Active</option><option value="inactive">❌ Inactive</option></select></div><button type="submit" class="btn btn-primary btn-block" id="userSubmitBtn"><i class="fas fa-save"></i> Create User</button></form></div></div>
 
+    <!-- Customer Modal -->
+    <div class="modal-overlay" id="customerModal"><div class="modal"><div class="modal-header"><h3>👤 <span id="customerModalTitle">Add Customer</span></h3><button class="close" onclick="closeModal('customerModal')">&times;</button></div><form id="customerForm"><div class="form-group"><label>Full Name *</label><input type="text" id="customerName" required></div><div class="form-group"><label>Phone *</label><input type="tel" id="customerPhone" required></div><div class="form-group"><label>Email</label><input type="email" id="customerEmail"></div><div class="form-group"><label>Loyalty Points</label><input type="number" id="customerPoints" value="0"></div><button type="submit" class="btn btn-primary btn-block">💾 Save Customer</button></form></div></div>
+
+    <!-- Supplier Modal -->
+    <div class="modal-overlay" id="supplierModal"><div class="modal"><div class="modal-header"><h3>🚚 <span id="supplierModalTitle">Add Supplier</span></h3><button class="close" onclick="closeModal('supplierModal')">&times;</button></div><form id="supplierForm"><div class="form-group"><label>Company Name *</label><input type="text" id="supplierCompany" required></div><div class="form-group"><label>Contact Person</label><input type="text" id="supplierContact"></div><div class="form-group"><label>Phone *</label><input type="tel" id="supplierPhone" required></div><div class="form-group"><label>Email</label><input type="email" id="supplierEmail"></div><div class="form-group"><label>Products Supplied</label><input type="text" id="supplierProducts" placeholder="e.g., Beef, Chicken"></div><button type="submit" class="btn btn-primary btn-block">💾 Save Supplier</button></form></div></div>
+
+    <!-- Stock Modal -->
     <div class="modal-overlay" id="stockModal"><div class="modal"><div class="modal-header"><h3>📦 Adjust Stock</h3><button class="close" onclick="closeModal('stockModal')">&times;</button></div><form id="stockForm"><div class="form-group"><label>Product *</label><select id="stockProduct" required></select></div><div class="form-group"><label>Adjustment Type *</label><select id="adjustmentType" required><option value="add">➕ Add Stock</option><option value="remove">➖ Remove Stock</option></select></div><div class="form-group"><label>Quantity *</label><input type="number" id="adjustmentQty" step="0.001" required></div><div class="form-group"><label>Reason</label><input type="text" id="adjustmentReason" placeholder="e.g., Restock, Spoilage"></div><button type="submit" class="btn btn-primary btn-block">✅ Apply Adjustment</button></form></div></div>
 
+    <!-- Order Detail Modal -->
     <div class="modal-overlay" id="orderDetailModal"><div class="modal"><div class="modal-header"><h3 id="orderDetailTitle">📋 Order Details</h3><button class="close" onclick="closeModal('orderDetailModal')">&times;</button></div><div id="orderDetailContent"></div></div></div>
 
+    <!-- Toast Container -->
     <div class="toast-container" id="toastContainer"></div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="js/admin.js"></script>
+    <script src="js/admin-ultimate.js"></script>
 </body>
 </html>
