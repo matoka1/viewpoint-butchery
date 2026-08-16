@@ -6,7 +6,6 @@
     <title>Viewpoint POS - Login</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        /* Same as before */
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -129,6 +128,20 @@
         @media (max-width: 480px) {
             .login-box { padding: 24px; }
         }
+        .loading-spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid #8B0000;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 8px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body>
@@ -152,7 +165,7 @@
                 <input type="password" id="password" placeholder="Enter your password" required>
             </div>
             
-            <button type="submit" class="btn btn-primary">
+            <button type="submit" class="btn btn-primary" id="loginBtn">
                 <i class="fas fa-sign-in-alt"></i> Login
             </button>
         </form>
@@ -170,46 +183,83 @@
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
-        // Supabase Configuration
+        // ===== SUPABASE CONFIGURATION =====
         const SUPABASE_CONFIG = {
             url: 'https://sipgnykshaxrxwdeswfc.supabase.co',
             anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNpcGdueWtzaGF4cnh3ZGVzd2ZjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY4OTA2MzMsImV4cCI6MjEwMjQ2NjYzM30.xJtq_3jNMLnXCyVSurdIuUnrlmZEyMWNO1-Azk_4k2E'
         };
 
-        const supabase = supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.anonKey);
+        // ===== INITIALIZE SUPABASE (ONLY ONCE) =====
+        const supabaseClient = supabase.createClient(
+            SUPABASE_CONFIG.url,
+            SUPABASE_CONFIG.anonKey
+        );
 
+        // ===== LOGIN HANDLER =====
         document.getElementById('loginForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const email = document.getElementById('email').value;
+            
+            const email = document.getElementById('email').value.trim();
             const password = document.getElementById('password').value;
             const errorDiv = document.getElementById('loginError');
+            const loginBtn = document.getElementById('loginBtn');
+            
+            // Reset error
+            errorDiv.style.display = 'none';
+            errorDiv.textContent = '';
+            
+            // Show loading state
+            loginBtn.innerHTML = '<span class="loading-spinner"></span> Logging in...';
+            loginBtn.disabled = true;
             
             try {
-                const { data: authData, error: authError } = await supabase.auth
-                    .signInWithPassword({ email, password });
+                // 1. Authenticate with Supabase
+                const { data: authData, error: authError } = await supabaseClient.auth
+                    .signInWithPassword({ 
+                        email: email, 
+                        password: password 
+                    });
                 
                 if (authError) throw new Error(authError.message);
                 
-                const { data: userData, error: userError } = await supabase
+                // 2. Get user role from database
+                const { data: userData, error: userError } = await supabaseClient
                     .from('users')
                     .select('*, roles(name, permissions)')
                     .eq('email', email)
                     .single();
                 
-                if (userError) throw new Error('User not found in system');
+                if (userError) {
+                    // If user not found in custom table, create entry
+                    const { data: newUser, error: createError } = await supabaseClient
+                        .from('users')
+                        .insert({
+                            email: email,
+                            username: email.split('@')[0],
+                            full_name: email.split('@')[0].charAt(0).toUpperCase() + email.split('@')[0].slice(1),
+                            role_id: getRoleIdFromEmail(email),
+                            status: 'active'
+                        })
+                        .select('*, roles(name, permissions)')
+                        .single();
+                    
+                    if (createError) throw new Error('User not found in system');
+                    userData = newUser;
+                }
                 
+                // 3. Store session
                 localStorage.setItem('viewpoint_session', JSON.stringify({
                     user: userData,
                     session: authData.session
                 }));
                 
-                // ✅ UPDATED: Both butcher and kitchen go to sales-dashboard.html
+                // 4. Redirect based on role
                 const role = userData.roles.name;
                 const redirectMap = {
                     'admin': 'admin-dashboard.html',
                     'cashier': 'cashier-pos.html',
-                    'butcher': 'sales-dashboard.html',   // ← Redirects to unified dashboard
-                    'kitchen': 'sales-dashboard.html'    // ← Redirects to unified dashboard
+                    'butcher': 'sales-dashboard.html',
+                    'kitchen': 'sales-dashboard.html'
                 };
                 
                 window.location.href = redirectMap[role] || 'admin-dashboard.html';
@@ -217,6 +267,45 @@
             } catch (error) {
                 errorDiv.textContent = error.message || 'Login failed. Please try again.';
                 errorDiv.style.display = 'block';
+                loginBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Login';
+                loginBtn.disabled = false;
+            }
+        });
+
+        // ===== HELPER: Get role ID from email =====
+        function getRoleIdFromEmail(email) {
+            const roleMap = {
+                'admin': 1,
+                'cashier': 2,
+                'butcher': 3,
+                'kitchen': 4
+            };
+            
+            for (const [role, id] of Object.entries(roleMap)) {
+                if (email.includes(role)) return id;
+            }
+            return 2; // Default to cashier
+        }
+
+        // ===== CHECK FOR EXISTING SESSION =====
+        document.addEventListener('DOMContentLoaded', () => {
+            const stored = localStorage.getItem('viewpoint_session');
+            if (stored) {
+                try {
+                    const { user } = JSON.parse(stored);
+                    if (user) {
+                        const role = user.roles?.name || 'admin';
+                        const redirectMap = {
+                            'admin': 'admin-dashboard.html',
+                            'cashier': 'cashier-pos.html',
+                            'butcher': 'sales-dashboard.html',
+                            'kitchen': 'sales-dashboard.html'
+                        };
+                        window.location.href = redirectMap[role] || 'admin-dashboard.html';
+                    }
+                } catch (e) {
+                    // Invalid session, ignore
+                }
             }
         });
     </script>
