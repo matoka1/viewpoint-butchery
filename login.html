@@ -4,273 +4,245 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Viewpoint POS - Login</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Inter', sans-serif;
             min-height: 100vh;
-            background: linear-gradient(135deg, #8B0000, #5C0000);
+            background: linear-gradient(135deg, #0F172A, #1E293B);
             display: flex;
             align-items: center;
             justify-content: center;
             padding: 20px;
         }
-        .login-box {
-            background: white;
-            padding: 40px;
-            border-radius: 16px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        .login-container {
             width: 100%;
             max-width: 420px;
         }
-        .login-logo { text-align: center; margin-bottom: 30px; }
-        .login-logo i { font-size: 48px; color: #8B0000; background: #f8f0f0; padding: 20px; border-radius: 50%; }
-        .login-logo h1 { color: #8B0000; margin-top: 10px; font-size: 28px; }
-        .login-logo .subtitle { color: #666; font-size: 14px; }
-        .form-group { margin-bottom: 20px; }
-        .form-group label { display: block; margin-bottom: 5px; font-weight: 600; color: #333; }
+        .login-box {
+            background: rgba(255,255,255,0.05);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 24px;
+            padding: 40px 32px;
+            box-shadow: 0 30px 80px rgba(0,0,0,0.5);
+        }
+        .login-logo { text-align: center; margin-bottom: 32px; }
+        .login-logo .icon {
+            width: 72px;
+            height: 72px;
+            background: linear-gradient(135deg, #6C3CE1, #8B5CF6);
+            border-radius: 20px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            color: #fff;
+            box-shadow: 0 8px 32px rgba(108,60,225,0.3);
+        }
+        .login-logo h1 {
+            color: #fff;
+            font-size: 28px;
+            font-weight: 800;
+            margin-top: 12px;
+        }
+        .login-logo p {
+            color: rgba(255,255,255,0.5);
+            font-size: 14px;
+        }
+        .form-group { margin-bottom: 16px; }
+        .form-group label {
+            display: block;
+            color: rgba(255,255,255,0.7);
+            font-weight: 600;
+            font-size: 13px;
+            margin-bottom: 5px;
+        }
         .form-group input {
-            width: 100%; padding: 12px 16px;
-            border: 2px solid #e0e0e0; border-radius: 8px;
-            font-size: 16px; transition: all 0.3s;
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            font-size: 15px;
+            font-family: 'Inter', sans-serif;
+            background: rgba(255,255,255,0.05);
+            color: #fff;
+            transition: all 0.3s;
         }
-        .form-group input:focus { border-color: #8B0000; outline: none; box-shadow: 0 0 0 3px rgba(139,0,0,0.1); }
-        .btn {
-            padding: 12px 24px; border: none; border-radius: 8px;
-            font-weight: 600; cursor: pointer; transition: all 0.3s;
+        .form-group input:focus {
+            outline: none;
+            border-color: #6C3CE1;
+            box-shadow: 0 0 0 4px rgba(108,60,225,0.15);
+        }
+        .form-group input::placeholder { color: rgba(255,255,255,0.3); }
+        .btn-login {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 12px;
             font-size: 16px;
+            font-weight: 700;
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #6C3CE1, #8B5CF6);
+            color: #fff;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 16px rgba(108,60,225,0.3);
         }
-        .btn-primary {
-            background: #8B0000; color: white; width: 100%;
-        }
-        .btn-primary:hover {
-            background: #5C0000; transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(139,0,0,0.3);
-        }
-        .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+        .btn-login:hover { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(108,60,225,0.4); }
+        .btn-login:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
         .error-message {
-            background: #f8d7da; color: #721c24; padding: 10px;
-            border-radius: 8px; margin-bottom: 15px;
-            border: 1px solid #f5c6cb; display: none;
-        }
-        .info-message {
-            background: #cce5ff; color: #004085; padding: 10px;
-            border-radius: 8px; margin-bottom: 15px;
-            border: 1px solid #b8daff; display: none;
+            background: rgba(239,68,68,0.15);
+            color: #EF4444;
+            padding: 10px 14px;
+            border-radius: 10px;
+            margin-bottom: 16px;
+            border: 1px solid rgba(239,68,68,0.2);
+            display: none;
+            font-size: 14px;
         }
         .demo-credentials {
-            margin-top: 25px; padding-top: 20px;
-            border-top: 1px solid #e0e0e0; font-size: 13px;
+            margin-top: 24px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255,255,255,0.05);
         }
-        .demo-credentials p { margin-bottom: 8px; color: #666; }
-        .credential-grid { display: grid; gap: 5px; }
-        .credential-grid div {
-            padding: 4px 0; font-size: 12px; color: #555;
-            cursor: pointer; transition: all 0.2s;
+        .demo-credentials p {
+            color: rgba(255,255,255,0.4);
+            font-size: 12px;
+            margin-bottom: 8px;
         }
-        .credential-grid div:hover {
-            background: #f8f0f0; padding-left: 8px; border-radius: 4px;
+        .demo-grid {
+            display: grid;
+            gap: 6px;
         }
-        .badge {
-            display: inline-block; padding: 2px 10px; border-radius: 12px;
-            font-size: 11px; font-weight: 600; margin-right: 5px;
+        .demo-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 12px;
+            border-radius: 8px;
+            background: rgba(255,255,255,0.03);
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 12px;
+            color: rgba(255,255,255,0.6);
         }
-        .badge-admin { background: #8B0000; color: white; }
-        .badge-cashier { background: #28a745; color: white; }
-        .badge-butcher { background: #ffc107; color: #333; }
-        .badge-kitchen { background: #17a2b8; color: white; }
-        .loading-spinner {
-            display: inline-block; width: 16px; height: 16px;
-            border: 2px solid #f3f3f3; border-top: 2px solid #8B0000;
-            border-radius: 50%; animation: spin 1s linear infinite;
-            margin-right: 8px; vertical-align: middle;
+        .demo-item:hover { background: rgba(255,255,255,0.08); color: #fff; }
+        .demo-item .role-badge {
+            padding: 2px 10px;
+            border-radius: 20px;
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
         }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        @media (max-width: 480px) { .login-box { padding: 24px; } }
+        .role-badge.admin { background: #6C3CE1; color: #fff; }
+        .role-badge.cashier { background: #10B981; color: #fff; }
+        .role-badge.butcher { background: #F59E0B; color: #1E293B; }
+        .role-badge.kitchen { background: #3B82F6; color: #fff; }
+        .spinner {
+            display: inline-block;
+            width: 18px;
+            height: 18px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+            vertical-align: middle;
+            margin-right: 8px;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
-    <div class="login-box">
-        <div class="login-logo">
-            <i class="fas fa-store"></i>
-            <h1>Viewpoint</h1>
-            <p class="subtitle">Butchery & Restaurant POS</p>
-        </div>
-
-        <form id="loginForm">
-            <div id="loginError" class="error-message"></div>
-            <div id="loginInfo" class="info-message"></div>
-
-            <div class="form-group">
-                <label><i class="fas fa-envelope"></i> Email</label>
-                <input type="email" id="email" placeholder="Enter your email" required />
+    <div class="login-container">
+        <div class="login-box">
+            <div class="login-logo">
+                <div class="icon"><i class="fas fa-store"></i></div>
+                <h1>Viewpoint</h1>
+                <p>Butchery & Restaurant POS</p>
             </div>
 
-            <div class="form-group">
-                <label><i class="fas fa-lock"></i> Password</label>
-                <input type="password" id="password" placeholder="Enter your password" required />
-            </div>
+            <form id="loginForm">
+                <div id="loginError" class="error-message"></div>
+                <div class="form-group">
+                    <label><i class="fas fa-envelope"></i> Email</label>
+                    <input type="email" id="email" placeholder="Enter your email" required>
+                </div>
+                <div class="form-group">
+                    <label><i class="fas fa-lock"></i> Password</label>
+                    <input type="password" id="password" placeholder="Enter your password" required>
+                </div>
+                <button type="submit" class="btn-login" id="loginBtn">
+                    <i class="fas fa-sign-in-alt"></i> Login
+                </button>
+            </form>
 
-            <button type="submit" class="btn btn-primary" id="loginBtn">
-                <i class="fas fa-sign-in-alt"></i> Login
-            </button>
-        </form>
-
-        <div class="demo-credentials">
-            <p><strong>Demo Credentials:</strong></p>
-            <div class="credential-grid">
-                <div onclick="fillAndLogin('admin@viewpoint.com', 'admin123')">
-                    <span class="badge badge-admin">Admin</span> admin@viewpoint.com / admin123
-                </div>
-                <div onclick="fillAndLogin('cashier@viewpoint.com', 'cashier123')">
-                    <span class="badge badge-cashier">Cashier</span> cashier@viewpoint.com / cashier123
-                </div>
-                <div onclick="fillAndLogin('butcher@viewpoint.com', 'butcher123')">
-                    <span class="badge badge-butcher">Butcher</span> butcher@viewpoint.com / butcher123
-                </div>
-                <div onclick="fillAndLogin('kitchen@viewpoint.com', 'kitchen123')">
-                    <span class="badge badge-kitchen">Kitchen</span> kitchen@viewpoint.com / kitchen123
+            <div class="demo-credentials">
+                <p>📋 Demo Credentials (click to auto-fill)</p>
+                <div class="demo-grid">
+                    <div class="demo-item" onclick="fillLogin('admin@viewpoint.com','admin123')">
+                        <span class="role-badge admin">Admin</span> admin@viewpoint.com / admin123
+                    </div>
+                    <div class="demo-item" onclick="fillLogin('cashier@viewpoint.com','cashier123')">
+                        <span class="role-badge cashier">Cashier</span> cashier@viewpoint.com / cashier123
+                    </div>
+                    <div class="demo-item" onclick="fillLogin('butcher@viewpoint.com','butcher123')">
+                        <span class="role-badge butcher">Butcher</span> butcher@viewpoint.com / butcher123
+                    </div>
+                    <div class="demo-item" onclick="fillLogin('kitchen@viewpoint.com','kitchen123')">
+                        <span class="role-badge kitchen">Kitchen</span> kitchen@viewpoint.com / kitchen123
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
-    </script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
-        // ===== SUPABASE CONFIGURATION =====
+        // ===== CONFIG =====
         const SUPABASE_CONFIG = {
             url: 'https://sipgnykshaxrxwdeswfc.supabase.co',
             anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNpcGdueWtzaGF4cnh3ZGVzd2ZjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY4OTA2MzMsImV4cCI6MjEwMjQ2NjYzM30.xJtq_3jNMLnXCyVSurdIuUnrlmZEyMWNO1-Azk_4k2E'
         };
+        const supabaseClient = supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.anonKey);
 
-        // ===== INITIALIZE SUPABASE =====
-        const supabaseClient = supabase.createClient(
-            SUPABASE_CONFIG.url,
-            SUPABASE_CONFIG.anonKey
-        );
-
-        // ===== FILL AND LOGIN =====
-        function fillAndLogin(email, password) {
+        // ===== FILL LOGIN =====
+        function fillLogin(email, password) {
             document.getElementById('email').value = email;
             document.getElementById('password').value = password;
-            setTimeout(() => {
-                document.getElementById('loginForm').dispatchEvent(new Event('submit'));
-            }, 300);
+            setTimeout(() => document.getElementById('loginForm').dispatchEvent(new Event('submit')), 300);
         }
 
-        // ===== GET ROLE ID FROM EMAIL =====
-        function getRoleIdFromEmail(email) {
-            const roleMap = {
-                'admin': 1,
-                'cashier': 2,
-                'butcher': 3,
-                'kitchen': 4
-            };
-            for (const [role, id] of Object.entries(roleMap)) {
-                if (email.includes(role)) return id;
-            }
-            return 2; // Default to cashier
-        }
-
-        // ===== LOGIN HANDLER =====
+        // ===== LOGIN =====
         document.getElementById('loginForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-
             const email = document.getElementById('email').value.trim();
             const password = document.getElementById('password').value;
             const errorDiv = document.getElementById('loginError');
-            const infoDiv = document.getElementById('loginInfo');
             const loginBtn = document.getElementById('loginBtn');
 
             errorDiv.style.display = 'none';
             errorDiv.textContent = '';
-            infoDiv.style.display = 'none';
-            infoDiv.textContent = '';
-
-            loginBtn.innerHTML = '<span class="loading-spinner"></span> Logging in...';
+            loginBtn.innerHTML = '<span class="spinner"></span> Logging in...';
             loginBtn.disabled = true;
 
             try {
-                // 1. Authenticate with Supabase Auth
                 const { data: authData, error: authError } = await supabaseClient.auth
                     .signInWithPassword({ email, password });
+                if (authError) throw new Error(authError.message);
 
-                if (authError) {
-                    throw new Error('Invalid email or password. Please check your credentials.');
-                }
-
-                // 2. Get user from database (NO JOIN - fetch separately)
-                let { data: userData, error: userError } = await supabaseClient
+                const { data: userData, error: userError } = await supabaseClient
                     .from('users')
-                    .select('*')
+                    .select('*, roles(name, permissions)')
                     .eq('email', email)
-                    .maybeSingle();
-
-                // 3. If user not in database, create profile
-                if (!userData) {
-                    infoDiv.textContent = '⏳ Creating user profile...';
-                    infoDiv.style.display = 'block';
-
-                    const roleId = getRoleIdFromEmail(email);
-                    const username = email.replace(/[^a-zA-Z0-9]/g, '_').toLowerCase();
-                    const fullName = email.split('@')[0].charAt(0).toUpperCase() + email.split('@')[0].slice(1);
-
-                    const { data: newUser, error: createError } = await supabaseClient
-                        .from('users')
-                        .insert({
-                            username: username,
-                            email: email,
-                            full_name: fullName,
-                            role_id: roleId,
-                            status: 'active'
-                        })
-                        .select('*')
-                        .single();
-
-                    if (createError) {
-                        console.error('Create user error:', createError);
-                        throw new Error('Failed to create user profile: ' + createError.message);
-                    }
-                    userData = newUser;
-                    infoDiv.textContent = '✅ Profile created!';
-                }
-
-                // 4. Get role information separately
-                const { data: roleData, error: roleError } = await supabaseClient
-                    .from('roles')
-                    .select('*')
-                    .eq('id', userData.role_id)
                     .single();
 
-                if (roleError) {
-                    console.error('Role fetch error:', roleError);
-                    // Use default role if not found
-                    const defaultRoles = {
-                        1: { name: 'admin', permissions: { all: true } },
-                        2: { name: 'cashier', permissions: { sales: true, payments: true } },
-                        3: { name: 'butcher', permissions: { orders: true, inventory: true } },
-                        4: { name: 'kitchen', permissions: { orders: true } }
-                    };
-                    userData.roles = defaultRoles[userData.role_id] || defaultRoles[2];
-                } else {
-                    userData.roles = roleData;
-                }
+                if (userError || !userData) throw new Error('User profile not found');
 
-                // 5. Update last login
-                await supabaseClient
-                    .from('users')
-                    .update({ last_login: new Date().toISOString() })
-                    .eq('id', userData.id);
+                localStorage.setItem('viewpoint_session', JSON.stringify({ user: userData, session: authData.session }));
 
-                // 6. Store session
-                localStorage.setItem('viewpoint_session', JSON.stringify({
-                    user: userData,
-                    session: authData.session
-                }));
-
-                // 7. Redirect based on role
                 const role = userData.roles?.name || 'cashier';
                 const redirectMap = {
                     'admin': 'admin-dashboard.html',
@@ -281,16 +253,14 @@
                 window.location.href = redirectMap[role] || 'admin-dashboard.html';
 
             } catch (error) {
-                console.error('Login error:', error);
                 errorDiv.textContent = error.message || 'Login failed. Please try again.';
                 errorDiv.style.display = 'block';
-                infoDiv.style.display = 'none';
                 loginBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Login';
                 loginBtn.disabled = false;
             }
         });
 
-        // ===== CHECK FOR EXISTING SESSION =====
+        // ===== SESSION CHECK =====
         document.addEventListener('DOMContentLoaded', () => {
             const stored = localStorage.getItem('viewpoint_session');
             if (stored) {
@@ -306,7 +276,7 @@
                         };
                         window.location.href = redirectMap[role] || 'admin-dashboard.html';
                     }
-                } catch (e) { /* ignore */ }
+                } catch (e) {}
             }
         });
     </script>
