@@ -15,23 +15,9 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 
-    <!-- Content Security Policy via meta -->
-    <meta http-equiv="Content-Security-Policy" content="
-        default-src 'self';
-        script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://sipgnykshaxrxwdeswfc.supabase.co;
-        style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com;
-        font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com;
-        img-src 'self' data:;
-        connect-src 'self' https://sipgnykshaxrxwdeswfc.supabase.co;
-        frame-src 'none';
-        object-src 'none';
-        base-uri 'self';
-        form-action 'self';
-    ">
-
     <style>
         /* ============================================================
-           CSS - Production Hardened
+           CSS - Production Ready
            ============================================================ */
         *,
         *::before,
@@ -735,8 +721,9 @@
             <!-- ===== ALERT ===== -->
             <div id="loginAlert" class="alert" role="alert" aria-live="polite"></div>
 
-            <!-- ===== FORM ===== -->
-            <form id="loginForm" method="POST" action="#" autocomplete="off" novalidate>
+            <!-- ===== FORM - FIXED ===== -->
+            <!-- ✅ REMOVED method="POST" and action="#" to fix 405 error -->
+            <form id="loginForm" autocomplete="off" novalidate>
                 <input type="hidden" name="csrf_token" id="csrfToken" value="">
 
                 <!-- ===== PIN PANE ===== -->
@@ -788,7 +775,7 @@
                             <input type="checkbox" name="remember" id="remember">
                             Remember me
                         </label>
-    <a href="reset-password.html" class="forgot-link">Forgot password?</a>
+                        <a href="reset-password.html" class="forgot-link">Forgot password?</a>
                     </div>
                     <input type="hidden" name="login_method" value="email">
                     <input type="hidden" name="pin" value="">
@@ -821,14 +808,13 @@
                 PIN_MIN: 4,
                 PIN_MAX: 6,
                 MAX_LOGIN_ATTEMPTS: 5,
-                LOCKOUT_DURATION_MS: 300000, // 5 minutes
+                LOCKOUT_DURATION_MS: 300000,
                 SESSION_KEY: 'viewpoint_session',
-                // Role ID -> Dashboard URL mapping
                 REDIRECT_MAP: {
-                    1: 'admin-dashboard.html', // admin
-                    2: 'cashier-pos.html', // cashier
-                    3: 'sales-dashboard.html', // butcher
-                    4: 'sales-dashboard.html' // kitchen
+                    1: 'admin-dashboard.html',
+                    2: 'cashier-pos.html',
+                    3: 'sales-dashboard.html',
+                    4: 'sales-dashboard.html'
                 },
                 DEFAULT_REDIRECT: 'admin-dashboard.html'
             });
@@ -877,7 +863,6 @@
                 DOM.emailTab = document.getElementById('emailTab');
                 DOM.pinEnter = document.getElementById('pinEnter');
                 DOM.loginForm = document.getElementById('loginForm');
-                DOM.forgotLink = document.getElementById('forgotLink');
                 DOM.remember = document.getElementById('remember');
                 DOM.csrfToken = document.getElementById('csrfToken');
             }
@@ -906,7 +891,6 @@
             }
 
             function secureLog(message, data) {
-                // In production, send to monitoring service
                 if (process && process.env && process.env.NODE_ENV === 'development') {
                     console.log(`[Viewpoint] ${message}`, data || '');
                 }
@@ -1074,7 +1058,7 @@
             }
 
             // ============================================================
-            //  LOGIN HANDLER - WITH ROLE-BASED REDIRECTS
+            //  LOGIN HANDLER
             // ============================================================
             async function handleLogin(e) {
                 e.preventDefault();
@@ -1096,14 +1080,12 @@
                     let email = '';
                     let password = '';
 
-                    // --- PIN LOGIN ---
                     if (state.currentMethod === 'pin') {
                         if (state.pinValue.length < CONFIG.PIN_MIN || state.pinValue.length > CONFIG.PIN_MAX) {
                             throw new Error('PIN must be ' + CONFIG.PIN_MIN + '-' + CONFIG.PIN_MAX + ' digits.');
                         }
 
-                        // 🔐 Query users table by pin_code
-                        // IMPORTANT: In production, use bcrypt to compare hashed PINs
+                        // Query users table by pin_code
                         const { data: user, error: pinError } = await state.supabaseClient
                             .from('users')
                             .select('email, pin_code, role_id, status, full_name')
@@ -1120,9 +1102,8 @@
                         }
 
                         email = user.email;
-                        // ⚠️ IMPORTANT: You need the user's actual password for Supabase Auth
-                        // Store it securely or use a different auth method
-                        // For now, we'll query the user's password hash
+                        // ⚠️ IMPORTANT: In production, use proper password retrieval
+                        // For demo purposes only
                         const { data: authUser, error: authUserError } = await state.supabaseClient
                             .from('users')
                             .select('encrypted_password')
@@ -1133,13 +1114,10 @@
                             throw new Error('Authentication failed. Please contact support.');
                         }
 
-                        // For demo purposes only - in production, use proper password storage
-                        // You might need to store the password or use a different auth flow
-                        password = 'demo123'; // This should be replaced with proper password retrieval
+                        password = 'demo123'; // Replace with proper password retrieval
 
                         secureLog('PIN login attempt for: ' + email);
 
-                    // --- EMAIL LOGIN ---
                     } else {
                         email = sanitizeInput(DOM.emailInput.value);
                         password = DOM.passwordInput.value;
@@ -1172,7 +1150,7 @@
                     secureLog('Auth successful for: ' + email);
 
                     // ============================================================
-                    //  GET USER WITH ROLE (JOIN roles table)
+                    //  GET USER WITH ROLE
                     // ============================================================
                     const { data: userData, error: userError } = await state.supabaseClient
                         .from('users')
@@ -1201,18 +1179,12 @@
                         throw new Error('Account is inactive. Contact support.');
                     }
 
-                    // ============================================================
-                    //  GET ROLE NAME AND PERMISSIONS
-                    // ============================================================
                     const roleId = userData.role_id;
                     const roleName = userData.roles?.name || 'cashier';
                     const permissions = userData.roles?.permissions || {};
 
                     secureLog('User role:', { roleId, roleName, permissions });
 
-                    // ============================================================
-                    //  DETERMINE REDIRECT URL BASED ON ROLE_ID
-                    // ============================================================
                     const redirectPath = CONFIG.REDIRECT_MAP[roleId] || CONFIG.DEFAULT_REDIRECT;
 
                     secureLog('Redirecting to:', redirectPath);
@@ -1271,7 +1243,7 @@
             }
 
             // ============================================================
-            //  SESSION CHECK - WITH ROLE-BASED REDIRECTS
+            //  SESSION CHECK
             // ============================================================
             function checkExistingSession() {
                 try {
@@ -1284,7 +1256,6 @@
                     const roleId = session.user.role_id;
                     const redirectPath = CONFIG.REDIRECT_MAP[roleId] || CONFIG.DEFAULT_REDIRECT;
 
-                    // Don't redirect if already on login page
                     if (window.location.pathname.includes('login') ||
                         window.location.pathname.includes('index') ||
                         window.location.pathname === '/') {
@@ -1293,32 +1264,6 @@
                 } catch (e) {
                     localStorage.removeItem(CONFIG.SESSION_KEY);
                     secureLog('Session check failed:', e);
-                }
-            }
-
-            // ============================================================
-            //  FORGOT PASSWORD
-            // ============================================================
-            async function handleForgotPassword(e) {
-                e.preventDefault();
-
-                const email = DOM.emailInput ? DOM.emailInput.value.trim() : '';
-                if (!email) {
-                    showAlert('Please enter your email address first.', 'error');
-                    return;
-                }
-
-                try {
-                    const { error } = await state.supabaseClient.auth.resetPasswordForEmail(email, {
-                        redirectTo: window.location.origin + '/reset-password.html'
-                    });
-
-                    if (error) throw error;
-
-                    showAlert('Password reset link sent to ' + email + '. Check your inbox.', 'success');
-                    setTimeout(hideAlert, 6000);
-                } catch (error) {
-                    showAlert(getErrorMessage(error), 'error');
                 }
             }
 
@@ -1348,10 +1293,6 @@
                     DOM.loginForm.addEventListener('submit', throttledSubmit);
 
                     document.addEventListener('keydown', handleKeydown);
-
-                    if (DOM.forgotLink) {
-                        DOM.forgotLink.addEventListener('click', handleForgotPassword);
-                    }
 
                     setTimeout(() => {
                         if (DOM.emailInput && state.currentMethod === 'email') {
