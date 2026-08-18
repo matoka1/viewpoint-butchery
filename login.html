@@ -769,21 +769,27 @@
                 DOM.remember = document.getElementById('remember');
             }
 
-            // ============================================================
-            // UTILITY
-            // ============================================================
-            function getErrorMessage(error) {
-                if (typeof error === 'string') return error;
-                if (error instanceof Error) return error.message;
-                if (error && typeof error === 'object' && 'message' in error) return String(error.message);
-                return 'An unexpected error occurred. Please try again.';
-            }
+           // ============================================================
+// UTILITY
+// ============================================================
+function getErrorMessage(error) {
+    if (typeof error === 'string') return error;
+    if (error instanceof Error) return error.message;
+    if (error && typeof error === 'object' && 'message' in error) return String(error.message);
+    return 'An unexpected error occurred. Please try again.';
+}
 
-            function secureLog(message, data) {
-                if (console && process && process.env && process.env.NODE_ENV === 'development') {
-                    console.log(`[Viewpoint] ${message}`, data || '');
-                }
-            }
+// ✅ FIXED: Browser-compatible logging
+function secureLog(message, data) {
+    const isDev = 
+        window.location.hostname === 'localhost' ||
+        window.location.hostname === '127.0.0.1' ||
+        window.location.hostname.includes('.local');
+    
+    if (console && isDev) {
+        console.log(`[Viewpoint] ${message}`, data || '');
+    }
+}
 
             // ============================================================
             // PIN LOGIC
