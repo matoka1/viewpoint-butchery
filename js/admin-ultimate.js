@@ -121,13 +121,13 @@ document.addEventListener('keypress', resetSessionTimer);
 document.addEventListener('mousemove', resetSessionTimer);
 
 // ============================================================
-//  AUTH - FIXED FOR PIN LOGIN
+//  AUTH
 // ============================================================
 async function checkAuth() {
     try {
         const stored = localStorage.getItem('viewpoint_session');
         if (!stored) {
-            console.log('❌ No session found, redirecting to login...');
+            console.log('❌ No session found');
             window.location.href = 'login.html';
             return null;
         }
@@ -142,105 +142,35 @@ async function checkAuth() {
             return null;
         }
 
-        const { user, session, loginMethod, loginTime } = sessionData;
+        const { user, session } = sessionData;
 
-        if (!user) {
-            console.log('❌ Missing user data');
-            localStorage.removeItem('viewpoint_session');
-            window.location.href = 'login.html';
-            return null;
-        }
-
-        // Check if session expired (24 hours)
-        const maxAge = 24 * 60 * 60 * 1000;
-        if (loginTime && Date.now() - loginTime > maxAge) {
-            console.log('❌ Session expired');
+        if (!user || !session) {
+            console.log('❌ Missing user or session');
             localStorage.removeItem('viewpoint_session');
             window.location.href = 'login.html';
             return null;
         }
 
         console.log('📊 User data:', user);
-        console.log('🔑 Login method:', loginMethod || 'unknown');
 
-        // ✅ PIN LOGIN - No Supabase session needed
-        if (loginMethod === 'pin') {
-            console.log('✅ PIN login session valid for:', user.email);
+        // Check if user is admin by role_id OR roles.name
+        if (user.role_id === 1 || user.roles?.name === 'admin') {
+            console.log('✅ User is admin');
+            if (!user.roles) {
+                user.roles = { name: 'admin', permissions: { all: true } };
+                localStorage.setItem('viewpoint_session', JSON.stringify({
+                    user: user,
+                    session: session
+                }));
+            }
             currentUser = user;
-            
-            // Update UI
-            updateUI(user);
-            
+            document.getElementById('userAvatar').textContent = user.full_name?.charAt(0).toUpperCase() || 'A';
+            document.getElementById('userName').textContent = user.full_name || 'Admin';
             resetSessionTimer();
             return user;
         }
 
-        // ✅ EMAIL LOGIN - Check Supabase session
-        if (loginMethod === 'email') {
-            const { data: { session: currentSession }, error: sessionError } = await supabaseClient.auth.getSession();
-            
-            if (sessionError || !currentSession) {
-                console.log('❌ Supabase session expired');
-                localStorage.removeItem('viewpoint_session');
-                window.location.href = 'login.html';
-                return null;
-            }
-
-            if (user.role_id === 1 || user.roles?.name === 'admin') {
-                console.log('✅ Email admin session valid for:', user.email);
-                if (!user.roles) {
-                    user.roles = { name: 'admin', permissions: { all: true } };
-                    localStorage.setItem('viewpoint_session', JSON.stringify({
-                        user: user,
-                        session: currentSession,
-                        loginMethod: 'email',
-                        loginTime: Date.now()
-                    }));
-                }
-                currentUser = user;
-                updateUI(user);
-                resetSessionTimer();
-                return user;
-            }
-
-            console.log('❌ User is not admin. role_id:', user.role_id);
-            localStorage.removeItem('viewpoint_session');
-            window.location.href = 'login.html';
-            return null;
-        }
-
-        // Fallback
-        console.log('⚠️ No loginMethod found, checking Supabase...');
-        const { data: { session: currentSession }, error: sessionError } = await supabaseClient.auth.getSession();
-        
-        if (sessionError || !currentSession) {
-            console.log('❌ No valid session found');
-            localStorage.removeItem('viewpoint_session');
-            window.location.href = 'login.html';
-            return null;
-        }
-
-        const { data: userData, error: userError } = await supabaseClient
-            .from('users')
-            .select('*, roles(name, permissions)')
-            .eq('email', currentSession.user.email)
-            .single();
-
-        if (userError || !userData) {
-            console.log('❌ User not found in database');
-            localStorage.removeItem('viewpoint_session');
-            window.location.href = 'login.html';
-            return null;
-        }
-
-        if (userData.role_id === 1 || userData.roles?.name === 'admin') {
-            currentUser = userData;
-            updateUI(userData);
-            resetSessionTimer();
-            return userData;
-        }
-
-        console.log('❌ User is not admin');
+        console.log('❌ User is not admin. role_id:', user.role_id);
         localStorage.removeItem('viewpoint_session');
         window.location.href = 'login.html';
         return null;
@@ -253,34 +183,14 @@ async function checkAuth() {
     }
 }
 
-// ============================================================
-//  UPDATE UI
-// ============================================================
-function updateUI(user) {
-    const avatar = document.getElementById('userAvatar');
-    const userName = document.getElementById('userName');
-    const userRole = document.querySelector('.user-role');
-    
-    if (avatar) avatar.textContent = user.full_name?.charAt(0).toUpperCase() || 'A';
-    if (userName) userName.textContent = user.full_name || 'User';
-    if (userRole) userRole.textContent = user.roles?.name || 'Cashier';
-}
-
-// ============================================================
-//  LOGOUT - FIXED
-// ============================================================
 async function logout() {
     try {
-        if (typeof supabaseClient !== 'undefined' && supabaseClient.auth) {
-            await supabaseClient.auth.signOut().catch(() => {});
-        }
+        await supabaseClient.auth.signOut();
     } catch (e) {}
-    
     localStorage.removeItem('viewpoint_session');
     window.location.href = 'login.html';
 }
-
-window.logout = logout;
+document.getElementById('logoutBtn').addEventListener('click', logout);
 
 // ============================================================
 //  NAVIGATION
@@ -364,9 +274,10 @@ function startClock() {
 }
 
 // ============================================================
-//  COMPLETE PAYMENT HELPER
+//  COMPLETE PAYMENT HELPER - DEFINED FIRST!
 // ============================================================
 async function completePayment(orderId, paymentId, total, items, phone) {
+    // Update order
     await supabaseClient.from('orders').update({
         status: 'paid',
         payment_status: 'completed',
@@ -377,6 +288,7 @@ async function completePayment(orderId, paymentId, total, items, phone) {
         status: 'completed'
     }).eq('id', paymentId);
 
+    // Update customer loyalty points
     if (phone) {
         try {
             const { data: customer } = await supabaseClient.from('customers')
@@ -391,6 +303,7 @@ async function completePayment(orderId, paymentId, total, items, phone) {
         } catch (e) {}
     }
 
+    // Update inventory
     for (const item of items) {
         try {
             const { data: product } = await supabaseClient.from('products')
@@ -406,13 +319,27 @@ async function completePayment(orderId, paymentId, total, items, phone) {
 }
 
 // ============================================================
-//  PAYHERO INTEGRATION
+//  PAYHERO INTEGRATION FUNCTIONS
 // ============================================================
 async function initiatePayHeroSTK(phone, amount, orderId, description = 'Viewpoint Payment') {
     try {
-        console.log('📱 Sending PayHero STK Push...', { phone, amount, orderId });
+        const payload = {
+            account_id: PAYHERO_CONFIG.accountId,
+            phone: phone,
+            amount: amount,
+            currency: 'KES',
+            reference: orderId,
+            description: description,
+            callback_url: window.location.origin + '/payment-callback.html'
+        };
+
+        console.log('📱 Sending PayHero STK Push request...', payload);
+
+        // For demo: simulate the response
         await new Promise(resolve => setTimeout(resolve, 1500));
+
         const success = Math.random() < 0.9;
+
         if (success) {
             return {
                 success: true,
@@ -427,6 +354,7 @@ async function initiatePayHeroSTK(phone, amount, orderId, description = 'Viewpoi
                 transaction_id: null
             };
         }
+
     } catch (error) {
         console.error('PayHero STK error:', error);
         return {
@@ -440,14 +368,18 @@ async function initiatePayHeroSTK(phone, amount, orderId, description = 'Viewpoi
 async function checkPayHeroStatus(transactionId) {
     try {
         console.log('🔍 Checking PayHero payment status:', transactionId);
+
         await new Promise(resolve => setTimeout(resolve, 800));
+
         const success = Math.random() < 0.9;
+
         return {
             success: success,
             status: success ? 'completed' : 'failed',
             message: success ? 'Payment confirmed' : 'Payment failed',
             receipt_number: success ? 'MP' + Date.now().toString().slice(-8) : null
         };
+
     } catch (error) {
         console.error('PayHero status check error:', error);
         return {
@@ -460,7 +392,123 @@ async function checkPayHeroStatus(transactionId) {
 }
 
 // ============================================================
-//  PROCESS PAYMENT WITH PAYHERO
+//  ADMIN RECEIPT GENERATION
+// ============================================================
+async function generateAdminReceipt(orderId) {
+    try {
+        const { data: order, error } = await supabaseClient
+            .from('orders')
+            .select('*, order_items(*, products(*)), users(full_name)')
+            .eq('id', orderId)
+            .single();
+
+        if (error || !order) {
+            showToast('❌ Order not found!', 'error');
+            return;
+        }
+
+        const items = order.order_items || [];
+        const businessName = 'Viewpoint Butchery & Restaurant';
+
+        let receipt = `
+╔════════════════════════════════════╗
+║       VIEWPOINT BUTCHERY           ║
+║          & RESTAURANT              ║
+╠════════════════════════════════════╣
+║  Receipt: ${order.order_number || order.id.slice(0,10)}
+║  Date: ${new Date().toLocaleDateString()}
+║  Time: ${new Date().toLocaleTimeString()}
+║  Cashier: ${order.users?.full_name || 'System'}
+║  ${order.customer_phone ? `Phone: ${order.customer_phone}` : ''}
+╠════════════════════════════════════╣
+║  ITEM                 QTY   AMOUNT ║
+╠════════════════════════════════════╣`;
+
+        items.forEach(item => {
+            const name = (item.products?.name || 'Unknown').padEnd(20);
+            const qty = item.quantity.toFixed(3).padEnd(8);
+            const amount = `KES ${item.total.toFixed(2)}`.padStart(10);
+            receipt += `
+║  ${name} ${qty} ${amount} ║`;
+        });
+
+        receipt += `
+╠════════════════════════════════════╣
+║  TOTAL:                    KES ${order.total.toFixed(2).padStart(8)} ║
+║  PAYMENT: ${(order.payment_method || 'N/A').toUpperCase().padEnd(22)} ║
+║  STATUS: PAID ✅                      ║
+╠════════════════════════════════════╣
+║  Thank you for shopping with us! 🙏 ║
+╚════════════════════════════════════╝`;
+
+        document.getElementById('receiptContent').textContent = receipt;
+        document.getElementById('receiptModal').classList.add('active');
+
+        showToast('🧾 Receipt generated!', 'success');
+
+    } catch (error) {
+        console.error('Receipt error:', error);
+        showToast('❌ Error generating receipt: ' + error.message, 'error');
+    }
+}
+
+// ============================================================
+//  PRINT RECEIPT
+// ============================================================
+function printReceipt() {
+    const content = document.getElementById('receiptContent');
+    if (!content || !content.textContent) {
+        showToast('❌ No receipt to print', 'error');
+        return;
+    }
+    const receiptText = content.textContent;
+    const win = window.open('', '_blank');
+    if (win) {
+        win.document.write(`
+            <html>
+                <head>
+                    <title>Receipt</title>
+                    <style>
+                        body { 
+                            font-family: 'Courier New', monospace; 
+                            font-size: 14px; 
+                            padding: 20px; 
+                            max-width: 400px;
+                            margin: 0 auto;
+                            background: white;
+                            color: black;
+                        }
+                        pre { white-space: pre-wrap; font-family: inherit; margin: 0; }
+                        .no-print { text-align: center; margin-top: 20px; }
+                        .no-print button { 
+                            padding: 10px 20px; 
+                            margin: 0 5px; 
+                            cursor: pointer;
+                            border: none;
+                            border-radius: 8px;
+                            font-size: 14px;
+                        }
+                        .btn-print { background: #6C3CE1; color: white; }
+                        .btn-close { background: #EF4444; color: white; }
+                        @media print { .no-print { display: none; } }
+                    </style>
+                </head>
+                <body>
+                    <pre>${receiptText}</pre>
+                    <div class="no-print">
+                        <button class="btn-print" onclick="window.print()">🖨️ Print</button>
+                        <button class="btn-close" onclick="window.close()">✖ Close</button>
+                    </div>
+                </body>
+            </html>
+        `);
+        win.document.close();
+        setTimeout(() => win.print(), 500);
+    }
+}
+
+// ============================================================
+//  PROCESS PAYMENT WITH PAYHERO EDGE FUNCTION
 // ============================================================
 async function processPaymentPOS(method) {
     if (!cart.length) {
@@ -476,6 +524,7 @@ async function processPaymentPOS(method) {
 
     const total = cart.reduce((sum, item) => sum + item.total, 0);
 
+    // Show payment modal
     const modal = document.getElementById('paymentModal');
     const content = document.getElementById('paymentContent');
     const title = document.getElementById('paymentModalTitle');
@@ -491,9 +540,11 @@ async function processPaymentPOS(method) {
         <p class="status-text">${method === 'mpesa' ? 'Sending PayHero STK Push...' : 'Processing cash payment...'}</p>
         <p class="status-sub" id="paymentDetails">Amount: KES ${total.toFixed(2)}</p>
         ${method === 'mpesa' ? `<p class="status-sub" style="font-size:12px;margin-top:8px;">📱 Enter PIN on your phone to complete payment via PayHero</p>` : ''}
+        ${method === 'mpesa' ? `<p class="status-sub" style="font-size:11px;color:var(--text-muted);margin-top:4px;">🔗 https://lipwa.link/11408</p>` : ''}
     `;
     modal.classList.add('active');
 
+    // Create customer if new
     if (phone) {
         try {
             const { data: existing } = await supabaseClient.from('customers').select('id').eq('phone', phone).single();
@@ -508,6 +559,7 @@ async function processPaymentPOS(method) {
     }
 
     try {
+        // Create order - order_number auto-generates via trigger
         const { data: order, error } = await supabaseClient.from('orders').insert({
             order_type: posMode,
             user_id: currentUser.id,
@@ -541,12 +593,17 @@ async function processPaymentPOS(method) {
         }).select().single();
 
         if (method === 'mpesa') {
+            // ============================================================
+            //  CALL EDGE FUNCTION FOR STK PUSH
+            // ============================================================
             content.innerHTML = `
                 <div class="spinner"></div>
                 <p class="status-text">⏳ Sending STK Push via PayHero...</p>
                 <p class="status-sub">Please check your phone for the M-Pesa prompt</p>
+                <p class="status-sub" style="font-size:12px;color:var(--text-muted);margin-top:8px;">📱 Enter your PIN to complete payment</p>
             `;
 
+            // Call Edge Function
             const stkResult = await initiatePayHeroSTK(
                 phone,
                 total,
@@ -555,10 +612,12 @@ async function processPaymentPOS(method) {
             );
 
             if (stkResult.success) {
+                // Update payment with transaction reference
                 await supabaseClient.from('payments').update({
                     transaction_reference: stkResult.transaction_id
                 }).eq('id', payment.id);
 
+                // Poll for payment status
                 let attempts = 0;
                 const maxAttempts = 10;
                 let paymentConfirmed = false;
@@ -572,6 +631,7 @@ async function processPaymentPOS(method) {
                     if (statusResult.success && statusResult.status === 'completed') {
                         paymentConfirmed = true;
 
+                        // Record successful transaction
                         await supabaseClient.from('mpesa_transactions').insert({
                             payment_id: payment.id,
                             phone_number: phone,
@@ -589,9 +649,10 @@ async function processPaymentPOS(method) {
                             <p class="status-text">Payment Successful! 🎉</p>
                             <p class="status-sub">Order #${order.order_number || order.id.slice(0,8)}</p>
                             <p class="status-sub">Amount: KES ${total.toFixed(2)}</p>
+                            <p class="status-sub">M-Pesa Receipt: ${statusResult.receipt_number || stkResult.receipt_number || 'N/A'}</p>
                         `;
 
-                        showToast(`✅ Payment successful!`, 'success');
+                        showToast(`✅ Payment successful! Order #${order.order_number || order.id.slice(0,8)}`, 'success');
 
                         setTimeout(() => {
                             modal.classList.remove('active');
@@ -612,6 +673,7 @@ async function processPaymentPOS(method) {
                             status: 'cancelled',
                             payment_status: 'failed'
                         }).eq('id', order.id);
+
                         await supabaseClient.from('payments').update({
                             status: 'failed'
                         }).eq('id', payment.id);
@@ -620,6 +682,7 @@ async function processPaymentPOS(method) {
                             <div class="status-icon failed">❌</div>
                             <p class="status-text">Payment Failed</p>
                             <p class="status-sub">${statusResult.message || 'Transaction was not completed'}</p>
+                            <p class="status-sub" style="font-size:12px;color:var(--text-muted);margin-top:8px;">Please try again</p>
                         `;
 
                         showToast('❌ Payment failed. Please try again.', 'error');
@@ -627,20 +690,24 @@ async function processPaymentPOS(method) {
                         break;
                     }
 
+                    // Update progress
                     if (!paymentConfirmed) {
                         content.innerHTML = `
                             <div class="spinner"></div>
                             <p class="status-text">⏳ Waiting for payment confirmation... (${attempts}/${maxAttempts})</p>
                             <p class="status-sub">Please check your phone and enter your PIN</p>
+                            <p class="status-sub" style="font-size:12px;color:var(--text-muted);margin-top:8px;">⏱️ Waiting for M-Pesa confirmation...</p>
                         `;
                     }
                 }
 
                 if (!paymentConfirmed) {
+                    // Timeout - keep order pending
                     content.innerHTML = `
                         <div class="status-icon warning">⏳</div>
                         <p class="status-text">Payment Pending</p>
                         <p class="status-sub">Your payment is still being processed</p>
+                        <p class="status-sub" style="font-size:12px;color:var(--text-muted);margin-top:8px;">Please check your phone and complete the transaction</p>
                     `;
                     showToast('⏳ Payment pending. Please check your phone.', 'warning');
                     setTimeout(() => {
@@ -650,10 +717,12 @@ async function processPaymentPOS(method) {
                 }
 
             } else {
+                // STK Push failed
                 await supabaseClient.from('orders').update({
                     status: 'cancelled',
                     payment_status: 'failed'
                 }).eq('id', order.id);
+
                 await supabaseClient.from('payments').update({
                     status: 'failed'
                 }).eq('id', payment.id);
@@ -662,13 +731,14 @@ async function processPaymentPOS(method) {
                     <div class="status-icon failed">❌</div>
                     <p class="status-text">Payment Failed</p>
                     <p class="status-sub">${stkResult.message || 'STK Push was not sent'}</p>
+                    <p class="status-sub" style="font-size:12px;color:var(--text-muted);margin-top:8px;">Please try again</p>
                 `;
                 showToast('❌ Payment failed: ' + (stkResult.message || 'Please try again'), 'error');
                 setTimeout(() => modal.classList.remove('active'), 2000);
             }
 
         } else {
-            // Cash payment
+            // Cash payment - complete immediately
             await completePayment(order.id, payment.id, total, items, phone);
 
             content.innerHTML = `
@@ -705,105 +775,6 @@ async function processPaymentPOS(method) {
         }, 2000);
     }
 }
-
-// ============================================================
-//  GENERATE ADMIN RECEIPT
-// ============================================================
-async function generateAdminReceipt(orderId) {
-    try {
-        const { data: order, error } = await supabaseClient
-            .from('orders')
-            .select('*, order_items(*, products(*)), users(full_name)')
-            .eq('id', orderId)
-            .single();
-
-        if (error || !order) {
-            showToast('❌ Order not found!', 'error');
-            return;
-        }
-
-        const items = order.order_items || [];
-        let receipt = `
-╔════════════════════════════════════╗
-║       VIEWPOINT BUTCHERY           ║
-║          & RESTAURANT              ║
-╠════════════════════════════════════╣
-║  Receipt: ${order.order_number || order.id.slice(0,10)}
-║  Date: ${new Date().toLocaleDateString()}
-║  Time: ${new Date().toLocaleTimeString()}
-║  Cashier: ${order.users?.full_name || 'System'}
-║  ${order.customer_phone ? `Phone: ${order.customer_phone}` : ''}
-╠════════════════════════════════════╣
-║  ITEM                 QTY   AMOUNT ║
-╠════════════════════════════════════╣`;
-
-        items.forEach(item => {
-            const name = (item.products?.name || 'Unknown').padEnd(20);
-            const qty = item.quantity.toFixed(3).padEnd(8);
-            const amount = `KES ${item.total.toFixed(2)}`.padStart(10);
-            receipt += `
-║  ${name} ${qty} ${amount} ║`;
-        });
-
-        receipt += `
-╠════════════════════════════════════╣
-║  TOTAL:                    KES ${order.total.toFixed(2).padStart(8)} ║
-║  PAYMENT: ${(order.payment_method || 'N/A').toUpperCase().padEnd(22)} ║
-║  STATUS: PAID ✅                      ║
-╠════════════════════════════════════╣
-║  Thank you for shopping with us! 🙏 ║
-╚════════════════════════════════════╝`;
-
-        document.getElementById('receiptContent').textContent = receipt;
-        document.getElementById('receiptModal').classList.add('active');
-        showToast('🧾 Receipt generated!', 'success');
-
-    } catch (error) {
-        console.error('Receipt error:', error);
-        showToast('❌ Error generating receipt: ' + error.message, 'error');
-    }
-}
-
-// ============================================================
-//  PRINT RECEIPT
-// ============================================================
-function printReceipt() {
-    const content = document.getElementById('receiptContent');
-    if (!content || !content.textContent) {
-        showToast('❌ No receipt to print', 'error');
-        return;
-    }
-    const receiptText = content.textContent;
-    const win = window.open('', '_blank');
-    if (win) {
-        win.document.write(`
-            <html>
-                <head>
-                    <title>Receipt</title>
-                    <style>
-                        body { font-family: 'Courier New', monospace; font-size: 14px; padding: 20px; max-width: 400px; margin: 0 auto; background: white; color: black; }
-                        pre { white-space: pre-wrap; font-family: inherit; margin: 0; }
-                        .no-print { text-align: center; margin-top: 20px; }
-                        .no-print button { padding: 10px 20px; margin: 0 5px; cursor: pointer; border: none; border-radius: 8px; font-size: 14px; }
-                        .btn-print { background: #6C3CE1; color: white; }
-                        .btn-close { background: #EF4444; color: white; }
-                        @media print { .no-print { display: none; } }
-                    </style>
-                </head>
-                <body>
-                    <pre>${receiptText}</pre>
-                    <div class="no-print">
-                        <button class="btn-print" onclick="window.print()">🖨️ Print</button>
-                        <button class="btn-close" onclick="window.close()">✖ Close</button>
-                    </div>
-                </body>
-            </html>
-        `);
-        win.document.close();
-        setTimeout(() => win.print(), 500);
-    }
-}
-
 // ============================================================
 //  DASHBOARD
 // ============================================================
@@ -812,7 +783,11 @@ async function loadDashboard() {
         const today = new Date().toISOString().split('T')[0];
         const { data: orders } = await supabaseClient.from('orders').select('*').gte('created_at', today);
 
-        let total = 0, butchery = 0, restaurant = 0, mpesa = 0, pending = 0;
+        let total = 0,
+            butchery = 0,
+            restaurant = 0,
+            mpesa = 0,
+            pending = 0;
         orders?.forEach(o => {
             if (o.status === 'paid' || o.status === 'completed') {
                 total += o.total;
@@ -846,13 +821,15 @@ async function loadDashboard() {
 }
 
 async function loadRecentOrders() {
-    const { data: orders } = await supabaseClient.from('orders').select('*').order('created_at', { ascending: false }).limit(8);
+    const { data: orders } = await supabaseClient.from('orders').select('*').order('created_at', { ascending: false })
+        .limit(8);
     const table = document.getElementById('recentOrdersTable');
     if (!orders?.length) {
         table.innerHTML = '<div class="empty-state"><i class="fas fa-inbox"></i><p>No recent orders</p></div>';
         return;
     }
-    let html = '<div class="table-wrapper"><table class="data-table"><thead><tr><th>🔢 Order</th><th>📂 Type</th><th>💰 Total</th><th>📊 Status</th><th>⏰ Time</th></tr></thead><tbody>';
+    let html =
+        '<div class="table-wrapper"><table class="data-table"><thead><tr><th>🔢 Order</th><th>📂 Type</th><th>💰 Total</th><th>📊 Status</th><th>⏰ Time</th></tr></thead><tbody>';
     orders.forEach(o => {
         html += `<tr>
                 <td><strong>#${o.order_number || o.id.slice(0,8)}</strong></td>
@@ -867,7 +844,8 @@ async function loadRecentOrders() {
 }
 
 async function loadTopProducts() {
-    const { data: items } = await supabaseClient.from('order_items').select('product_id, quantity, products(name)').limit(30);
+    const { data: items } = await supabaseClient.from('order_items').select('product_id, quantity, products(name)')
+        .limit(30);
     const list = document.getElementById('topProductsList');
     if (!items?.length) {
         list.innerHTML = '<div class="empty-state"><p>No sales data</p></div>';
@@ -951,11 +929,13 @@ function switchPOS(mode) {
 }
 
 async function loadPOSProducts(type) {
-    const { data: productsData } = await supabaseClient.from('products').select('*').eq('product_type', type).eq('is_active', true);
+    const { data: productsData } = await supabaseClient.from('products').select('*').eq('product_type', type).eq(
+        'is_active', true);
     products = productsData || [];
     const container = document.getElementById('posContainer');
     if (!products.length) {
-        container.innerHTML = `<div class="empty-state"><i class="fas fa-box-open"></i><p>No ${type} products available</p></div>`;
+        container.innerHTML =
+            `<div class="empty-state"><i class="fas fa-box-open"></i><p>No ${type} products available</p></div>`;
         return;
     }
 
@@ -1014,7 +994,8 @@ function selectPOSProduct(id) {
 
 function quickAmount(amount) {
     const el = document.getElementById('posAmount');
-    if (el) { el.value = amount || ''; calculateTotalPOS(); }
+    if (el) { el.value = amount || '';
+        calculateTotalPOS(); }
 }
 
 function calculateTotalPOS() {
@@ -1052,7 +1033,8 @@ function addToCartPOS() {
     document.querySelectorAll('.product-card').forEach(el => el.classList.remove('selected'));
 }
 
-function clearCartPOS() { cart = []; updateCartDisplayPOS(); }
+function clearCartPOS() { cart = [];
+    updateCartDisplayPOS(); }
 
 function updateCartDisplayPOS() {
     const container = document.getElementById('posCartItems');
@@ -1079,11 +1061,13 @@ function updateCartDisplayPOS() {
 // ============================================================
 async function loadOrders() {
     try {
-        const { data: orders } = await supabaseClient.from('orders').select('*, order_items(*, products(*))').order('created_at', { ascending: false });
+        const { data: orders } = await supabaseClient.from('orders').select('*, order_items(*, products(*))')
+            .order('created_at', { ascending: false });
         allOrders = orders || [];
         renderOrders(allOrders);
         updateOrderCounts(allOrders);
-        document.getElementById('orderBadge').textContent = allOrders.filter(o => o.status === 'paid' || o.status === 'preparing').length;
+        document.getElementById('orderBadge').textContent = allOrders.filter(o => o.status === 'paid' || o.status ===
+            'preparing').length;
         resetSessionTimer();
     } catch (e) { console.error('Orders error:', e); }
 }
@@ -1098,7 +1082,8 @@ function renderOrders(orders) {
     const container = document.getElementById('ordersContainer');
     document.getElementById('orderCount').textContent = filtered.length;
     if (!filtered.length) {
-        container.innerHTML = `<div class="empty-state"><i class="fas fa-inbox"></i><p>No ${currentFilter === 'all' ? '' : currentFilter} orders</p></div>`;
+        container.innerHTML =
+            `<div class="empty-state"><i class="fas fa-inbox"></i><p>No ${currentFilter === 'all' ? '' : currentFilter} orders</p></div>`;
         return;
     }
     container.innerHTML = `<div class="orders-grid">${filtered.map(order => {
@@ -1167,7 +1152,8 @@ async function updateOrderStatus(orderId, status) {
 }
 
 async function viewOrderDetails(orderId) {
-    const { data: order } = await supabaseClient.from('orders').select('*, order_items(*, products(*))').eq('id', orderId).single();
+    const { data: order } = await supabaseClient.from('orders').select('*, order_items(*, products(*))').eq('id', orderId)
+        .single();
     if (!order) return;
     document.getElementById('orderDetailTitle').textContent = `📋 Order #${order.order_number || order.id.slice(0,10)}`;
     const items = order.order_items || [];
@@ -1296,7 +1282,8 @@ async function loadProducts() {
         table.innerHTML = '<div class="empty-state"><i class="fas fa-box-open"></i><p>No products</p></div>';
         return;
     }
-    let html = '<div class="table-wrapper"><table class="data-table"><thead><tr><th>📦 Name</th><th>📂 Type</th><th>💰 Price</th><th>📊 Stock</th><th>📌 Status</th><th>⚙️ Actions</th></tr></thead><tbody>';
+    let html =
+        '<div class="table-wrapper"><table class="data-table"><thead><tr><th>📦 Name</th><th>📂 Type</th><th>💰 Price</th><th>📊 Stock</th><th>📌 Status</th><th>⚙️ Actions</th></tr></thead><tbody>';
     products.forEach(p => {
         html += `<tr>
                 <td><strong>${getEmoji(p.name)} ${p.name}</strong></td>
@@ -1384,7 +1371,8 @@ async function loadInventory() {
         table.innerHTML = '<div class="empty-state"><i class="fas fa-warehouse"></i><p>No inventory</p></div>';
         return;
     }
-    let html = '<div class="table-wrapper"><table class="data-table"><thead><tr><th>📦 Product</th><th>📂 Type</th><th>📊 Stock</th><th>📏 Unit</th><th>⚠️ Reorder</th><th>📌 Status</th></tr></thead><tbody>';
+    let html =
+        '<div class="table-wrapper"><table class="data-table"><thead><tr><th>📦 Product</th><th>📂 Type</th><th>📊 Stock</th><th>📏 Unit</th><th>⚠️ Reorder</th><th>📌 Status</th></tr></thead><tbody>';
     products.forEach(p => {
         const isLow = p.stock_quantity <= p.reorder_level;
         html += `<tr style="${isLow ? 'background:rgba(245,158,11,0.08);' : ''}">
@@ -1399,13 +1387,15 @@ async function loadInventory() {
     html += '</tbody></table></div>';
     table.innerHTML = html;
 
-    const { data: movements } = await supabaseClient.from('inventory_movements').select('*, products(name)').order('created_at', { ascending: false }).limit(15);
+    const { data: movements } = await supabaseClient.from('inventory_movements').select('*, products(name)')
+        .order('created_at', { ascending: false }).limit(15);
     const movementTable = document.getElementById('stockMovementsTable');
     if (!movements?.length) {
         movementTable.innerHTML = '<div class="empty-state"><p>No movements</p></div>';
         return;
     }
-    let mHtml = '<div class="table-wrapper"><table class="data-table"><thead><tr><th>📦 Product</th><th>📂 Type</th><th>📊 Quantity</th><th>📅 Date</th></tr></thead><tbody>';
+    let mHtml =
+        '<div class="table-wrapper"><table class="data-table"><thead><tr><th>📦 Product</th><th>📂 Type</th><th>📊 Quantity</th><th>📅 Date</th></tr></thead><tbody>';
     movements.forEach(m => {
         const isAdd = m.quantity > 0;
         mHtml += `<tr>
@@ -1417,6 +1407,11 @@ async function loadInventory() {
     });
     mHtml += '</tbody></table></div>';
     movementTable.innerHTML = mHtml;
+}
+
+function showAdjustStock() {
+    loadProductDropdown();
+    openModal('stockModal');
 }
 
 async function loadProductDropdown() {
@@ -1431,7 +1426,8 @@ document.getElementById('stockForm').addEventListener('submit', async (e) => {
     const type = document.getElementById('adjustmentType').value;
     const qty = parseFloat(document.getElementById('adjustmentQty').value);
     const reason = document.getElementById('adjustmentReason').value || 'Manual adjustment';
-    const { data: product } = await supabaseClient.from('products').select('stock_quantity').eq('id', productId).single();
+    const { data: product } = await supabaseClient.from('products').select('stock_quantity').eq('id', productId)
+        .single();
     const newStock = type === 'add' ? product.stock_quantity + qty : product.stock_quantity - qty;
     await supabaseClient.from('products').update({ stock_quantity: newStock }).eq('id', productId);
     await supabaseClient.from('inventory_movements').insert({
@@ -1456,7 +1452,7 @@ document.getElementById('stockForm').addEventListener('submit', async (e) => {
 });
 
 // ============================================================
-//  USERS - WITH NO EMAIL CONFIRMATION
+//  USERS
 // ============================================================
 function showAddUser() {
     document.getElementById('userModalTitle').textContent = 'Add New User';
@@ -1478,68 +1474,39 @@ document.getElementById('userForm').addEventListener('submit', async (e) => {
         const twoFA = parseInt(document.getElementById('user2FA').value);
         const status = document.getElementById('userStatus').value;
         const phone = document.getElementById('userPhone').value;
-
         if (!fullName || !email || !password || !roleId) throw new Error('Fill all required fields');
-
-        // ✅ Create user with email_confirm: true (auto-confirm)
-        const { data: authData, error: authError } = await supabaseClient.auth.admin.createUser({
-            email: email,
-            password: password,
-            email_confirm: true,
-            user_metadata: {
-                full_name: fullName,
-                phone: phone || ''
+        const { data: authData, error: authError } = await supabaseClient.auth.signUp({
+            email,
+            password,
+            options: {
+                data: {
+                    full_name: fullName,
+                    role: roleId === 1 ? 'admin' : roleId === 2 ? 'cashier' : roleId === 3 ? 'butcher' :
+                        'kitchen'
+                }
             }
         });
-
-        if (authError) {
-            // Fallback: Try signUp if admin API fails
-            const { data: signUpData, error: signUpError } = await supabaseClient.auth.signUp({
-                email: email,
-                password: password,
-                options: {
-                    email_confirm: false,
-                    data: {
-                        full_name: fullName,
-                        phone: phone || ''
-                    }
-                }
-            });
-            if (signUpError) throw new Error(signUpError.message);
-            var userId = signUpData.user.id;
-        } else {
-            var userId = authData.user.id;
-        }
-
-        // ✅ Insert user into users table - email_verified is already true
+        if (authError) throw new Error(authError.message);
         const username = email.replace(/[^a-zA-Z0-9]/g, '_').toLowerCase();
-        const { error: insertError } = await supabaseClient.from('users').insert({
-            id: userId,
-            username: username,
-            email: email,
+        await supabaseClient.from('users').insert({
+            username,
+            email,
             full_name: fullName,
             phone: phone || null,
             role_id: roleId,
-            status: status,
-            email_verified: true,
-            created_at: new Date().toISOString()
+            status,
+            two_fa_enabled: twoFA
         });
-
-        if (insertError) throw new Error(insertError.message);
-
         await supabaseClient.from('audit_logs').insert({
             user_id: currentUser.id,
             action: 'User Created',
             entity_type: 'user',
-            new_value: { email, roleId, fullName }
+            new_value: { email, roleId }
         });
-
-        showToast(`✅ User "${fullName}" created! They can login immediately.`, 'success');
+        showToast(`✅ User "${fullName}" created!`, 'success');
         closeModal('userModal');
         loadUsers();
-
     } catch (error) {
-        console.error('Create user error:', error);
         showToast('❌ ' + error.message, 'error');
     } finally {
         btn.innerHTML = '<i class="fas fa-save"></i> Create User';
@@ -1554,13 +1521,17 @@ async function loadUsers() {
         table.innerHTML = '<div class="empty-state"><i class="fas fa-users"></i><p>No users</p></div>';
         return;
     }
-    let html = '<div class="table-wrapper"><table class="data-table"><thead><tr><th>👤 Name</th><th>📧 Email</th><th>👑 Role</th><th>🔐 2FA</th><th>📊 Status</th><th>⚙️ Actions</th></tr></thead><tbody>';
+    let html =
+        '<div class="table-wrapper"><table class="data-table"><thead><tr><th>👤 Name</th><th>📧 Email</th><th>👑 Role</th><th>🔐 2FA</th><th>📊 Status</th><th>⚙️ Actions</th></tr></thead><tbody>';
     usersData.forEach(u => {
-        const roleEmoji = u.roles?.name === 'admin' ? '👑' : u.roles?.name === 'cashier' ? '💰' : u.roles?.name === 'butcher' ? '🥩' : '🍳';
+        const roleClass = u.roles?.name === 'admin' ? 'admin' : u.roles?.name === 'cashier' ? 'cashier' :
+            u.roles?.name === 'butcher' ? 'butcher-role' : 'kitchen';
+        const roleEmoji = u.roles?.name === 'admin' ? '👑' : u.roles?.name === 'cashier' ? '💰' : u.roles
+            ?.name === 'butcher' ? '🥩' : '🍳';
         html += `<tr>
                 <td><strong>${u.full_name}</strong></td>
                 <td>${u.email}</td>
-                <td><span class="badge ${u.roles?.name || 'cashier'}">${roleEmoji} ${u.roles?.name || 'Unknown'}</span></td>
+                <td><span class="badge ${roleClass}">${roleEmoji} ${u.roles?.name || 'Unknown'}</span></td>
                 <td>${u.two_fa_enabled ? '✅ Enabled' : '❌ Disabled'}</td>
                 <td><span class="status-badge ${u.status}">${u.status}</span></td>
                 <td>
@@ -1623,6 +1594,9 @@ async function editUser(userId) {
     }
 }
 
+// ============================================================
+//  EDIT USER FORM SUBMIT
+// ============================================================
 document.getElementById('editUserForm')?.addEventListener('submit', async function(e) {
     e.preventDefault();
 
@@ -1706,7 +1680,8 @@ async function loadCustomers() {
         table.innerHTML = '<div class="empty-state"><i class="fas fa-users"></i><p>No customers</p></div>';
         return;
     }
-    let html = '<div class="table-wrapper"><table class="data-table"><thead><tr><th>👤 Name</th><th>📱 Phone</th><th>📧 Email</th><th>⭐ Points</th><th>⚙️ Actions</th></tr></thead><tbody>';
+    let html =
+        '<div class="table-wrapper"><table class="data-table"><thead><tr><th>👤 Name</th><th>📱 Phone</th><th>📧 Email</th><th>⭐ Points</th><th>⚙️ Actions</th></tr></thead><tbody>';
     customers.forEach(c => {
         html += `<tr>
                 <td><strong>${c.name}</strong></td>
@@ -1766,7 +1741,8 @@ async function loadSuppliers() {
         table.innerHTML = '<div class="empty-state"><i class="fas fa-truck"></i><p>No suppliers</p></div>';
         return;
     }
-    let html = '<div class="table-wrapper"><table class="data-table"><thead><tr><th>🏢 Company</th><th>👤 Contact</th><th>📱 Phone</th><th>📦 Products</th><th>⚙️ Actions</th></tr></thead><tbody>';
+    let html =
+        '<div class="table-wrapper"><table class="data-table"><thead><tr><th>🏢 Company</th><th>👤 Contact</th><th>📱 Phone</th><th>📦 Products</th><th>⚙️ Actions</th></tr></thead><tbody>';
     suppliers.forEach(s => {
         html += `<tr>
                 <td><strong>${s.company}</strong></td>
@@ -1794,8 +1770,10 @@ async function deleteSupplier(id) {
 // ============================================================
 async function loadProfitData() {
     try {
-        const { data: orders } = await supabaseClient.from('orders').select('*, order_items(*, products(*))').eq('status', 'paid');
-        let revenue = 0, cost = 0;
+        const { data: orders } = await supabaseClient.from('orders').select('*, order_items(*, products(*))').eq('status',
+            'paid');
+        let revenue = 0,
+            cost = 0;
         orders?.forEach(order => {
             revenue += order.total;
             order.order_items?.forEach(item => {
@@ -1844,7 +1822,8 @@ async function loadAuditLogs() {
             table.innerHTML = '<div class="empty-state"><i class="fas fa-history"></i><p>No audit logs found</p></div>';
             return;
         }
-        let html = '<div class="table-wrapper"><table class="data-table"><thead><tr><th>👤 User</th><th>📋 Action</th><th>📂 Type</th><th>📅 Date</th></tr></thead><tbody>';
+        let html =
+            '<div class="table-wrapper"><table class="data-table"><thead><tr><th>👤 User</th><th>📋 Action</th><th>📂 Type</th><th>📅 Date</th></tr></thead><tbody>';
         logs.forEach(log => {
             html += `<tr>
                     <td>${log.users?.full_name || 'System'}</td>
@@ -1870,10 +1849,15 @@ async function generateReport() {
         .lte('created_at', end + 'T23:59:59');
     const container = document.getElementById('reportContent');
     if (!orders?.length) {
-        container.innerHTML = '<div class="empty-state"><i class="fas fa-calendar-alt"></i><p>No orders in this period</p></div>';
+        container.innerHTML =
+            '<div class="empty-state"><i class="fas fa-calendar-alt"></i><p>No orders in this period</p></div>';
         return;
     }
-    let total = 0, mpesa = 0, cash = 0, butchery = 0, restaurant = 0;
+    let total = 0,
+        mpesa = 0,
+        cash = 0,
+        butchery = 0,
+        restaurant = 0;
     orders.forEach(o => {
         total += o.total;
         if (o.payment_method === 'mpesa') mpesa += o.total;
