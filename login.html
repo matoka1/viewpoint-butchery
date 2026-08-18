@@ -1123,31 +1123,64 @@
             }
         }
 
-        // ============================================================
-        // SESSION CHECK
-        // ============================================================
-        function checkExistingSession() {
-            try {
-                const stored = localStorage.getItem(CONFIG.SESSION_KEY);
-                if (!stored) return;
+       // ============================================================
+// SESSION CHECK - UPDATED
+// ============================================================
+function checkExistingSession() {
+    try {
+        const stored = localStorage.getItem(CONFIG.SESSION_KEY);
+        if (!stored) return;
 
-                const session = JSON.parse(stored);
-                if (!session || !session.user) return;
-
-                const roleId = session.user.role_id;
-                const redirectPath = CONFIG.REDIRECT_MAP[roleId] || CONFIG.DEFAULT_REDIRECT;
-
-                if (window.location.pathname.includes('login') ||
-                    window.location.pathname.includes('index') ||
-                    window.location.pathname === '/') {
-                    window.location.replace(redirectPath);
-                }
-            } catch (e) {
-                localStorage.removeItem(CONFIG.SESSION_KEY);
-                secureLog('Session check failed:', e);
-            }
+        const session = JSON.parse(stored);
+        if (!session || !session.user) {
+            localStorage.removeItem(CONFIG.SESSION_KEY);
+            return;
         }
 
+        // Check if session expired (24 hours)
+        const maxAge = 24 * 60 * 60 * 1000;
+        if (Date.now() - session.loginTime > maxAge) {
+            localStorage.removeItem(CONFIG.SESSION_KEY);
+            secureLog('Session expired for:', session.user.email);
+            return;
+        }
+
+        // ✅ PIN login - no Supabase session needed
+        if (session.loginMethod === 'pin') {
+            secureLog('Valid PIN session for:', session.user.email);
+            
+            // If on login page, redirect to dashboard
+            if (window.location.pathname.includes('login') ||
+                window.location.pathname.includes('index') ||
+                window.location.pathname === '/') {
+                const redirectPath = CONFIG.REDIRECT_MAP[session.user.role_id] || CONFIG.DEFAULT_REDIRECT;
+                window.location.replace(redirectPath);
+            }
+            return;
+        }
+
+        // ✅ Email login - also check Supabase session
+        if (session.loginMethod === 'email' && session.session) {
+            secureLog('Valid email session for:', session.user.email);
+            
+            if (window.location.pathname.includes('login') ||
+                window.location.pathname.includes('index') ||
+                window.location.pathname === '/') {
+                const redirectPath = CONFIG.REDIRECT_MAP[session.user.role_id] || CONFIG.DEFAULT_REDIRECT;
+                window.location.replace(redirectPath);
+            }
+            return;
+        }
+
+        // If we get here, session is invalid
+        localStorage.removeItem(CONFIG.SESSION_KEY);
+        secureLog('Invalid session removed');
+
+    } catch (e) {
+        localStorage.removeItem(CONFIG.SESSION_KEY);
+        secureLog('Session check failed:', e);
+    }
+}
         // ============================================================
         // INITIALIZATION
         // ============================================================
