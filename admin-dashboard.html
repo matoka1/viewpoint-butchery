@@ -4,10 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Viewpoint POS - Ultimate Admin Dashboard</title>
+    <!-- REMOVED: manifest.json, icon-192.png, theme-color -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         /* ===== COMPLETE ULTIMATE STYLES ===== */
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -510,7 +510,7 @@
     <!-- Order Detail Modal -->
     <div class="modal-overlay" id="orderDetailModal"><div class="modal"><div class="modal-header"><h3 id="orderDetailTitle">📋 Order Details</h3><button class="close" onclick="closeModal('orderDetailModal')">&times;</button></div><div id="orderDetailContent"></div></div></div>
 
-    <!-- Edit User Modal -->
+    <!-- ===== EDIT USER MODAL ===== -->
     <div class="modal-overlay" id="editUserModal">
         <div class="modal">
             <div class="modal-header">
@@ -561,7 +561,7 @@
         </div>
     </div>
 
-    <!-- Receipt Modal -->
+    <!-- ===== RECEIPT MODAL ===== -->
     <div class="modal-overlay" id="receiptModal">
         <div class="modal">
             <div class="modal-header">
@@ -580,7 +580,7 @@
         </div>
     </div>
 
-    <!-- Payment Modal -->
+    <!-- ===== STK PUSH PAYMENT MODAL ===== -->
     <div class="modal-overlay" id="paymentModal">
         <div class="modal">
             <div class="modal-header">
@@ -603,143 +603,99 @@
     <!-- Toast Container -->
     <div class="toast-container" id="toastContainer"></div>
 
-    <!-- ===== AUTH CHECK - FIXED FOR PIN LOGIN ===== -->
-    <script>
-        (function() {
-            'use strict';
-            
-            const SESSION_KEY = 'viewpoint_session';
-            const LOGIN_URL = 'login.html';
-            
-            // Secure log function - no "process" reference
-            function secureLog(message, data) {
-                if (console && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
-                    console.log(`[Dashboard] ${message}`, data || '');
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/admin-ultimate.js"></script>
+   <!-- Auth Check - Fixes PIN Login Issue -->
+<script>
+    (function() {
+        'use strict';
+        
+        const SESSION_KEY = 'viewpoint_session';
+        const LOGIN_URL = 'login.html';
+        
+        function checkAuth() {
+            try {
+                const stored = localStorage.getItem(SESSION_KEY);
+                if (!stored) {
+                    console.log('No session found, redirecting to login...');
+                    window.location.href = LOGIN_URL;
+                    return;
                 }
-            }
-            
-            function checkAuth() {
-                try {
-                    const stored = localStorage.getItem(SESSION_KEY);
-                    if (!stored) {
-                        secureLog('No session found, redirecting to login...');
-                        window.location.href = LOGIN_URL;
-                        return;
-                    }
-                    
-                    const session = JSON.parse(stored);
-                    if (!session || !session.user) {
-                        localStorage.removeItem(SESSION_KEY);
-                        window.location.href = LOGIN_URL;
-                        return;
-                    }
-                    
-                    // Check if session expired (24 hours)
-                    const maxAge = 24 * 60 * 60 * 1000;
-                    if (Date.now() - session.loginTime > maxAge) {
-                        localStorage.removeItem(SESSION_KEY);
-                        window.location.href = LOGIN_URL;
-                        return;
-                    }
-                    
-                    // User is authenticated
-                    secureLog('✅ Authenticated as:', session.user.email);
-                    secureLog('Login method:', session.loginMethod || 'email');
-                    
-                    // Update UI with user info
-                    const userNameEl = document.getElementById('userName');
-                    const userRoleEl = document.querySelector('.user-role');
-                    const userAvatar = document.getElementById('userAvatar');
-                    
-                    if (userNameEl) {
-                        userNameEl.textContent = session.user.full_name || session.user.email?.split('@')[0] || 'User';
-                    }
-                    
-                    if (userRoleEl) {
-                        const roleName = session.user.roles?.name || 'Cashier';
-                        userRoleEl.textContent = roleName.charAt(0).toUpperCase() + roleName.slice(1);
-                    }
-                    
-                    if (userAvatar) {
-                        const name = session.user.full_name || session.user.email || 'User';
-                        userAvatar.textContent = name.charAt(0).toUpperCase();
-                    }
-                    
-                } catch (e) {
-                    console.error('Auth check error:', e);
+                
+                const session = JSON.parse(stored);
+                if (!session || !session.user) {
                     localStorage.removeItem(SESSION_KEY);
                     window.location.href = LOGIN_URL;
+                    return;
                 }
-            }
-            
-            // Logout function
-            window.logout = function() {
+                
+                // Check if session expired (24 hours)
+                const maxAge = 24 * 60 * 60 * 1000;
+                if (Date.now() - session.loginTime > maxAge) {
+                    localStorage.removeItem(SESSION_KEY);
+                    window.location.href = LOGIN_URL;
+                    return;
+                }
+                
+                // User is authenticated
+                console.log('✅ Authenticated as:', session.user.email);
+                console.log('Login method:', session.loginMethod);
+                
+                // Update UI with user info
+                const userNameEl = document.getElementById('userName');
+                const userRoleEl = document.querySelector('.user-role');
+                const userAvatar = document.getElementById('userAvatar');
+                
+                if (userNameEl) {
+                    userNameEl.textContent = session.user.full_name || session.user.email.split('@')[0];
+                }
+                
+                if (userRoleEl) {
+                    userRoleEl.textContent = session.user.roles?.name || 'Cashier';
+                }
+                
+                if (userAvatar) {
+                    const name = session.user.full_name || session.user.email || 'User';
+                    userAvatar.textContent = name.charAt(0).toUpperCase();
+                }
+                
+            } catch (e) {
+                console.error('Auth check error:', e);
                 localStorage.removeItem(SESSION_KEY);
-                // Try to sign out from Supabase if available
-                try {
-                    if (typeof supabase !== 'undefined' && supabase.auth) {
-                        supabase.auth.signOut().catch(() => {});
-                    }
-                } catch (e) {}
                 window.location.href = LOGIN_URL;
-            };
-            
-            // Run auth check
-            if (document.readyState === 'loading') {
-                document.addEventListener('DOMContentLoaded', checkAuth);
-            } else {
-                checkAuth();
             }
-            
-            // Handle logout button click
-            document.addEventListener('DOMContentLoaded', function() {
-                const logoutBtn = document.getElementById('logoutBtn');
-                if (logoutBtn) {
-                    logoutBtn.addEventListener('click', function(e) {
-                        e.preventDefault();
-                        if (confirm('Are you sure you want to logout?')) {
-                            window.logout();
-                        }
-                    });
-                }
-                
-                // Sidebar toggle
-                const sidebarToggle = document.getElementById('sidebarToggle');
-                const sidebar = document.getElementById('sidebar');
-                if (sidebarToggle && sidebar) {
-                    sidebarToggle.addEventListener('click', function() {
-                        sidebar.classList.toggle('open');
-                    });
-                }
-                
-                // Theme toggle
-                const themeToggle = document.getElementById('themeToggle');
-                if (themeToggle) {
-                    themeToggle.addEventListener('click', function() {
-                        document.documentElement.toggleAttribute('data-theme');
-                        const icon = themeToggle.querySelector('i');
-                        if (document.documentElement.hasAttribute('data-theme')) {
-                            icon.className = 'fas fa-sun';
-                        } else {
-                            icon.className = 'fas fa-moon';
-                        }
-                    });
-                }
-                
-                // Update time
-                function updateTime() {
-                    const now = new Date();
-                    const timeEl = document.getElementById('currentTime');
-                    if (timeEl) {
-                        timeEl.textContent = now.toLocaleTimeString('en-KE', { hour12: false });
+        }
+        
+        // Logout function
+        window.logout = function() {
+            localStorage.removeItem(SESSION_KEY);
+            if (typeof supabase !== 'undefined' && supabase.auth) {
+                supabase.auth.signOut().catch(() => {});
+            }
+            window.location.href = LOGIN_URL;
+        };
+        
+        // Run auth check
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', checkAuth);
+        } else {
+            checkAuth();
+        }
+        
+        // Handle logout button click
+        document.addEventListener('DOMContentLoaded', function() {
+            const logoutBtn = document.getElementById('logoutBtn');
+            if (logoutBtn) {
+                logoutBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    if (confirm('Are you sure you want to logout?')) {
+                        window.logout();
                     }
-                }
-                updateTime();
-                setInterval(updateTime, 1000);
-            });
-            
-        })();
-    </script>
-
+                });
+            }
+        });
+        
+    })();
+</script>
 </body>
 </html>
