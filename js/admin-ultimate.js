@@ -123,11 +123,14 @@ document.addEventListener('mousemove', resetSessionTimer);
 // ============================================================
 //  AUTH
 // ============================================================
+// ============================================================
+//  AUTH - FIXED FOR PIN LOGIN
+// ============================================================
 async function checkAuth() {
     try {
         const stored = localStorage.getItem('viewpoint_session');
         if (!stored) {
-            console.log('❌ No session found');
+            console.log('❌ No session found, redirecting to login...');
             window.location.href = 'login.html';
             return null;
         }
@@ -142,35 +145,132 @@ async function checkAuth() {
             return null;
         }
 
-        const { user, session } = sessionData;
+        const { user, session, loginMethod, loginTime } = sessionData;
 
-        if (!user || !session) {
-            console.log('❌ Missing user or session');
+        if (!user) {
+            console.log('❌ Missing user data');
+            localStorage.removeItem('viewpoint_session');
+            window.location.href = 'login.html';
+            return null;
+        }
+
+        // Check if session expired (24 hours)
+        const maxAge = 24 * 60 * 60 * 1000;
+        if (loginTime && Date.now() - loginTime > maxAge) {
+            console.log('❌ Session expired');
             localStorage.removeItem('viewpoint_session');
             window.location.href = 'login.html';
             return null;
         }
 
         console.log('📊 User data:', user);
+        console.log('🔑 Login method:', loginMethod || 'unknown');
 
-        // Check if user is admin by role_id OR roles.name
-        if (user.role_id === 1 || user.roles?.name === 'admin') {
-            console.log('✅ User is admin');
-            if (!user.roles) {
-                user.roles = { name: 'admin', permissions: { all: true } };
-                localStorage.setItem('viewpoint_session', JSON.stringify({
-                    user: user,
-                    session: session
-                }));
-            }
+        // ✅ PIN LOGIN - No Supabase session needed
+        if (loginMethod === 'pin') {
+            console.log('✅ PIN login session valid for:', user.email);
             currentUser = user;
-            document.getElementById('userAvatar').textContent = user.full_name?.charAt(0).toUpperCase() || 'A';
-            document.getElementById('userName').textContent = user.full_name || 'Admin';
+            
+            // Update UI
+            const avatar = document.getElementById('userAvatar');
+            const userName = document.getElementById('userName');
+            const userRole = document.querySelector('.user-role');
+            
+            if (avatar) avatar.textContent = user.full_name?.charAt(0).toUpperCase() || 'A';
+            if (userName) userName.textContent = user.full_name || 'User';
+            if (userRole) userRole.textContent = user.roles?.name || 'Cashier';
+            
             resetSessionTimer();
             return user;
         }
 
-        console.log('❌ User is not admin. role_id:', user.role_id);
+        // ✅ EMAIL LOGIN - Check Supabase session
+        if (loginMethod === 'email') {
+            // Verify Supabase session is still valid
+            const { data: { session: currentSession }, error: sessionError } = await supabaseClient.auth.getSession();
+            
+            if (sessionError || !currentSession) {
+                console.log('❌ Supabase session expired');
+                localStorage.removeItem('viewpoint_session');
+                window.location.href = 'login.html';
+                return null;
+            }
+
+            // Check if user is admin by role_id OR roles.name
+            if (user.role_id === 1 || user.roles?.name === 'admin') {
+                console.log('✅ Email admin session valid for:', user.email);
+                if (!user.roles) {
+                    user.roles = { name: 'admin', permissions: { all: true } };
+                    localStorage.setItem('viewpoint_session', JSON.stringify({
+                        user: user,
+                        session: currentSession,
+                        loginMethod: 'email',
+                        loginTime: Date.now()
+                    }));
+                }
+                currentUser = user;
+                
+                // Update UI
+                const avatar = document.getElementById('userAvatar');
+                const userName = document.getElementById('userName');
+                const userRole = document.querySelector('.user-role');
+                
+                if (avatar) avatar.textContent = user.full_name?.charAt(0).toUpperCase() || 'A';
+                if (userName) userName.textContent = user.full_name || 'Admin';
+                if (userRole) userRole.textContent = user.roles?.name || 'Administrator';
+                
+                resetSessionTimer();
+                return user;
+            }
+
+            console.log('❌ User is not admin. role_id:', user.role_id);
+            localStorage.removeItem('viewpoint_session');
+            window.location.href = 'login.html';
+            return null;
+        }
+
+        // Fallback: If no loginMethod, try to get user from Supabase
+        console.log('⚠️ No loginMethod found, checking Supabase...');
+        const { data: { session: currentSession }, error: sessionError } = await supabaseClient.auth.getSession();
+        
+        if (sessionError || !currentSession) {
+            console.log('❌ No valid session found');
+            localStorage.removeItem('viewpoint_session');
+            window.location.href = 'login.html';
+            return null;
+        }
+
+        // Get user from database
+        const { data: userData, error: userError } = await supabaseClient
+            .from('users')
+            .select('*, roles(name, permissions)')
+            .eq('email', currentSession.user.email)
+            .single();
+
+        if (userError || !userData) {
+            console.log('❌ User not found in database');
+            localStorage.removeItem('viewpoint_session');
+            window.location.href = 'login.html';
+            return null;
+        }
+
+        if (userData.role_id === 1 || userData.roles?.name === 'admin') {
+            currentUser = userData;
+            
+            // Update UI
+            const avatar = document.getElementById('userAvatar');
+            const userName = document.getElementById('userName');
+            const userRole = document.querySelector('.user-role');
+            
+            if (avatar) avatar.textContent = userData.full_name?.charAt(0).toUpperCase() || 'A';
+            if (userName) userName.textContent = userData.full_name || 'Admin';
+            if (userRole) userRole.textContent = userData.roles?.name || 'Administrator';
+            
+            resetSessionTimer();
+            return userData;
+        }
+
+        console.log('❌ User is not admin');
         localStorage.removeItem('viewpoint_session');
         window.location.href = 'login.html';
         return null;
@@ -182,15 +282,41 @@ async function checkAuth() {
         return null;
     }
 }
-
+// ============================================================
+//  LOGOUT - FIXED
+// ============================================================
 async function logout() {
     try {
-        await supabaseClient.auth.signOut();
-    } catch (e) {}
+        // Try to sign out from Supabase if available
+        if (typeof supabaseClient !== 'undefined' && supabaseClient.auth) {
+            await supabaseClient.auth.signOut().catch(() => {});
+        }
+    } catch (e) {
+        // Ignore errors
+    }
+    
+    // Clear local session
     localStorage.removeItem('viewpoint_session');
+    
+    // Redirect to login
     window.location.href = 'login.html';
 }
-document.getElementById('logoutBtn').addEventListener('click', logout);
+
+// Make logout available globally
+window.logout = logout;
+
+// Handle logout button click
+document.addEventListener('DOMContentLoaded', function() {
+    const logoutBtn = document.getElementById('logoutBtn');
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            if (confirm('Are you sure you want to logout?')) {
+                logout();
+            }
+        });
+    }
+});
 
 // ============================================================
 //  NAVIGATION
