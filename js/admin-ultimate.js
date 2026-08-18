@@ -4,7 +4,7 @@
 //  FUNCTIONS IN CORRECT ORDER - FULL VERSION
 // ============================================================
 
-// ===== CONFIG =====
+// ===== CONFIG ===== 
 const SUPABASE_CONFIG = {
     url: 'https://sipgnykshaxrxwdeswfc.supabase.co',
     anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNpcGdueWtzaGF4cnh3ZGVzd2ZjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY4OTA2MzMsImV4cCI6MjEwMjQ2NjYzM30.xJtq_3jNMLnXCyVSurdIuUnrlmZEyMWNO1-Azk_4k2E'
