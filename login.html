@@ -706,336 +706,281 @@
             </form>
         </div>
     </div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
+</script>
+<script>
+    (function() {
+        'use strict';
 
-    <!-- ============================================================
-    SCRIPTS - Secure Implementation
-    ============================================================ -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
-    </script>
-    <script>
-        (function() {
-            'use strict';
+        // ============================================================
+        // CONFIGURATION
+        // ============================================================
+        const CONFIG = {
+            SUPABASE_URL: 'https://sipgnykshaxrxwdeswfc.supabase.co',
+            SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNpcGdueWtzaGF4cnh3ZGVzd2ZjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY4OTA2MzMsImV4cCI6MjEwMjQ2NjYzM30.xJtq_3jNMLnXCyVSurdIuUnrlmZEyMWNO1-Azk_4k2E',
+            PIN_MIN: 4,
+            PIN_MAX: 6,
+            SESSION_KEY: 'viewpoint_session',
+            REDIRECT_MAP: {
+                1: 'admin-dashboard.html',
+                2: 'cashier-pos.html',
+                3: 'sales-dashboard.html',
+                4: 'sales-dashboard.html'
+            },
+            DEFAULT_REDIRECT: 'admin-dashboard.html'
+        };
 
-            // ============================================================
-            // CONFIGURATION
-            // ============================================================
-            const CONFIG = {
-                SUPABASE_URL: 'https://sipgnykshaxrxwdeswfc.supabase.co',
-                SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNpcGdueWtzaGF4cnh3ZGVzd2ZjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY4OTA2MzMsImV4cCI6MjEwMjQ2NjYzM30.xJtq_3jNMLnXCyVSurdIuUnrlmZEyMWNO1-Azk_4k2E',
-                PIN_MIN: 4,
-                PIN_MAX: 6,
-                SESSION_KEY: 'viewpoint_session',
-                REDIRECT_MAP: {
-                    1: 'admin-dashboard.html',
-                    2: 'cashier-pos.html',
-                    3: 'sales-dashboard.html',
-                    4: 'sales-dashboard.html'
-                },
-                DEFAULT_REDIRECT: 'admin-dashboard.html'
-            };
+        // ============================================================
+        // STATE
+        // ============================================================
+        let state = {
+            pinValue: '',
+            currentMethod: 'pin',
+            isSubmitting: false,
+            supabaseClient: null
+        };
 
-            // ============================================================
-            // STATE
-            // ============================================================
-            let state = {
-                pinValue: '',
-                currentMethod: 'pin',
-                isSubmitting: false,
-                supabaseClient: null
-            };
+        // ============================================================
+        // DOM REFS
+        // ============================================================
+        const DOM = {};
 
-            // ============================================================
-            // DOM REFS
-            // ============================================================
-            const DOM = {};
+        function cacheDom() {
+            DOM.pinInput = document.getElementById('pinInput');
+            DOM.pinDots = document.querySelectorAll('#pinDots .pin-dot');
+            DOM.pinPane = document.getElementById('pinPane');
+            DOM.emailPane = document.getElementById('emailPane');
+            DOM.emailInput = document.getElementById('emailInput');
+            DOM.pinEmail = document.getElementById('pinEmail');
+            DOM.passwordInput = document.getElementById('passwordInput');
+            DOM.loginBtn = document.getElementById('loginBtn');
+            DOM.btnText = document.getElementById('btnText');
+            DOM.btnSpinner = document.getElementById('btnSpinner');
+            DOM.alertEl = document.getElementById('loginAlert');
+            DOM.authSub = document.getElementById('authSub');
+            DOM.pinTab = document.getElementById('pinTab');
+            DOM.emailTab = document.getElementById('emailTab');
+            DOM.pinEnter = document.getElementById('pinEnter');
+            DOM.loginForm = document.getElementById('loginForm');
+            DOM.remember = document.getElementById('remember');
+        }
 
-            function cacheDom() {
-                DOM.pinInput = document.getElementById('pinInput');
-                DOM.pinDots = document.querySelectorAll('#pinDots .pin-dot');
-                DOM.pinPane = document.getElementById('pinPane');
-                DOM.emailPane = document.getElementById('emailPane');
-                DOM.emailInput = document.getElementById('emailInput');
-                DOM.pinEmail = document.getElementById('pinEmail');
-                DOM.passwordInput = document.getElementById('passwordInput');
-                DOM.loginBtn = document.getElementById('loginBtn');
-                DOM.btnText = document.getElementById('btnText');
-                DOM.btnSpinner = document.getElementById('btnSpinner');
-                DOM.alertEl = document.getElementById('loginAlert');
-                DOM.authSub = document.getElementById('authSub');
-                DOM.pinTab = document.getElementById('pinTab');
-                DOM.emailTab = document.getElementById('emailTab');
-                DOM.pinEnter = document.getElementById('pinEnter');
-                DOM.loginForm = document.getElementById('loginForm');
-                DOM.remember = document.getElementById('remember');
+        // ============================================================
+        // UTILITY
+        // ============================================================
+        function getErrorMessage(error) {
+            if (typeof error === 'string') return error;
+            if (error instanceof Error) return error.message;
+            if (error && typeof error === 'object' && 'message' in error) return String(error.message);
+            return 'An unexpected error occurred. Please try again.';
+        }
+
+        // ✅ FIXED: Browser-compatible logging
+        function secureLog(message, data) {
+            const isDev = 
+                window.location.hostname === 'localhost' ||
+                window.location.hostname === '127.0.0.1' ||
+                window.location.hostname.includes('.local');
+            
+            if (console && isDev) {
+                console.log(`[Viewpoint] ${message}`, data || '');
             }
+        }
 
-           // ============================================================
-// UTILITY
-// ============================================================
-function getErrorMessage(error) {
-    if (typeof error === 'string') return error;
-    if (error instanceof Error) return error.message;
-    if (error && typeof error === 'object' && 'message' in error) return String(error.message);
-    return 'An unexpected error occurred. Please try again.';
-}
-
-// ✅ FIXED: Browser-compatible logging
-function secureLog(message, data) {
-    const isDev = 
-        window.location.hostname === 'localhost' ||
-        window.location.hostname === '127.0.0.1' ||
-        window.location.hostname.includes('.local');
-    
-    if (console && isDev) {
-        console.log(`[Viewpoint] ${message}`, data || '');
-    }
-}
-
-            // ============================================================
-            // PIN LOGIC
-            // ============================================================
-            function renderDots() {
-                DOM.pinDots.forEach((dot, i) => {
-                    dot.classList.toggle('filled', i < state.pinValue.length);
-                });
-            }
-
-            function pinPress(n) {
-                if (state.isSubmitting) return;
-                if (state.pinValue.length >= CONFIG.PIN_MAX) return;
-
-                state.pinValue += n;
-                DOM.pinInput.value = state.pinValue;
-                renderDots();
-
-                if (state.pinValue.length === CONFIG.PIN_MIN) {
-                    setTimeout(submitPin, 200);
-                }
-            }
-
-            function pinBackspace() {
-                if (state.isSubmitting) return;
-                state.pinValue = state.pinValue.slice(0, -1);
-                DOM.pinInput.value = state.pinValue;
-                renderDots();
-            }
-
-            function submitPin() {
-                if (state.isSubmitting) return;
-                if (state.pinValue.length < CONFIG.PIN_MIN) {
-                    showAlert('Please enter at least ' + CONFIG.PIN_MIN + ' digits.', 'error');
-                    return;
-                }
-                DOM.loginForm.dispatchEvent(new Event('submit'));
-            }
-
-            // ============================================================
-            // KEYBOARD SUPPORT
-            // ============================================================
-            document.addEventListener('keydown', function(e) {
-                if (state.currentMethod !== 'pin') return;
-                if (e.key >= '0' && e.key <= '9') {
-                    pinPress(e.key);
-                    e.preventDefault();
-                } else if (e.key === 'Backspace') {
-                    pinBackspace();
-                    e.preventDefault();
-                } else if (e.key === 'Enter') {
-                    submitPin();
-                    e.preventDefault();
-                }
+        // ============================================================
+        // PIN LOGIC
+        // ============================================================
+        function renderDots() {
+            DOM.pinDots.forEach((dot, i) => {
+                dot.classList.toggle('filled', i < state.pinValue.length);
             });
+        }
 
-            // ============================================================
-            // SWITCH METHOD
-            // ============================================================
-            function switchMethod(method) {
-                if (state.isSubmitting) return;
+        function pinPress(n) {
+            if (state.isSubmitting) return;
+            if (state.pinValue.length >= CONFIG.PIN_MAX) return;
 
-                state.currentMethod = method;
+            state.pinValue += n;
+            DOM.pinInput.value = state.pinValue;
+            renderDots();
 
-                if (method === 'pin') {
-                    DOM.pinPane.classList.remove('hidden');
-                    DOM.emailPane.classList.add('hidden');
-                    DOM.pinTab.classList.add('active');
-                    DOM.emailTab.classList.remove('active');
-                    DOM.authSub.textContent = 'Enter your email and PIN to sign in';
-                    hideAlert();
-                    state.pinValue = '';
-                    DOM.pinInput.value = '';
-                    renderDots();
-                    setTimeout(() => DOM.pinEmail?.focus(), 100);
-                } else {
-                    DOM.emailPane.classList.remove('hidden');
-                    DOM.pinPane.classList.add('hidden');
-                    DOM.emailTab.classList.add('active');
-                    DOM.pinTab.classList.remove('active');
-                    DOM.authSub.textContent = 'Enter your credentials to continue';
-                    hideAlert();
-                    setTimeout(() => DOM.emailInput.focus(), 100);
-                }
+            if (state.pinValue.length === CONFIG.PIN_MIN) {
+                setTimeout(submitPin, 200);
             }
+        }
 
-            // ============================================================
-            // ALERT SYSTEM
-            // ============================================================
-            function showAlert(message, type = 'error') {
-                DOM.alertEl.textContent = message;
-                DOM.alertEl.className = 'alert ' + type;
-                DOM.alertEl.setAttribute('role', 'alert');
+        function pinBackspace() {
+            if (state.isSubmitting) return;
+            state.pinValue = state.pinValue.slice(0, -1);
+            DOM.pinInput.value = state.pinValue;
+            renderDots();
+        }
+
+        function submitPin() {
+            if (state.isSubmitting) return;
+            if (state.pinValue.length < CONFIG.PIN_MIN) {
+                showAlert('Please enter at least ' + CONFIG.PIN_MIN + ' digits.', 'error');
+                return;
             }
+            DOM.loginForm.dispatchEvent(new Event('submit'));
+        }
 
-            function hideAlert() {
-                DOM.alertEl.className = 'alert';
-                DOM.alertEl.textContent = '';
-                DOM.alertEl.removeAttribute('role');
-            }
-
-            // ============================================================
-            // SUPABASE CLIENT
-            // ============================================================
-            function initSupabase() {
-                try {
-                    if (typeof supabase === 'undefined') {
-                        throw new Error('Supabase library not loaded');
-                    }
-                    state.supabaseClient = supabase.createClient(
-                        CONFIG.SUPABASE_URL,
-                        CONFIG.SUPABASE_ANON_KEY, {
-                            auth: {
-                                persistSession: true,
-                                autoRefreshToken: true,
-                                detectSessionInUrl: false,
-                                storageKey: CONFIG.SESSION_KEY
-                            }
-                        }
-                    );
-                    secureLog('Supabase client initialized');
-                } catch (error) {
-                    secureLog('Supabase init error:', error);
-                    showAlert('System error. Please refresh and try again.', 'error');
-                }
-            }
-
-            // ============================================================
-            // SECURE PIN LOGIN - Uses Edge Function
-            // ============================================================
-            async function securePinLogin(email, pin) {
-                try {
-                    const { data, error } = await state.supabaseClient.functions
-                        .invoke('pin-auth', {
-                            body: {
-                                action: 'verify',
-                                email: email,
-                                pin: pin
-                            }
-                        });
-
-                    if (error) throw error;
-                    if (!data.success) throw new Error(data.error);
-
-                    return data.user;
-
-                } catch (error) {
-                    console.error('PIN verification error:', error);
-                    throw error;
-                }
-            }
-
-            // ============================================================
-            // LOGIN HANDLER
-            // ============================================================
-            async function handleLogin(e) {
+        // ============================================================
+        // KEYBOARD SUPPORT
+        // ============================================================
+        document.addEventListener('keydown', function(e) {
+            if (state.currentMethod !== 'pin') return;
+            if (e.key >= '0' && e.key <= '9') {
+                pinPress(e.key);
                 e.preventDefault();
+            } else if (e.key === 'Backspace') {
+                pinBackspace();
+                e.preventDefault();
+            } else if (e.key === 'Enter') {
+                submitPin();
+                e.preventDefault();
+            }
+        });
 
-                if (state.isSubmitting) return;
+        // ============================================================
+        // SWITCH METHOD
+        // ============================================================
+        function switchMethod(method) {
+            if (state.isSubmitting) return;
 
+            state.currentMethod = method;
+
+            if (method === 'pin') {
+                DOM.pinPane.classList.remove('hidden');
+                DOM.emailPane.classList.add('hidden');
+                DOM.pinTab.classList.add('active');
+                DOM.emailTab.classList.remove('active');
+                DOM.authSub.textContent = 'Enter your email and PIN to sign in';
                 hideAlert();
+                state.pinValue = '';
+                DOM.pinInput.value = '';
+                renderDots();
+                setTimeout(() => DOM.pinEmail?.focus(), 100);
+            } else {
+                DOM.emailPane.classList.remove('hidden');
+                DOM.pinPane.classList.add('hidden');
+                DOM.emailTab.classList.add('active');
+                DOM.pinTab.classList.remove('active');
+                DOM.authSub.textContent = 'Enter your credentials to continue';
+                hideAlert();
+                setTimeout(() => DOM.emailInput.focus(), 100);
+            }
+        }
 
-                state.isSubmitting = true;
-                DOM.loginBtn.disabled = true;
-                DOM.btnText.style.display = 'none';
-                DOM.btnSpinner.style.display = 'inline-block';
+        // ============================================================
+        // ALERT SYSTEM
+        // ============================================================
+        function showAlert(message, type = 'error') {
+            DOM.alertEl.textContent = message;
+            DOM.alertEl.className = 'alert ' + type;
+            DOM.alertEl.setAttribute('role', 'alert');
+        }
 
-                try {
-                    let email = '';
-                    let password = '';
+        function hideAlert() {
+            DOM.alertEl.className = 'alert';
+            DOM.alertEl.textContent = '';
+            DOM.alertEl.removeAttribute('role');
+        }
 
-                    if (state.currentMethod === 'pin') {
-                        // Get email from PIN email field
-                        email = DOM.pinEmail?.value?.trim();
-
-                        if (!email) {
-                            throw new Error('Please enter your email address.');
+        // ============================================================
+        // SUPABASE CLIENT
+        // ============================================================
+        function initSupabase() {
+            try {
+                if (typeof supabase === 'undefined') {
+                    throw new Error('Supabase library not loaded');
+                }
+                state.supabaseClient = supabase.createClient(
+                    CONFIG.SUPABASE_URL,
+                    CONFIG.SUPABASE_ANON_KEY, {
+                        auth: {
+                            persistSession: true,
+                            autoRefreshToken: true,
+                            detectSessionInUrl: false,
+                            storageKey: CONFIG.SESSION_KEY
                         }
-
-                        if (!email.includes('@') || !email.includes('.')) {
-                            throw new Error('Please enter a valid email address.');
-                        }
-
-                        // Validate PIN
-                        if (state.pinValue.length < CONFIG.PIN_MIN || state.pinValue.length > CONFIG.PIN_MAX) {
-                            throw new Error('PIN must be ' + CONFIG.PIN_MIN + '-' + CONFIG.PIN_MAX + ' digits.');
-                        }
-
-                        // ✅ SECURE: Verify PIN via Edge Function
-                        const user = await securePinLogin(email, state.pinValue);
-
-                        if (!user || user.status !== 'active') {
-                            throw new Error('Invalid credentials or inactive account.');
-                        }
-
-                        // Get password for Supabase Auth
-                        const { data: authUser, error: authUserError } = await state.supabaseClient
-                            .from('users')
-                            .select('encrypted_password')
-                            .eq('email', email)
-                            .single();
-
-                        if (authUserError || !authUser) {
-                            throw new Error('Authentication failed. Please contact support.');
-                        }
-
-                        // ⚠️ In production, you need the actual password
-                        // For demo purposes only
-                        password = 'demo123'; // Replace with proper password retrieval
-
-                        secureLog('PIN login successful for: ' + email);
-
-                    } else {
-                        // Email login
-                        email = DOM.emailInput.value.trim();
-                        password = DOM.passwordInput.value;
-
-                        if (!email || !password) {
-                            throw new Error('Please enter both email and password.');
-                        }
-
-                        if (!email.includes('@') || !email.includes('.')) {
-                            throw new Error('Please enter a valid email address.');
-                        }
-
-                        secureLog('Email login attempt for: ' + email);
                     }
+                );
+                secureLog('Supabase client initialized');
+            } catch (error) {
+                secureLog('Supabase init error:', error);
+                showAlert('System error. Please refresh and try again.', 'error');
+            }
+        }
 
-                    // ============================================================
-                    // AUTHENTICATE WITH SUPABASE
-                    // ============================================================
-                    const { data: authData, error: authError } = await state.supabaseClient.auth
-                        .signInWithPassword({
+        // ============================================================
+        // SECURE PIN LOGIN - Uses Edge Function
+        // ============================================================
+        async function securePinLogin(email, pin) {
+            try {
+                const { data, error } = await state.supabaseClient.functions
+                    .invoke('pin-auth', {
+                        body: {
+                            action: 'verify',
                             email: email,
-                            password: password
-                        });
+                            pin: pin
+                        }
+                    });
 
-                    if (authError) {
-                        throw new Error(authError.message || 'Authentication failed.');
+                if (error) throw error;
+                if (!data.success) throw new Error(data.error);
+
+                return data.user;
+
+            } catch (error) {
+                console.error('PIN verification error:', error);
+                throw error;
+            }
+        }
+
+        // ============================================================
+        // LOGIN HANDLER - FIXED (PIN only)
+        // ============================================================
+        async function handleLogin(e) {
+            e.preventDefault();
+
+            if (state.isSubmitting) return;
+
+            hideAlert();
+
+            state.isSubmitting = true;
+            DOM.loginBtn.disabled = true;
+            DOM.btnText.style.display = 'none';
+            DOM.btnSpinner.style.display = 'inline-block';
+
+            try {
+                let email = '';
+
+                if (state.currentMethod === 'pin') {
+                    // Get email from PIN email field
+                    email = DOM.pinEmail?.value?.trim();
+
+                    if (!email) {
+                        throw new Error('Please enter your email address.');
                     }
 
-                    secureLog('Auth successful for: ' + email);
+                    if (!email.includes('@') || !email.includes('.')) {
+                        throw new Error('Please enter a valid email address.');
+                    }
 
-                    // ============================================================
-                    // GET USER WITH ROLE
-                    // ============================================================
+                    // Validate PIN
+                    if (state.pinValue.length < CONFIG.PIN_MIN || state.pinValue.length > CONFIG.PIN_MAX) {
+                        throw new Error('PIN must be ' + CONFIG.PIN_MIN + '-' + CONFIG.PIN_MAX + ' digits.');
+                    }
+
+                    // ✅ SECURE: Verify PIN via Edge Function
+                    const user = await securePinLogin(email, state.pinValue);
+
+                    if (!user || user.status !== 'active') {
+                        throw new Error('Invalid credentials or inactive account.');
+                    }
+
+                    // Get user with role from database
                     const { data: userData, error: userError } = await state.supabaseClient
                         .from('users')
                         .select(`
@@ -1066,14 +1011,87 @@ function secureLog(message, data) {
                     const roleId = userData.role_id;
                     const roleName = userData.roles?.name || 'cashier';
                     const permissions = userData.roles?.permissions || {};
-
-                    secureLog('User role:', { roleId, roleName, permissions });
-
                     const redirectPath = CONFIG.REDIRECT_MAP[roleId] || CONFIG.DEFAULT_REDIRECT;
 
+                    // Store session (no Supabase Auth needed)
+                    const sessionData = {
+                        user: {
+                            ...userData,
+                            role_name: roleName,
+                            permissions: permissions
+                        },
+                        loginMethod: 'pin',
+                        loginTime: Date.now(),
+                        rememberMe: DOM.remember ? DOM.remember.checked : false
+                    };
+
+                    localStorage.setItem(CONFIG.SESSION_KEY, JSON.stringify(sessionData));
+                    secureLog('PIN session stored for: ' + email);
+
+                    // Redirect
+                    window.location.replace(redirectPath);
+                    return;
+
+                } else {
                     // ============================================================
-                    // STORE SESSION
+                    // EMAIL LOGIN
                     // ============================================================
+                    email = DOM.emailInput.value.trim();
+                    const password = DOM.passwordInput.value;
+
+                    if (!email || !password) {
+                        throw new Error('Please enter both email and password.');
+                    }
+
+                    if (!email.includes('@') || !email.includes('.')) {
+                        throw new Error('Please enter a valid email address.');
+                    }
+
+                    // Authenticate with Supabase
+                    const { data: authData, error: authError } = await state.supabaseClient.auth
+                        .signInWithPassword({
+                            email: email,
+                            password: password
+                        });
+
+                    if (authError) {
+                        throw new Error(authError.message || 'Authentication failed.');
+                    }
+
+                    // Get user with role
+                    const { data: userData, error: userError } = await state.supabaseClient
+                        .from('users')
+                        .select(`
+                            id,
+                            email,
+                            full_name,
+                            role_id,
+                            status,
+                            phone,
+                            roles:role_id (
+                                id,
+                                name,
+                                description,
+                                permissions
+                            )
+                        `)
+                        .eq('email', email)
+                        .single();
+
+                    if (userError || !userData) {
+                        throw new Error('User profile not found. Please contact support.');
+                    }
+
+                    if (userData.status !== 'active') {
+                        throw new Error('Account is inactive. Contact support.');
+                    }
+
+                    const roleId = userData.role_id;
+                    const roleName = userData.roles?.name || 'cashier';
+                    const permissions = userData.roles?.permissions || {};
+                    const redirectPath = CONFIG.REDIRECT_MAP[roleId] || CONFIG.DEFAULT_REDIRECT;
+
+                    // Store session
                     const sessionData = {
                         user: {
                             ...userData,
@@ -1081,107 +1099,103 @@ function secureLog(message, data) {
                             permissions: permissions
                         },
                         session: authData.session,
+                        loginMethod: 'email',
                         loginTime: Date.now(),
                         rememberMe: DOM.remember ? DOM.remember.checked : false
                     };
 
-                    try {
-                        localStorage.setItem(CONFIG.SESSION_KEY, JSON.stringify(sessionData));
-                        secureLog('Session stored for: ' + email);
-                    } catch (storageError) {
-                        secureLog('Session storage warning:', storageError);
-                    }
+                    localStorage.setItem(CONFIG.SESSION_KEY, JSON.stringify(sessionData));
+                    secureLog('Email session stored for: ' + email);
 
-                    // ============================================================
-                    // REDIRECT
-                    // ============================================================
+                    // Redirect
                     window.location.replace(redirectPath);
+                }
 
-                } catch (error) {
-                    const message = getErrorMessage(error);
-                    showAlert(message, 'error');
-                    secureLog('Login error:', error.message);
+            } catch (error) {
+                const message = getErrorMessage(error);
+                showAlert(message, 'error');
+                secureLog('Login error:', error.message);
 
-                    DOM.loginBtn.disabled = false;
-                    DOM.btnText.style.display = 'inline';
-                    DOM.btnSpinner.style.display = 'none';
-                    state.isSubmitting = false;
+                DOM.loginBtn.disabled = false;
+                DOM.btnText.style.display = 'inline';
+                DOM.btnSpinner.style.display = 'none';
+                state.isSubmitting = false;
+            }
+        }
+
+        // ============================================================
+        // SESSION CHECK
+        // ============================================================
+        function checkExistingSession() {
+            try {
+                const stored = localStorage.getItem(CONFIG.SESSION_KEY);
+                if (!stored) return;
+
+                const session = JSON.parse(stored);
+                if (!session || !session.user) return;
+
+                const roleId = session.user.role_id;
+                const redirectPath = CONFIG.REDIRECT_MAP[roleId] || CONFIG.DEFAULT_REDIRECT;
+
+                if (window.location.pathname.includes('login') ||
+                    window.location.pathname.includes('index') ||
+                    window.location.pathname === '/') {
+                    window.location.replace(redirectPath);
+                }
+            } catch (e) {
+                localStorage.removeItem(CONFIG.SESSION_KEY);
+                secureLog('Session check failed:', e);
+            }
+        }
+
+        // ============================================================
+        // INITIALIZATION
+        // ============================================================
+        function init() {
+            try {
+                cacheDom();
+                initSupabase();
+                checkExistingSession();
+
+                DOM.loginForm.addEventListener('submit', handleLogin);
+
+                // Set default to PIN mode
+                switchMethod('pin');
+
+                const urlParams = new URLSearchParams(window.location.search);
+                const errorMsg = urlParams.get('error');
+                if (errorMsg) {
+                    showAlert(decodeURIComponent(errorMsg), 'error');
+                }
+
+                secureLog('Viewpoint POS login page initialized');
+
+            } catch (error) {
+                secureLog('Initialization error:', error);
+                if (DOM.alertEl) {
+                    showAlert('Some features may be limited. Please refresh.', 'error');
                 }
             }
+        }
 
-            // ============================================================
-            // SESSION CHECK
-            // ============================================================
-            function checkExistingSession() {
-                try {
-                    const stored = localStorage.getItem(CONFIG.SESSION_KEY);
-                    if (!stored) return;
+        // ============================================================
+        // EXPOSE GLOBALS
+        // ============================================================
+        window.pinPress = pinPress;
+        window.pinBackspace = pinBackspace;
+        window.submitPin = submitPin;
+        window.switchMethod = switchMethod;
 
-                    const session = JSON.parse(stored);
-                    if (!session || !session.user) return;
+        // ============================================================
+        // BOOT
+        // ============================================================
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', init);
+        } else {
+            init();
+        }
 
-                    const roleId = session.user.role_id;
-                    const redirectPath = CONFIG.REDIRECT_MAP[roleId] || CONFIG.DEFAULT_REDIRECT;
-
-                    if (window.location.pathname.includes('login') ||
-                        window.location.pathname.includes('index') ||
-                        window.location.pathname === '/') {
-                        window.location.replace(redirectPath);
-                    }
-                } catch (e) {
-                    localStorage.removeItem(CONFIG.SESSION_KEY);
-                    secureLog('Session check failed:', e);
-                }
-            }
-
-            // ============================================================
-            // INITIALIZATION
-            // ============================================================
-            function init() {
-                try {
-                    cacheDom();
-                    initSupabase();
-                    checkExistingSession();
-
-                    DOM.loginForm.addEventListener('submit', handleLogin);
-
-                    // Set default to PIN mode
-                    switchMethod('pin');
-
-                    const urlParams = new URLSearchParams(window.location.search);
-                    const errorMsg = urlParams.get('error');
-                    if (errorMsg) {
-                        showAlert(decodeURIComponent(errorMsg), 'error');
-                    }
-
-                    secureLog('Viewpoint POS login page initialized');
-
-                } catch (error) {
-                    secureLog('Initialization error:', error);
-                    if (DOM.alertEl) {
-                        showAlert('Some features may be limited. Please refresh.', 'error');
-                    }
-                }
-            }
-
-            // ============================================================
-            // EXPOSE GLOBALS
-            // ============================================================
-            window.pinPress = pinPress;
-            window.pinBackspace = pinBackspace;
-            window.submitPin = submitPin;
-            window.switchMethod = switchMethod;
-
-            // ============================================================
-            // BOOT
-            // ============================================================
-            if (document.readyState === 'loading') {
-                document.addEventListener('DOMContentLoaded', init);
-            } else {
-                init();
-            }
-
-        })();
-    </script>
+    })();
+</script>
 </body>
 </html>
