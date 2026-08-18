@@ -2257,24 +2257,111 @@ document.getElementById('mpesaForm').addEventListener('submit', (e) => {
 });
 
 // ============================================================
-//  INIT
+//  INIT - SIDEBAR FIXED
 // ============================================================
 document.addEventListener('DOMContentLoaded', async () => {
     console.log('🚀 Admin dashboard loading...');
     
-    // Theme toggle
-    const toggle = document.getElementById('themeToggle');
-    if (toggle) toggle.addEventListener('click', () => setTheme(!isDark));
-    setTheme(isDark);
-
-    // Sidebar toggle
-    const sidebarToggle = document.getElementById('sidebarToggle');
-    if (sidebarToggle) {
-        sidebarToggle.addEventListener('click', () => {
-            document.getElementById('sidebar').classList.toggle('open');
+    // ============================================================
+    //  SIDEBAR HANDLERS - FIXED (MUST RUN FIRST)
+    // ============================================================
+    
+    // 1. Fix sidebar toggle button
+    const toggleBtn = document.getElementById('sidebarToggle');
+    const sidebar = document.getElementById('sidebar');
+    if (toggleBtn && sidebar) {
+        // Remove any existing listeners by cloning
+        const newBtn = toggleBtn.cloneNode(true);
+        toggleBtn.parentNode.replaceChild(newBtn, toggleBtn);
+        newBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            sidebar.classList.toggle('open');
+            console.log('✅ Sidebar toggled:', sidebar.classList.contains('open'));
         });
+        console.log('✅ Sidebar toggle fixed');
     }
 
+    // 2. Fix sidebar menu items
+    const menuItems = document.querySelectorAll('.sidebar-menu li[data-section]');
+    menuItems.forEach(function(item) {
+        // Remove existing listeners by cloning
+        const newItem = item.cloneNode(true);
+        item.parentNode.replaceChild(newItem, item);
+        
+        newItem.addEventListener('click', function(e) {
+            e.preventDefault();
+            const section = this.dataset.section;
+            console.log('🔵 Navigated to:', section);
+            
+            // Update active state
+            document.querySelectorAll('.sidebar-menu li').forEach(function(l) {
+                l.classList.remove('active');
+            });
+            this.classList.add('active');
+            
+            // Show section
+            document.querySelectorAll('.section-page').forEach(function(el) {
+                el.classList.remove('active');
+            });
+            const target = document.getElementById(section + 'Section');
+            if (target) target.classList.add('active');
+            
+            // Update title
+            const titles = {
+                dashboard: ['📊 Dashboard', 'Complete business overview'],
+                pos: ['🛒 Point of Sale', 'Process customer orders'],
+                orders: ['📋 Orders', 'Manage all customer orders'],
+                products: ['📦 Products', 'Manage your product catalog'],
+                inventory: ['🏪 Inventory', 'Track stock levels'],
+                users: ['👥 Users', 'Manage system users'],
+                customers: ['👤 Customers', 'Manage customer database'],
+                suppliers: ['🚚 Suppliers', 'Manage suppliers'],
+                kitchen: ['🍳 Kitchen Display', 'Real-time kitchen orders'],
+                reports: ['📊 Reports', 'Sales and performance reports'],
+                profit: ['💰 Profit & Loss', 'Track your profitability'],
+                audit: ['📜 Audit Trail', 'Complete activity log'],
+                settings: ['⚙️ Settings', 'System configuration']
+            };
+            const [title, sub] = titles[section] || ['Dashboard', ''];
+            document.getElementById('pageTitle').textContent = title;
+            document.getElementById('pageSubtitle').textContent = sub;
+            
+            // Close sidebar on mobile
+            const sidebarEl = document.getElementById('sidebar');
+            if (sidebarEl) sidebarEl.classList.remove('open');
+            
+            // Load section data (with small delay to prevent blocking)
+            setTimeout(() => {
+                const loaders = {
+                    pos: () => loadPOSProducts('butchery'),
+                    orders: () => loadOrders(),
+                    inventory: () => loadInventory(),
+                    users: () => loadUsers(),
+                    products: () => loadProducts(),
+                    customers: () => loadCustomers(),
+                    suppliers: () => loadSuppliers(),
+                    kitchen: () => loadKitchenOrders(),
+                    dashboard: () => loadDashboard(),
+                    profit: () => loadProfitData(),
+                    audit: () => loadAuditLogs()
+                };
+                if (loaders[section]) loaders[section]();
+            }, 50);
+        });
+    });
+    console.log('✅ Sidebar menu items fixed');
+
+    // 3. Theme toggle
+    const themeToggle = document.getElementById('themeToggle');
+    if (themeToggle) {
+        const newThemeToggle = themeToggle.cloneNode(true);
+        themeToggle.parentNode.replaceChild(newThemeToggle, themeToggle);
+        newThemeToggle.addEventListener('click', () => setTheme(!isDark));
+    }
+    setTheme(isDark);
+
+    // 4. Check auth
     const user = await checkAuth();
     if (!user) {
         console.log('❌ Auth failed, redirecting...');
@@ -2282,36 +2369,45 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     console.log('✅ User authenticated:', user.email);
+    console.log('🔑 Login method:', 'pin');
+
+    // 5. Start clock
     startClock();
 
+    // 6. Set default dates
     const today = new Date().toISOString().split('T')[0];
     const lastWeek = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
-    document.getElementById('reportStart').value = lastWeek;
-    document.getElementById('reportEnd').value = today;
-    document.getElementById('auditDate').value = today;
+    const reportStart = document.getElementById('reportStart');
+    const reportEnd = document.getElementById('reportEnd');
+    const auditDate = document.getElementById('auditDate');
+    if (reportStart) reportStart.value = lastWeek;
+    if (reportEnd) reportEnd.value = today;
+    if (auditDate) auditDate.value = today;
 
-    await loadDashboard();
-    await loadProducts();
-    await loadUsers();
-    await loadInventory();
-    await loadOrders();
-    await loadCustomers();
-    await loadSuppliers();
-    await loadKitchenOrders();
-    await loadProfitData();
-    await loadAuditLogs();
+    // 7. Load all data (with delay to prevent UI blocking)
+    setTimeout(async () => {
+        await loadDashboard();
+        await loadProducts();
+        await loadUsers();
+        await loadInventory();
+        await loadOrders();
+        await loadCustomers();
+        await loadSuppliers();
+        await loadKitchenOrders();
+        await loadProfitData();
+        await loadAuditLogs();
 
-    isInitialized = true;
-    console.log('✅ Admin dashboard loaded successfully!');
-    
-    // Welcome notification
-    addNotification(
-        '👋 Welcome Back!',
-        `Welcome ${user.full_name || 'Admin'} to Viewpoint POS Dashboard.`,
-        'success'
-    );
+        isInitialized = true;
+        console.log('✅ Admin dashboard loaded successfully!');
+        
+        // Welcome notification
+        addNotification(
+            '👋 Welcome Back!',
+            `Welcome ${user.full_name || 'Admin'} to Viewpoint POS Dashboard.`,
+            'success'
+        );
+    }, 100);
 });
-
 // ============================================================
 //  EXPOSE GLOBALS
 // ============================================================
