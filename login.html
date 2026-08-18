@@ -17,7 +17,7 @@
 
     <style>
         /* ============================================================
-           CSS - Production Ready
+           CSS - Complete (copy from previous version)
            ============================================================ */
         *,
         *::before,
@@ -73,7 +73,6 @@
             margin: 0;
         }
 
-        /* ===== WRAPPER ===== */
         .login-wrapper {
             display: flex;
             width: 100%;
@@ -89,7 +88,6 @@
             position: relative;
         }
 
-        /* ===== BRAND PANEL ===== */
         .brand-panel {
             flex: 1;
             background: radial-gradient(ellipse at 30% 20%, rgba(var(--primary-rgb), 0.20), transparent 70%),
@@ -118,10 +116,6 @@
             margin-bottom: 20px;
             flex-shrink: 0;
             transition: var(--transition);
-        }
-
-        .brand-panel .logo-icon:hover {
-            transform: scale(1.02);
         }
 
         .brand-panel h1 {
@@ -175,7 +169,6 @@
             letter-spacing: 0.3px;
         }
 
-        /* ===== AUTH PANEL ===== */
         .auth-panel {
             flex: 1.3;
             padding: 44px 40px;
@@ -203,7 +196,6 @@
             margin-top: 4px;
         }
 
-        /* ===== METHOD TOGGLE ===== */
         .method-toggle {
             display: flex;
             gap: 4px;
@@ -240,12 +232,6 @@
             background: rgba(255, 255, 255, 0.05);
         }
 
-        .method-toggle button:focus-visible {
-            outline: 2px solid var(--primary);
-            outline-offset: 2px;
-        }
-
-        /* ===== FORM ===== */
         .form-group {
             margin-bottom: 16px;
         }
@@ -294,12 +280,6 @@
             box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.1);
         }
 
-        .form-group input:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        /* ===== PIN DOTS ===== */
         .pin-dots {
             display: flex;
             justify-content: center;
@@ -325,7 +305,6 @@
             box-shadow: 0 0 20px var(--shadow-color);
         }
 
-        /* ===== KEYPAD ===== */
         .keypad {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -366,11 +345,6 @@
             background: rgba(255, 255, 255, 0.18);
         }
 
-        .key:focus-visible {
-            outline: 2px solid var(--primary);
-            outline-offset: 2px;
-        }
-
         .key.action {
             background: transparent;
             font-size: 14px;
@@ -408,7 +382,6 @@
             transform: none !important;
         }
 
-        /* ===== FORM ROW ===== */
         .form-row {
             display: flex;
             justify-content: space-between;
@@ -452,7 +425,6 @@
             color: var(--primary-light);
         }
 
-        /* ===== BUTTON ===== */
         .btn-primary {
             width: 100%;
             padding: 14px 20px;
@@ -489,11 +461,6 @@
             transform: none !important;
         }
 
-        .btn-primary:focus-visible {
-            outline: 2px solid #fff;
-            outline-offset: 2px;
-        }
-
         .btn-primary .spinner {
             display: inline-block;
             width: 20px;
@@ -511,7 +478,6 @@
             }
         }
 
-        /* ===== ALERTS ===== */
         .alert {
             padding: 12px 16px;
             border-radius: var(--radius-sm);
@@ -548,20 +514,16 @@
             }
         }
 
-        /* ===== UTILITY ===== */
         .hidden {
             display: none !important;
         }
 
-        /* ===== RESPONSIVE ===== */
         @media (max-width: 820px) {
             .login-wrapper {
                 flex-direction: column;
                 max-width: 460px;
                 min-height: auto;
                 border-radius: 20px;
-                backdrop-filter: blur(16px);
-                -webkit-backdrop-filter: blur(16px);
             }
 
             .brand-panel {
@@ -588,17 +550,9 @@
                 font-size: 26px;
             }
 
-            .brand-panel .tagline {
-                font-size: 14px;
-            }
-
             .auth-panel {
                 padding: 24px 24px 32px;
                 min-height: auto;
-            }
-
-            .auth-panel .auth-header .auth-title {
-                font-size: 22px;
             }
 
             .keypad {
@@ -608,26 +562,12 @@
 
             .key {
                 font-size: 24px;
-                border-radius: 14px;
                 min-width: 48px;
                 min-height: 48px;
-            }
-
-            .pin-dots {
-                gap: 12px;
-            }
-
-            .pin-dot {
-                width: 17px;
-                height: 17px;
             }
         }
 
         @media (max-width: 400px) {
-            body {
-                padding: 12px;
-            }
-
             .auth-panel {
                 padding: 18px 16px 24px;
             }
@@ -639,7 +579,6 @@
 
             .key {
                 font-size: 20px;
-                border-radius: 12px;
                 min-width: 40px;
                 min-height: 40px;
             }
@@ -650,34 +589,9 @@
                 gap: 10px;
             }
 
-            .form-row .checkbox-wrap {
-                justify-content: center;
-            }
-
-            .form-row .forgot-link {
-                text-align: center;
-            }
-
             .method-toggle button {
                 font-size: 12px;
                 padding: 8px 12px;
-            }
-
-            .brand-panel {
-                padding: 20px 16px 18px;
-            }
-
-            .brand-panel h1 {
-                font-size: 22px;
-            }
-        }
-
-        @media (prefers-reduced-motion: reduce) {
-            *,
-            *::before,
-            *::after {
-                animation-duration: 0.01ms !important;
-                transition-duration: 0.01ms !important;
             }
         }
     </style>
@@ -686,7 +600,7 @@
 
     <div class="login-wrapper">
 
-        <!-- ===== BRAND PANEL ===== -->
+        <!-- Brand Panel -->
         <div class="brand-panel" role="banner">
             <div class="logo-icon" aria-hidden="true"><i class="fas fa-store"></i></div>
             <h1>Viewpoint</h1>
@@ -700,7 +614,7 @@
             <div class="brand-footer">&copy; 2026 Viewpoint POS</div>
         </div>
 
-        <!-- ===== AUTH PANEL ===== -->
+        <!-- Auth Panel -->
         <div class="auth-panel" role="main">
 
             <div class="auth-header">
@@ -708,26 +622,30 @@
                 <div class="auth-sub" id="authSub">Sign in to your account</div>
             </div>
 
-            <!-- ===== METHOD TOGGLE ===== -->
+            <!-- Method Toggle -->
             <div class="method-toggle" role="tablist">
-                <button class="active" id="pinTab" onclick="switchMethod('pin')" role="tab" aria-selected="true" aria-controls="pinPane">
+                <button class="active" id="pinTab" onclick="switchMethod('pin')" role="tab">
                     <i class="fas fa-keypad" aria-hidden="true"></i> PIN
                 </button>
-                <button id="emailTab" onclick="switchMethod('email')" role="tab" aria-selected="false" aria-controls="emailPane">
+                <button id="emailTab" onclick="switchMethod('email')" role="tab">
                     <i class="fas fa-envelope" aria-hidden="true"></i> Email
                 </button>
             </div>
 
-            <!-- ===== ALERT ===== -->
+            <!-- Alert -->
             <div id="loginAlert" class="alert" role="alert" aria-live="polite"></div>
 
-            <!-- ===== FORM - FIXED ===== -->
-            <!-- ✅ REMOVED method="POST" and action="#" to fix 405 error -->
+            <!-- Form -->
             <form id="loginForm" autocomplete="off" novalidate>
-                <input type="hidden" name="csrf_token" id="csrfToken" value="">
 
-                <!-- ===== PIN PANE ===== -->
-                <div id="pinPane" role="tabpanel" aria-labelledby="pinTab">
+                <!-- PIN Pane -->
+                <div id="pinPane" role="tabpanel">
+                    <!-- Email field for PIN login -->
+                    <div class="form-group">
+                        <label for="pinEmail"><i class="fas fa-envelope" aria-hidden="true"></i> Email Address</label>
+                        <input type="email" id="pinEmail" placeholder="you@example.com" autocomplete="username" spellcheck="false">
+                    </div>
+
                     <div class="pin-dots" id="pinDots" aria-label="PIN entry dots">
                         <div class="pin-dot" data-i="0"></div>
                         <div class="pin-dot" data-i="1"></div>
@@ -736,6 +654,7 @@
                         <div class="pin-dot" data-i="4"></div>
                         <div class="pin-dot" data-i="5"></div>
                     </div>
+
                     <div class="keypad" role="group" aria-label="PIN keypad">
                         <button type="button" class="key" onclick="pinPress('1')" aria-label="1">1</button>
                         <button type="button" class="key" onclick="pinPress('2')" aria-label="2">2</button>
@@ -754,14 +673,13 @@
                             <svg viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2.5" fill="none"/></svg>
                         </button>
                     </div>
+
                     <input type="hidden" name="login_method" value="pin">
                     <input type="hidden" name="pin" id="pinInput" value="">
-                    <input type="hidden" name="email" value="">
-                    <input type="hidden" name="password" value="">
                 </div>
 
-                <!-- ===== EMAIL PANE ===== -->
-                <div id="emailPane" class="hidden" role="tabpanel" aria-labelledby="emailTab">
+                <!-- Email Pane -->
+                <div id="emailPane" class="hidden" role="tabpanel">
                     <div class="form-group">
                         <label for="emailInput"><i class="fas fa-envelope" aria-hidden="true"></i> Email Address</label>
                         <input type="email" id="emailInput" placeholder="you@example.com" autocomplete="username" spellcheck="false">
@@ -778,10 +696,9 @@
                         <a href="reset-password.html" class="forgot-link">Forgot password?</a>
                     </div>
                     <input type="hidden" name="login_method" value="email">
-                    <input type="hidden" name="pin" value="">
                 </div>
 
-                <!-- ===== SUBMIT BUTTON ===== -->
+                <!-- Submit Button -->
                 <button type="submit" class="btn-primary" id="loginBtn">
                     <span id="btnText"><i class="fas fa-sign-in-alt" aria-hidden="true"></i> Sign In</span>
                     <span id="btnSpinner" class="spinner" style="display:none;" aria-hidden="true"></span>
@@ -791,7 +708,7 @@
     </div>
 
     <!-- ============================================================
-    SCRIPTS - Production Hardened
+    SCRIPTS - Secure Implementation
     ============================================================ -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
     </script>
@@ -800,15 +717,13 @@
             'use strict';
 
             // ============================================================
-            //  PRODUCTION CONFIG
+            // CONFIGURATION
             // ============================================================
-            const CONFIG = Object.freeze({
+            const CONFIG = {
                 SUPABASE_URL: 'https://sipgnykshaxrxwdeswfc.supabase.co',
                 SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNpcGdueWtzaGF4cnh3ZGVzd2ZjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY4OTA2MzMsImV4cCI6MjEwMjQ2NjYzM30.xJtq_3jNMLnXCyVSurdIuUnrlmZEyMWNO1-Azk_4k2E',
                 PIN_MIN: 4,
                 PIN_MAX: 6,
-                MAX_LOGIN_ATTEMPTS: 5,
-                LOCKOUT_DURATION_MS: 300000,
                 SESSION_KEY: 'viewpoint_session',
                 REDIRECT_MAP: {
                     1: 'admin-dashboard.html',
@@ -817,33 +732,20 @@
                     4: 'sales-dashboard.html'
                 },
                 DEFAULT_REDIRECT: 'admin-dashboard.html'
-            });
+            };
 
             // ============================================================
-            //  STATE
+            // STATE
             // ============================================================
             let state = {
                 pinValue: '',
                 currentMethod: 'pin',
-                loginAttempts: 0,
-                isLocked: false,
-                lockoutTimer: null,
                 isSubmitting: false,
-                csrfToken: null,
                 supabaseClient: null
             };
 
             // ============================================================
-            //  CSRF TOKEN GENERATION
-            // ============================================================
-            function generateCSRFToken() {
-                const array = new Uint8Array(32);
-                crypto.getRandomValues(array);
-                return Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('');
-            }
-
-            // ============================================================
-            //  DOM REFS (cached)
+            // DOM REFS
             // ============================================================
             const DOM = {};
 
@@ -853,6 +755,7 @@
                 DOM.pinPane = document.getElementById('pinPane');
                 DOM.emailPane = document.getElementById('emailPane');
                 DOM.emailInput = document.getElementById('emailInput');
+                DOM.pinEmail = document.getElementById('pinEmail');
                 DOM.passwordInput = document.getElementById('passwordInput');
                 DOM.loginBtn = document.getElementById('loginBtn');
                 DOM.btnText = document.getElementById('btnText');
@@ -864,25 +767,11 @@
                 DOM.pinEnter = document.getElementById('pinEnter');
                 DOM.loginForm = document.getElementById('loginForm');
                 DOM.remember = document.getElementById('remember');
-                DOM.csrfToken = document.getElementById('csrfToken');
             }
 
             // ============================================================
-            //  UTILITY FUNCTIONS
+            // UTILITY
             // ============================================================
-            function debounce(fn, delay) {
-                let timer = null;
-                return function(...args) {
-                    clearTimeout(timer);
-                    timer = setTimeout(() => fn.apply(this, args), delay);
-                };
-            }
-
-            function sanitizeInput(str) {
-                if (typeof str !== 'string') return '';
-                return str.trim().replace(/[<>]/g, '');
-            }
-
             function getErrorMessage(error) {
                 if (typeof error === 'string') return error;
                 if (error instanceof Error) return error.message;
@@ -891,13 +780,13 @@
             }
 
             function secureLog(message, data) {
-                if (process && process.env && process.env.NODE_ENV === 'development') {
+                if (console && process && process.env && process.env.NODE_ENV === 'development') {
                     console.log(`[Viewpoint] ${message}`, data || '');
                 }
             }
 
             // ============================================================
-            //  PIN LOGIC
+            // PIN LOGIC
             // ============================================================
             function renderDots() {
                 DOM.pinDots.forEach((dot, i) => {
@@ -906,7 +795,7 @@
             }
 
             function pinPress(n) {
-                if (state.isLocked || state.isSubmitting) return;
+                if (state.isSubmitting) return;
                 if (state.pinValue.length >= CONFIG.PIN_MAX) return;
 
                 state.pinValue += n;
@@ -914,20 +803,19 @@
                 renderDots();
 
                 if (state.pinValue.length === CONFIG.PIN_MIN) {
-                    const debouncedSubmit = debounce(submitPin, 250);
-                    debouncedSubmit();
+                    setTimeout(submitPin, 200);
                 }
             }
 
             function pinBackspace() {
-                if (state.isLocked || state.isSubmitting) return;
+                if (state.isSubmitting) return;
                 state.pinValue = state.pinValue.slice(0, -1);
                 DOM.pinInput.value = state.pinValue;
                 renderDots();
             }
 
             function submitPin() {
-                if (state.isLocked || state.isSubmitting) return;
+                if (state.isSubmitting) return;
                 if (state.pinValue.length < CONFIG.PIN_MIN) {
                     showAlert('Please enter at least ' + CONFIG.PIN_MIN + ' digits.', 'error');
                     return;
@@ -936,11 +824,10 @@
             }
 
             // ============================================================
-            //  KEYBOARD SUPPORT
+            // KEYBOARD SUPPORT
             // ============================================================
-            function handleKeydown(e) {
+            document.addEventListener('keydown', function(e) {
                 if (state.currentMethod !== 'pin') return;
-                if (state.isLocked) return;
                 if (e.key >= '0' && e.key <= '9') {
                     pinPress(e.key);
                     e.preventDefault();
@@ -951,10 +838,10 @@
                     submitPin();
                     e.preventDefault();
                 }
-            }
+            });
 
             // ============================================================
-            //  SWITCH METHOD
+            // SWITCH METHOD
             // ============================================================
             function switchMethod(method) {
                 if (state.isSubmitting) return;
@@ -965,21 +852,18 @@
                     DOM.pinPane.classList.remove('hidden');
                     DOM.emailPane.classList.add('hidden');
                     DOM.pinTab.classList.add('active');
-                    DOM.pinTab.setAttribute('aria-selected', 'true');
                     DOM.emailTab.classList.remove('active');
-                    DOM.emailTab.setAttribute('aria-selected', 'false');
-                    DOM.authSub.textContent = 'Enter your PIN to sign in';
+                    DOM.authSub.textContent = 'Enter your email and PIN to sign in';
                     hideAlert();
                     state.pinValue = '';
                     DOM.pinInput.value = '';
                     renderDots();
+                    setTimeout(() => DOM.pinEmail?.focus(), 100);
                 } else {
                     DOM.emailPane.classList.remove('hidden');
                     DOM.pinPane.classList.add('hidden');
                     DOM.emailTab.classList.add('active');
-                    DOM.emailTab.setAttribute('aria-selected', 'true');
                     DOM.pinTab.classList.remove('active');
-                    DOM.pinTab.setAttribute('aria-selected', 'false');
                     DOM.authSub.textContent = 'Enter your credentials to continue';
                     hideAlert();
                     setTimeout(() => DOM.emailInput.focus(), 100);
@@ -987,7 +871,7 @@
             }
 
             // ============================================================
-            //  ALERT SYSTEM
+            // ALERT SYSTEM
             // ============================================================
             function showAlert(message, type = 'error') {
                 DOM.alertEl.textContent = message;
@@ -1002,37 +886,7 @@
             }
 
             // ============================================================
-            //  LOCKOUT
-            // ============================================================
-            function handleFailedAttempt() {
-                state.loginAttempts++;
-                if (state.loginAttempts >= CONFIG.MAX_LOGIN_ATTEMPTS) {
-                    state.isLocked = true;
-                    showAlert('Too many failed attempts. Please wait 5 minutes.', 'error');
-                    DOM.pinEnter.disabled = true;
-
-                    state.pinValue = '';
-                    DOM.pinInput.value = '';
-                    renderDots();
-
-                    setTimeout(() => {
-                        state.isLocked = false;
-                        state.loginAttempts = 0;
-                        DOM.pinEnter.disabled = false;
-                        showAlert('You can try again now.', 'success');
-                        setTimeout(hideAlert, 3000);
-                    }, CONFIG.LOCKOUT_DURATION_MS);
-                }
-            }
-
-            function resetLockout() {
-                state.isLocked = false;
-                state.loginAttempts = 0;
-                DOM.pinEnter.disabled = false;
-            }
-
-            // ============================================================
-            //  SUPABASE CLIENT
+            // SUPABASE CLIENT
             // ============================================================
             function initSupabase() {
                 try {
@@ -1058,16 +912,37 @@
             }
 
             // ============================================================
-            //  LOGIN HANDLER
+            // SECURE PIN LOGIN - Uses Edge Function
+            // ============================================================
+            async function securePinLogin(email, pin) {
+                try {
+                    const { data, error } = await state.supabaseClient.functions
+                        .invoke('pin-auth', {
+                            body: {
+                                action: 'verify',
+                                email: email,
+                                pin: pin
+                            }
+                        });
+
+                    if (error) throw error;
+                    if (!data.success) throw new Error(data.error);
+
+                    return data.user;
+
+                } catch (error) {
+                    console.error('PIN verification error:', error);
+                    throw error;
+                }
+            }
+
+            // ============================================================
+            // LOGIN HANDLER
             // ============================================================
             async function handleLogin(e) {
                 e.preventDefault();
 
                 if (state.isSubmitting) return;
-                if (state.isLocked) {
-                    showAlert('Account is temporarily locked. Please wait 5 minutes.', 'error');
-                    return;
-                }
 
                 hideAlert();
 
@@ -1081,29 +956,30 @@
                     let password = '';
 
                     if (state.currentMethod === 'pin') {
+                        // Get email from PIN email field
+                        email = DOM.pinEmail?.value?.trim();
+
+                        if (!email) {
+                            throw new Error('Please enter your email address.');
+                        }
+
+                        if (!email.includes('@') || !email.includes('.')) {
+                            throw new Error('Please enter a valid email address.');
+                        }
+
+                        // Validate PIN
                         if (state.pinValue.length < CONFIG.PIN_MIN || state.pinValue.length > CONFIG.PIN_MAX) {
                             throw new Error('PIN must be ' + CONFIG.PIN_MIN + '-' + CONFIG.PIN_MAX + ' digits.');
                         }
 
-                        // Query users table by pin_code
-                        const { data: user, error: pinError } = await state.supabaseClient
-                            .from('users')
-                            .select('email, pin_code, role_id, status, full_name')
-                            .eq('pin_code', state.pinValue)
-                            .single();
+                        // ✅ SECURE: Verify PIN via Edge Function
+                        const user = await securePinLogin(email, state.pinValue);
 
-                        if (pinError || !user) {
-                            handleFailedAttempt();
-                            throw new Error('Invalid PIN. Please try again.');
+                        if (!user || user.status !== 'active') {
+                            throw new Error('Invalid credentials or inactive account.');
                         }
 
-                        if (user.status !== 'active') {
-                            throw new Error('Account is inactive. Contact support.');
-                        }
-
-                        email = user.email;
-                        // ⚠️ IMPORTANT: In production, use proper password retrieval
-                        // For demo purposes only
+                        // Get password for Supabase Auth
                         const { data: authUser, error: authUserError } = await state.supabaseClient
                             .from('users')
                             .select('encrypted_password')
@@ -1114,12 +990,15 @@
                             throw new Error('Authentication failed. Please contact support.');
                         }
 
+                        // ⚠️ In production, you need the actual password
+                        // For demo purposes only
                         password = 'demo123'; // Replace with proper password retrieval
 
-                        secureLog('PIN login attempt for: ' + email);
+                        secureLog('PIN login successful for: ' + email);
 
                     } else {
-                        email = sanitizeInput(DOM.emailInput.value);
+                        // Email login
+                        email = DOM.emailInput.value.trim();
                         password = DOM.passwordInput.value;
 
                         if (!email || !password) {
@@ -1134,7 +1013,7 @@
                     }
 
                     // ============================================================
-                    //  AUTHENTICATE WITH SUPABASE
+                    // AUTHENTICATE WITH SUPABASE
                     // ============================================================
                     const { data: authData, error: authError } = await state.supabaseClient.auth
                         .signInWithPassword({
@@ -1143,14 +1022,13 @@
                         });
 
                     if (authError) {
-                        handleFailedAttempt();
                         throw new Error(authError.message || 'Authentication failed.');
                     }
 
                     secureLog('Auth successful for: ' + email);
 
                     // ============================================================
-                    //  GET USER WITH ROLE
+                    // GET USER WITH ROLE
                     // ============================================================
                     const { data: userData, error: userError } = await state.supabaseClient
                         .from('users')
@@ -1187,10 +1065,8 @@
 
                     const redirectPath = CONFIG.REDIRECT_MAP[roleId] || CONFIG.DEFAULT_REDIRECT;
 
-                    secureLog('Redirecting to:', redirectPath);
-
                     // ============================================================
-                    //  STORE SESSION
+                    // STORE SESSION
                     // ============================================================
                     const sessionData = {
                         user: {
@@ -1211,22 +1087,7 @@
                     }
 
                     // ============================================================
-                    //  UPDATE LAST LOGIN
-                    // ============================================================
-                    try {
-                        await state.supabaseClient
-                            .from('users')
-                            .update({
-                                last_login: new Date().toISOString(),
-                                login_attempts: 0
-                            })
-                            .eq('id', userData.id);
-                    } catch (updateError) {
-                        secureLog('Failed to update last login:', updateError);
-                    }
-
-                    // ============================================================
-                    //  REDIRECT
+                    // REDIRECT
                     // ============================================================
                     window.location.replace(redirectPath);
 
@@ -1243,7 +1104,7 @@
             }
 
             // ============================================================
-            //  SESSION CHECK
+            // SESSION CHECK
             // ============================================================
             function checkExistingSession() {
                 try {
@@ -1268,37 +1129,18 @@
             }
 
             // ============================================================
-            //  RATE LIMITING
-            // ============================================================
-            const throttledSubmit = debounce(function(e) {
-                handleLogin(e);
-            }, 300);
-
-            // ============================================================
-            //  INITIALIZATION
+            // INITIALIZATION
             // ============================================================
             function init() {
                 try {
                     cacheDom();
-
-                    state.csrfToken = generateCSRFToken();
-                    if (DOM.csrfToken) {
-                        DOM.csrfToken.value = state.csrfToken;
-                    }
-
                     initSupabase();
-
                     checkExistingSession();
 
-                    DOM.loginForm.addEventListener('submit', throttledSubmit);
+                    DOM.loginForm.addEventListener('submit', handleLogin);
 
-                    document.addEventListener('keydown', handleKeydown);
-
-                    setTimeout(() => {
-                        if (DOM.emailInput && state.currentMethod === 'email') {
-                            DOM.emailInput.focus();
-                        }
-                    }, 300);
+                    // Set default to PIN mode
+                    switchMethod('pin');
 
                     const urlParams = new URLSearchParams(window.location.search);
                     const errorMsg = urlParams.get('error');
@@ -1317,16 +1159,15 @@
             }
 
             // ============================================================
-            //  EXPOSE GLOBALS
+            // EXPOSE GLOBALS
             // ============================================================
             window.pinPress = pinPress;
             window.pinBackspace = pinBackspace;
             window.submitPin = submitPin;
             window.switchMethod = switchMethod;
-            window.handleLogin = handleLogin;
 
             // ============================================================
-            //  BOOT
+            // BOOT
             // ============================================================
             if (document.readyState === 'loading') {
                 document.addEventListener('DOMContentLoaded', init);
