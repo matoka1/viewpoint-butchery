@@ -605,5 +605,97 @@
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/admin-ultimate.js"></script>
+   <!-- Auth Check - Fixes PIN Login Issue -->
+<script>
+    (function() {
+        'use strict';
+        
+        const SESSION_KEY = 'viewpoint_session';
+        const LOGIN_URL = 'login.html';
+        
+        function checkAuth() {
+            try {
+                const stored = localStorage.getItem(SESSION_KEY);
+                if (!stored) {
+                    console.log('No session found, redirecting to login...');
+                    window.location.href = LOGIN_URL;
+                    return;
+                }
+                
+                const session = JSON.parse(stored);
+                if (!session || !session.user) {
+                    localStorage.removeItem(SESSION_KEY);
+                    window.location.href = LOGIN_URL;
+                    return;
+                }
+                
+                // Check if session expired (24 hours)
+                const maxAge = 24 * 60 * 60 * 1000;
+                if (Date.now() - session.loginTime > maxAge) {
+                    localStorage.removeItem(SESSION_KEY);
+                    window.location.href = LOGIN_URL;
+                    return;
+                }
+                
+                // User is authenticated
+                console.log('✅ Authenticated as:', session.user.email);
+                console.log('Login method:', session.loginMethod);
+                
+                // Update UI with user info
+                const userNameEl = document.getElementById('userName');
+                const userRoleEl = document.querySelector('.user-role');
+                const userAvatar = document.getElementById('userAvatar');
+                
+                if (userNameEl) {
+                    userNameEl.textContent = session.user.full_name || session.user.email.split('@')[0];
+                }
+                
+                if (userRoleEl) {
+                    userRoleEl.textContent = session.user.roles?.name || 'Cashier';
+                }
+                
+                if (userAvatar) {
+                    const name = session.user.full_name || session.user.email || 'User';
+                    userAvatar.textContent = name.charAt(0).toUpperCase();
+                }
+                
+            } catch (e) {
+                console.error('Auth check error:', e);
+                localStorage.removeItem(SESSION_KEY);
+                window.location.href = LOGIN_URL;
+            }
+        }
+        
+        // Logout function
+        window.logout = function() {
+            localStorage.removeItem(SESSION_KEY);
+            if (typeof supabase !== 'undefined' && supabase.auth) {
+                supabase.auth.signOut().catch(() => {});
+            }
+            window.location.href = LOGIN_URL;
+        };
+        
+        // Run auth check
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', checkAuth);
+        } else {
+            checkAuth();
+        }
+        
+        // Handle logout button click
+        document.addEventListener('DOMContentLoaded', function() {
+            const logoutBtn = document.getElementById('logoutBtn');
+            if (logoutBtn) {
+                logoutBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    if (confirm('Are you sure you want to logout?')) {
+                        window.logout();
+                    }
+                });
+            }
+        });
+        
+    })();
+</script>
 </body>
 </html>
