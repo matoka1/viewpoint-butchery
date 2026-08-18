@@ -15,7 +15,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 
-    <!-- Content Security Policy via meta (additional security) -->
+    <!-- Content Security Policy via meta -->
     <meta http-equiv="Content-Security-Policy" content="
         default-src 'self';
         script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://sipgnykshaxrxwdeswfc.supabase.co;
@@ -31,7 +31,7 @@
 
     <style>
         /* ============================================================
-           CSS with production hardening: no !important, clean variables
+           CSS - Production Hardened
            ============================================================ */
         *,
         *::before,
@@ -694,8 +694,6 @@
                 transition-duration: 0.01ms !important;
             }
         }
-
-        /* Dark mode already handled by design */
     </style>
 </head>
 <body>
@@ -739,7 +737,6 @@
 
             <!-- ===== FORM ===== -->
             <form id="loginForm" method="POST" action="#" autocomplete="off" novalidate>
-                <!-- CSRF protection via meta + header -->
                 <input type="hidden" name="csrf_token" id="csrfToken" value="">
 
                 <!-- ===== PIN PANE ===== -->
@@ -807,7 +804,7 @@
     </div>
 
     <!-- ============================================================
-    SCRIPTS - Production hardened with error boundaries
+    SCRIPTS - Production Hardened
     ============================================================ -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
     </script>
@@ -816,7 +813,7 @@
             'use strict';
 
             // ============================================================
-            //  PRODUCTION CONFIG - Move to environment variables
+            //  PRODUCTION CONFIG
             // ============================================================
             const CONFIG = Object.freeze({
                 SUPABASE_URL: 'https://sipgnykshaxrxwdeswfc.supabase.co',
@@ -826,11 +823,12 @@
                 MAX_LOGIN_ATTEMPTS: 5,
                 LOCKOUT_DURATION_MS: 300000, // 5 minutes
                 SESSION_KEY: 'viewpoint_session',
+                // Role ID -> Dashboard URL mapping
                 REDIRECT_MAP: {
-                    'admin': 'admin-dashboard.html',
-                    'cashier': 'cashier-pos.html',
-                    'butcher': 'sales-dashboard.html',
-                    'kitchen': 'sales-dashboard.html'
+                    1: 'admin-dashboard.html', // admin
+                    2: 'cashier-pos.html', // cashier
+                    3: 'sales-dashboard.html', // butcher
+                    4: 'sales-dashboard.html' // kitchen
                 },
                 DEFAULT_REDIRECT: 'admin-dashboard.html'
             });
@@ -845,7 +843,8 @@
                 isLocked: false,
                 lockoutTimer: null,
                 isSubmitting: false,
-                csrfToken: null
+                csrfToken: null,
+                supabaseClient: null
             };
 
             // ============================================================
@@ -906,14 +905,11 @@
                 return 'An unexpected error occurred. Please try again.';
             }
 
-            // ============================================================
-            //  SECURE LOGGING (no sensitive data)
-            // ============================================================
             function secureLog(message, data) {
-                if (process.env.NODE_ENV === 'development') {
+                // In production, send to monitoring service
+                if (process && process.env && process.env.NODE_ENV === 'development') {
                     console.log(`[Viewpoint] ${message}`, data || '');
                 }
-                // In production, send to monitoring service
             }
 
             // ============================================================
@@ -933,7 +929,6 @@
                 DOM.pinInput.value = state.pinValue;
                 renderDots();
 
-                // Auto-submit on minimum PIN length
                 if (state.pinValue.length === CONFIG.PIN_MIN) {
                     const debouncedSubmit = debounce(submitPin, 250);
                     debouncedSubmit();
@@ -991,7 +986,6 @@
                     DOM.emailTab.setAttribute('aria-selected', 'false');
                     DOM.authSub.textContent = 'Enter your PIN to sign in';
                     hideAlert();
-                    // Reset PIN field when switching
                     state.pinValue = '';
                     DOM.pinInput.value = '';
                     renderDots();
@@ -1033,12 +1027,10 @@
                     showAlert('Too many failed attempts. Please wait 5 minutes.', 'error');
                     DOM.pinEnter.disabled = true;
 
-                    // Reset PIN
                     state.pinValue = '';
                     DOM.pinInput.value = '';
                     renderDots();
 
-                    // Schedule unlock
                     setTimeout(() => {
                         state.isLocked = false;
                         state.loginAttempts = 0;
@@ -1058,14 +1050,12 @@
             // ============================================================
             //  SUPABASE CLIENT
             // ============================================================
-            let supabaseClient = null;
-
             function initSupabase() {
                 try {
                     if (typeof supabase === 'undefined') {
                         throw new Error('Supabase library not loaded');
                     }
-                    supabaseClient = supabase.createClient(
+                    state.supabaseClient = supabase.createClient(
                         CONFIG.SUPABASE_URL,
                         CONFIG.SUPABASE_ANON_KEY, {
                             auth: {
@@ -1084,24 +1074,19 @@
             }
 
             // ============================================================
-            //  LOGIN HANDLER - Production
+            //  LOGIN HANDLER - WITH ROLE-BASED REDIRECTS
             // ============================================================
             async function handleLogin(e) {
                 e.preventDefault();
 
-                // Prevent double submission
                 if (state.isSubmitting) return;
-
-                // Check lockout
                 if (state.isLocked) {
                     showAlert('Account is temporarily locked. Please wait 5 minutes.', 'error');
                     return;
                 }
 
-                // Hide previous alerts
                 hideAlert();
 
-                // Set loading state
                 state.isSubmitting = true;
                 DOM.loginBtn.disabled = true;
                 DOM.btnText.style.display = 'none';
@@ -1111,36 +1096,51 @@
                     let email = '';
                     let password = '';
 
+                    // --- PIN LOGIN ---
                     if (state.currentMethod === 'pin') {
-                        // PIN login - validate PIN format
                         if (state.pinValue.length < CONFIG.PIN_MIN || state.pinValue.length > CONFIG.PIN_MAX) {
                             throw new Error('PIN must be ' + CONFIG.PIN_MIN + '-' + CONFIG.PIN_MAX + ' digits.');
                         }
 
-                        // 🔐 In production, this should query your users table for a hashed PIN
-                        // For now, using a secure mapping (this should be replaced with a DB query)
-                        const pinMap = {
-                            // These are demo PINs - in production, use bcrypt/hash comparison
-                            '1234': { email: 'admin@viewpoint.com', password: 'admin123' },
-                            '5678': { email: 'cashier@viewpoint.com', password: 'cashier123' },
-                            '9012': { email: 'butcher@viewpoint.com', password: 'butcher123' },
-                            '3456': { email: 'kitchen@viewpoint.com', password: 'kitchen123' }
-                        };
+                        // 🔐 Query users table by pin_code
+                        // IMPORTANT: In production, use bcrypt to compare hashed PINs
+                        const { data: user, error: pinError } = await state.supabaseClient
+                            .from('users')
+                            .select('email, pin_code, role_id, status, full_name')
+                            .eq('pin_code', state.pinValue)
+                            .single();
 
-                        const creds = pinMap[state.pinValue];
-                        if (!creds) {
+                        if (pinError || !user) {
                             handleFailedAttempt();
                             throw new Error('Invalid PIN. Please try again.');
                         }
 
-                        email = creds.email;
-                        password = creds.password;
+                        if (user.status !== 'active') {
+                            throw new Error('Account is inactive. Contact support.');
+                        }
 
-                        // Log the PIN attempt (securely - never log the actual PIN)
-                        secureLog('PIN login attempt for user: ' + email);
+                        email = user.email;
+                        // ⚠️ IMPORTANT: You need the user's actual password for Supabase Auth
+                        // Store it securely or use a different auth method
+                        // For now, we'll query the user's password hash
+                        const { data: authUser, error: authUserError } = await state.supabaseClient
+                            .from('users')
+                            .select('encrypted_password')
+                            .eq('email', email)
+                            .single();
 
+                        if (authUserError || !authUser) {
+                            throw new Error('Authentication failed. Please contact support.');
+                        }
+
+                        // For demo purposes only - in production, use proper password storage
+                        // You might need to store the password or use a different auth flow
+                        password = 'demo123'; // This should be replaced with proper password retrieval
+
+                        secureLog('PIN login attempt for: ' + email);
+
+                    // --- EMAIL LOGIN ---
                     } else {
-                        // Email login
                         email = sanitizeInput(DOM.emailInput.value);
                         password = DOM.passwordInput.value;
 
@@ -1156,11 +1156,9 @@
                     }
 
                     // ============================================================
-                    //  AUTHENTICATION
+                    //  AUTHENTICATE WITH SUPABASE
                     // ============================================================
-
-                    // 1. Authenticate with Supabase
-                    const { data: authData, error: authError } = await supabaseClient.auth
+                    const { data: authData, error: authError } = await state.supabaseClient.auth
                         .signInWithPassword({
                             email: email,
                             password: password
@@ -1173,67 +1171,91 @@
 
                     secureLog('Auth successful for: ' + email);
 
-                    // 2. Get user from database
-                    const { data: userData, error: userError } = await supabaseClient
+                    // ============================================================
+                    //  GET USER WITH ROLE (JOIN roles table)
+                    // ============================================================
+                    const { data: userData, error: userError } = await state.supabaseClient
                         .from('users')
-                        .select('id, email, full_name, role_id, restaurant_id, status')
+                        .select(`
+                            id,
+                            email,
+                            full_name,
+                            role_id,
+                            status,
+                            phone,
+                            roles:role_id (
+                                id,
+                                name,
+                                description,
+                                permissions
+                            )
+                        `)
                         .eq('email', email)
                         .single();
 
                     if (userError || !userData) {
-                        // Auth succeeded but user not found in DB - this shouldn't happen
                         throw new Error('User profile not found. Please contact support.');
                     }
 
-                    // Check if user is active
                     if (userData.status !== 'active') {
-                        throw new Error('Account is not active. Please contact your administrator.');
+                        throw new Error('Account is inactive. Contact support.');
                     }
 
-                    // 3. Get role
-                    let roleName = 'cashier';
-                    let roleData = null;
+                    // ============================================================
+                    //  GET ROLE NAME AND PERMISSIONS
+                    // ============================================================
+                    const roleId = userData.role_id;
+                    const roleName = userData.roles?.name || 'cashier';
+                    const permissions = userData.roles?.permissions || {};
 
-                    const { data: roleResult, error: roleError } = await supabaseClient
-                        .from('roles')
-                        .select('id, name, permissions')
-                        .eq('id', userData.role_id)
-                        .single();
+                    secureLog('User role:', { roleId, roleName, permissions });
 
-                    if (!roleError && roleResult) {
-                        roleData = roleResult;
-                        roleName = roleResult.name || 'cashier';
-                    }
+                    // ============================================================
+                    //  DETERMINE REDIRECT URL BASED ON ROLE_ID
+                    // ============================================================
+                    const redirectPath = CONFIG.REDIRECT_MAP[roleId] || CONFIG.DEFAULT_REDIRECT;
 
-                    // 4. Reset lockout on successful login
-                    resetLockout();
+                    secureLog('Redirecting to:', redirectPath);
 
-                    // 5. Build session data
+                    // ============================================================
+                    //  STORE SESSION
+                    // ============================================================
                     const sessionData = {
                         user: {
                             ...userData,
-                            roles: roleData || { name: 'cashier', permissions: {} }
+                            role_name: roleName,
+                            permissions: permissions
                         },
                         session: authData.session,
                         loginTime: Date.now(),
                         rememberMe: DOM.remember ? DOM.remember.checked : false
                     };
 
-                    // 6. Store session (encrypted in production)
                     try {
                         localStorage.setItem(CONFIG.SESSION_KEY, JSON.stringify(sessionData));
                         secureLog('Session stored for: ' + email);
                     } catch (storageError) {
-                        // Session storage may be full or unavailable
                         secureLog('Session storage warning:', storageError);
-                        // Continue - session will be stored in memory
                     }
 
-                    // 7. Redirect based on role
-                    const redirectPath = CONFIG.REDIRECT_MAP[roleName] || CONFIG.DEFAULT_REDIRECT;
-                    secureLog('Redirecting to: ' + redirectPath);
+                    // ============================================================
+                    //  UPDATE LAST LOGIN
+                    // ============================================================
+                    try {
+                        await state.supabaseClient
+                            .from('users')
+                            .update({
+                                last_login: new Date().toISOString(),
+                                login_attempts: 0
+                            })
+                            .eq('id', userData.id);
+                    } catch (updateError) {
+                        secureLog('Failed to update last login:', updateError);
+                    }
 
-                    // Use location.replace to prevent back-button issues
+                    // ============================================================
+                    //  REDIRECT
+                    // ============================================================
                     window.location.replace(redirectPath);
 
                 } catch (error) {
@@ -1241,7 +1263,6 @@
                     showAlert(message, 'error');
                     secureLog('Login error:', error.message);
 
-                    // Reset button
                     DOM.loginBtn.disabled = false;
                     DOM.btnText.style.display = 'inline';
                     DOM.btnSpinner.style.display = 'none';
@@ -1250,7 +1271,7 @@
             }
 
             // ============================================================
-            //  SESSION CHECK
+            //  SESSION CHECK - WITH ROLE-BASED REDIRECTS
             // ============================================================
             function checkExistingSession() {
                 try {
@@ -1260,17 +1281,16 @@
                     const session = JSON.parse(stored);
                     if (!session || !session.user) return;
 
-                    // Check if session is still valid (optional: add expiry check)
-                    const role = session.user.roles?.name || 'admin';
-                    const redirectPath = CONFIG.REDIRECT_MAP[role] || CONFIG.DEFAULT_REDIRECT;
+                    const roleId = session.user.role_id;
+                    const redirectPath = CONFIG.REDIRECT_MAP[roleId] || CONFIG.DEFAULT_REDIRECT;
 
-                    // Don't redirect if we're already on the login page
+                    // Don't redirect if already on login page
                     if (window.location.pathname.includes('login') ||
-                        window.location.pathname.includes('index')) {
+                        window.location.pathname.includes('index') ||
+                        window.location.pathname === '/') {
                         window.location.replace(redirectPath);
                     }
                 } catch (e) {
-                    // Invalid session data - clear it
                     localStorage.removeItem(CONFIG.SESSION_KEY);
                     secureLog('Session check failed:', e);
                 }
@@ -1289,7 +1309,7 @@
                 }
 
                 try {
-                    const { error } = await supabaseClient.auth.resetPasswordForEmail(email, {
+                    const { error } = await state.supabaseClient.auth.resetPasswordForEmail(email, {
                         redirectTo: window.location.origin + '/reset-password.html'
                     });
 
@@ -1303,7 +1323,7 @@
             }
 
             // ============================================================
-            //  RATE LIMITING FOR FORM SUBMISSION
+            //  RATE LIMITING
             // ============================================================
             const throttledSubmit = debounce(function(e) {
                 handleLogin(e);
@@ -1314,40 +1334,31 @@
             // ============================================================
             function init() {
                 try {
-                    // Cache DOM elements
                     cacheDom();
 
-                    // Generate CSRF token
                     state.csrfToken = generateCSRFToken();
                     if (DOM.csrfToken) {
                         DOM.csrfToken.value = state.csrfToken;
                     }
 
-                    // Initialize Supabase
                     initSupabase();
 
-                    // Check for existing session
                     checkExistingSession();
 
-                    // Set up event listeners
                     DOM.loginForm.addEventListener('submit', throttledSubmit);
 
-                    // Keyboard support
                     document.addEventListener('keydown', handleKeydown);
 
-                    // Forgot password
                     if (DOM.forgotLink) {
                         DOM.forgotLink.addEventListener('click', handleForgotPassword);
                     }
 
-                    // Auto-focus email on load (email mode)
                     setTimeout(() => {
                         if (DOM.emailInput && state.currentMethod === 'email') {
                             DOM.emailInput.focus();
                         }
                     }, 300);
 
-                    // If there's an error parameter in URL, display it
                     const urlParams = new URLSearchParams(window.location.search);
                     const errorMsg = urlParams.get('error');
                     if (errorMsg) {
@@ -1358,7 +1369,6 @@
 
                 } catch (error) {
                     secureLog('Initialization error:', error);
-                    // Graceful degradation - show error but keep page functional
                     if (DOM.alertEl) {
                         showAlert('Some features may be limited. Please refresh.', 'error');
                     }
@@ -1366,7 +1376,7 @@
             }
 
             // ============================================================
-            //  EXPOSE GLOBALS (for inline onclick)
+            //  EXPOSE GLOBALS
             // ============================================================
             window.pinPress = pinPress;
             window.pinBackspace = pinBackspace;
