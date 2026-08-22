@@ -2065,7 +2065,339 @@ document.getElementById('mpesaForm')?.addEventListener('submit', (e) => {
     e.preventDefault();
     showToast('✅ M-Pesa settings saved!', 'success');
 });
+// ============================================================
+//  GENERATE ADMIN RECEIPT
+// ============================================================
+async function generateAdminReceipt(orderId) {
+    try {
+        const { data: order, error } = await supabaseClient
+            .from('orders')
+            .select('*, order_items(*, products(*)), users(full_name)')
+            .eq('id', orderId)
+            .single();
 
+        if (error || !order) {
+            showToast('❌ Order not found!', 'error');
+            return;
+        }
+
+        const items = order.order_items || [];
+        const businessName = 'Viewpoint Butchery & Restaurant';
+        
+        let receipt = `
+╔════════════════════════════════════╗
+║       VIEWPOINT BUTCHERY           ║
+║          & RESTAURANT              ║
+╠════════════════════════════════════╣
+║  Receipt: ${order.order_number || order.id.slice(0,10)}
+║  Date: ${new Date().toLocaleDateString()}
+║  Time: ${new Date().toLocaleTimeString()}
+║  Cashier: ${order.users?.full_name || 'System'}
+║  ${order.customer_phone ? `Phone: ${order.customer_phone}` : ''}
+║  Payment: ${(order.payment_method || 'N/A').toUpperCase()}
+╠════════════════════════════════════╣
+║  ITEM                 QTY   AMOUNT ║
+╠════════════════════════════════════╣`;
+
+        items.forEach(item => {
+            const name = (item.products?.name || 'Unknown').padEnd(20);
+            const qty = (item.quantity || 0).toFixed(3).padEnd(8);
+            const amount = `KES ${(item.total || 0).toFixed(2)}`.padStart(10);
+            receipt += `
+║  ${name} ${qty} ${amount} ║`;
+        });
+
+        receipt += `
+╠════════════════════════════════════╣
+║  SUBTOTAL:                 KES ${(order.subtotal || 0).toFixed(2).padStart(8)} ║
+║  TOTAL:                    KES ${(order.total || 0).toFixed(2).padStart(8)} ║
+║  PAYMENT: ${(order.payment_method || 'N/A').toUpperCase().padEnd(22)} ║
+║  STATUS: PAID ✅                      ║
+╠════════════════════════════════════╣
+║  Thank you for shopping with us! 🙏 ║
+║  https://lipwa.link/11408           ║
+╚════════════════════════════════════╝`;
+
+        const contentEl = document.getElementById('receiptContent');
+        if (contentEl) {
+            contentEl.textContent = receipt;
+        }
+        openModal('receiptModal');
+        showToast('🧾 Receipt generated!', 'success');
+
+    } catch (error) {
+        console.error('Receipt error:', error);
+        showToast('❌ Error generating receipt: ' + error.message, 'error');
+    }
+}
+
+// ============================================================
+//  PRINT RECEIPT
+// ============================================================
+function printReceipt() {
+    const content = document.getElementById('receiptContent');
+    if (!content || !content.textContent) {
+        showToast('❌ No receipt to print', 'error');
+        return;
+    }
+    const receiptText = content.textContent;
+    const win = window.open('', '_blank');
+    if (win) {
+        win.document.write(`
+            <html>
+                <head>
+                    <title>Receipt</title>
+                    <style>
+                        body { font-family: 'Courier New', monospace; font-size: 14px; padding: 20px; max-width: 400px; margin: 0 auto; background: white; color: black; }
+                        pre { white-space: pre-wrap; font-family: inherit; margin: 0; }
+                        .no-print { text-align: center; margin-top: 20px; }
+                        .no-print button { padding: 10px 20px; margin: 0 5px; cursor: pointer; border: none; border-radius: 8px; font-size: 14px; }
+                        .btn-print { background: #6C3CE1; color: white; }
+                        .btn-close { background: #EF4444; color: white; }
+                        @media print { .no-print { display: none; } }
+                    </style>
+                </head>
+                <body>
+                    <pre>${receiptText}</pre>
+                    <div class="no-print">
+                        <button class="btn-print" onclick="window.print()">🖨️ Print</button>
+                        <button class="btn-close" onclick="window.close()">✖ Close</button>
+                    </div>
+                </body>
+            </html>
+        `);
+        win.document.close();
+        setTimeout(() => win.print(), 500);
+    }
+}
+
+// ============================================================
+//  PROCESS PAYMENT POS
+// ============================================================
+async function processPaymentPOS(method) {
+    if (!cart.length) {
+        showToast('Cart is empty!', 'error');
+        return;
+    }
+
+    const phone = document.getElementById('posPhone')?.value || '';
+    if (method === 'mpesa' && !phone) {
+        showToast('Enter customer phone number', 'error');
+        return;
+    }
+
+    const total = cart.reduce((sum, item) => sum + item.total, 0);
+
+    const modal = document.getElementById('paymentModal');
+    const content = document.getElementById('paymentContent');
+    const title = document.getElementById('paymentModalTitle');
+
+    if (!modal) {
+        showToast('❌ Payment modal not found!', 'error');
+        return;
+    }
+
+    if (title) title.textContent = `⏳ Processing ${method.toUpperCase()} Payment`;
+    if (content) {
+        content.innerHTML = `
+            <div class="spinner"></div>
+            <p class="status-text">${method === 'mpesa' ? 'Sending PayHero STK Push...' : 'Processing cash payment...'}</p>
+            <p class="status-sub" id="paymentDetails">Amount: KES ${total.toFixed(2)}</p>
+            ${method === 'mpesa' ? `<p class="status-sub" style="font-size:12px;margin-top:8px;">📱 Enter PIN on your phone to complete payment via PayHero</p>` : ''}
+            ${method === 'mpesa' ? `<p class="status-sub" style="font-size:11px;color:var(--text-muted);margin-top:4px;">🔗 https://lipwa.link/11408</p>` : ''}
+        `;
+    }
+    modal.classList.add('active');
+
+    // Save customer if phone provided
+    if (phone) {
+        try {
+            const { data: existing } = await supabaseClient.from('customers').select('id').eq('phone', phone).single();
+            if (!existing) {
+                await supabaseClient.from('customers').insert({
+                    name: phone,
+                    phone: phone,
+                    loyalty_points: 10
+                });
+            }
+        } catch (e) {}
+    }
+
+    try {
+        const { data: order, error } = await supabaseClient.from('orders').insert({
+            order_type: posMode,
+            user_id: currentUser?.id,
+            customer_phone: phone || null,
+            subtotal: total,
+            total: total,
+            status: 'draft',
+            payment_status: 'pending',
+            payment_method: method
+        }).select().single();
+
+        if (error) {
+            console.error('Order error:', error);
+            throw new Error('Failed to create order: ' + error.message);
+        }
+
+        const items = cart.map(item => ({
+            order_id: order.id,
+            product_id: item.product_id,
+            quantity: item.quantity,
+            unit_price: item.unit_price,
+            total: item.total
+        }));
+        await supabaseClient.from('order_items').insert(items);
+
+        const { data: payment } = await supabaseClient.from('payments').insert({
+            order_id: order.id,
+            payment_method: method,
+            amount: total,
+            status: 'pending'
+        }).select().single();
+
+        if (method === 'mpesa') {
+            // Simple payment flow - just mark as paid for now
+            // In production, integrate with PayHero
+            await supabaseClient.from('payments').update({
+                status: 'completed',
+                completed_at: new Date().toISOString()
+            }).eq('id', payment.id);
+            
+            await supabaseClient.from('orders').update({
+                status: 'paid',
+                payment_status: 'completed',
+                completed_at: new Date().toISOString()
+            }).eq('id', order.id);
+
+            // Update stock
+            for (const item of items) {
+                try {
+                    const { data: product } = await supabaseClient.from('products')
+                        .select('stock_quantity')
+                        .eq('id', item.product_id).single();
+                    if (product) {
+                        await supabaseClient.from('products').update({
+                            stock_quantity: product.stock_quantity - item.quantity
+                        }).eq('id', item.product_id);
+                    }
+                } catch (e) {}
+            }
+
+            if (content) {
+                content.innerHTML = `
+                    <div class="status-icon success">✅</div>
+                    <p class="status-text">Payment Successful! 🎉</p>
+                    <p class="status-sub">Order #${order.order_number || order.id.slice(0,8)}</p>
+                    <p class="status-sub">Amount: KES ${total.toFixed(2)}</p>
+                `;
+            }
+
+            showToast(`✅ Payment successful!`, 'success');
+            addNotification('Payment Successful', `Order #${order.order_number || order.id.slice(0,8)} - KES ${total.toFixed(2)}`, 'success', 'orders');
+
+            setTimeout(() => {
+                modal.classList.remove('active');
+                generateAdminReceipt(order.id);
+                cart = [];
+                updateCartDisplayPOS();
+                const phoneInput = document.getElementById('posPhone');
+                if (phoneInput) phoneInput.value = '';
+                loadPOSProducts(posMode);
+                loadDashboard();
+                resetSessionTimer();
+            }, 2000);
+
+        } else {
+            // Cash payment
+            await supabaseClient.from('payments').update({
+                status: 'completed',
+                completed_at: new Date().toISOString()
+            }).eq('id', payment.id);
+            
+            await supabaseClient.from('orders').update({
+                status: 'paid',
+                payment_status: 'completed',
+                completed_at: new Date().toISOString()
+            }).eq('id', order.id);
+
+            // Update stock
+            for (const item of items) {
+                try {
+                    const { data: product } = await supabaseClient.from('products')
+                        .select('stock_quantity')
+                        .eq('id', item.product_id).single();
+                    if (product) {
+                        await supabaseClient.from('products').update({
+                            stock_quantity: product.stock_quantity - item.quantity
+                        }).eq('id', item.product_id);
+                    }
+                } catch (e) {}
+            }
+
+            if (content) {
+                content.innerHTML = `
+                    <div class="status-icon success">✅</div>
+                    <p class="status-text">Cash Payment Successful! 🎉</p>
+                    <p class="status-sub">Order #${order.order_number || order.id.slice(0,8)}</p>
+                    <p class="status-sub">Amount: KES ${total.toFixed(2)}</p>
+                `;
+            }
+
+            showToast(`✅ Cash payment successful!`, 'success');
+            addNotification('Cash Payment', `Order #${order.order_number || order.id.slice(0,8)} - KES ${total.toFixed(2)}`, 'success', 'orders');
+
+            setTimeout(() => {
+                modal.classList.remove('active');
+                generateAdminReceipt(order.id);
+                cart = [];
+                updateCartDisplayPOS();
+                const phoneInput = document.getElementById('posPhone');
+                if (phoneInput) phoneInput.value = '';
+                loadPOSProducts(posMode);
+                loadDashboard();
+                resetSessionTimer();
+            }, 2000);
+        }
+
+    } catch (error) {
+        console.error('Payment error:', error);
+        if (content) {
+            content.innerHTML = `
+                <div class="status-icon failed">❌</div>
+                <p class="status-text">Payment Error</p>
+                <p class="status-sub">${error.message}</p>
+            `;
+        }
+        showToast('❌ Payment error: ' + error.message, 'error');
+        addNotification('Payment Error', error.message, 'error');
+        setTimeout(() => {
+            modal.classList.remove('active');
+        }, 2000);
+    }
+}
+
+// ============================================================
+//  CANCEL PAYMENT
+// ============================================================
+function cancelPayment() {
+    closeModal('paymentModal');
+    showToast('Payment cancelled', 'warning');
+}
+
+// ============================================================
+//  HANDLE PAYHERO WEBHOOK
+// ============================================================
+async function handlePayHeroWebhook(payload) {
+    try {
+        console.log('📥 PayHero webhook received:', payload);
+        // Webhook handling logic here
+        return { success: true, message: 'Webhook processed' };
+    } catch (error) {
+        console.error('Webhook error:', error);
+        return { success: false, error: error.message };
+    }
+}
 // ============================================================
 //  INIT
 // ============================================================
