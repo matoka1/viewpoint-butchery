@@ -1,6 +1,6 @@
 // ============================================================
-//  ULTIMATE ADMIN DASHBOARD - COMPLETE 2300+ LINES
-//  FIXED FOR YOUR DATABASE STRUCTURE
+//  ULTIMATE ADMIN DASHBOARD - COMPLETE FIXED VERSION
+//  ALL ERRORS FIXED - NULL CHECKS ADDED - GREETINGS INCLUDED
 // ============================================================
 
 // ===== CONFIG ===== 
@@ -235,6 +235,46 @@ async function logout() {
 window.logout = logout;
 
 // ============================================================
+//  LOG USER ACTIVITY - FIXED (handles 401 error)
+// ============================================================
+async function logUserActivity(action, details = '') {
+    try {
+        if (!currentUser) return;
+        
+        const { error: tableError } = await supabaseClient
+            .from('user_activity_log')
+            .select('id')
+            .limit(1);
+            
+        if (tableError && tableError.code === '42P01') {
+            console.log('user_activity_log table not found, skipping log');
+            return;
+        }
+        
+        await supabaseClient.from('user_activity_log').insert({
+            user_id: currentUser.id,
+            action: action,
+            details: details || '',
+            ip_address: await getIPAddress() || 'unknown',
+            user_agent: navigator.userAgent || 'unknown',
+            created_at: new Date().toISOString()
+        });
+    } catch (e) {
+        console.log('Activity log skipped:', e.message);
+    }
+}
+
+async function getIPAddress() {
+    try {
+        const response = await fetch('https://api.ipify.org?format=json');
+        const data = await response.json();
+        return data.ip;
+    } catch (e) {
+        return 'unknown';
+    }
+}
+
+// ============================================================
 //  NAVIGATION
 // ============================================================
 function navigateTo(section) {
@@ -262,8 +302,10 @@ function navigateTo(section) {
         settings: ['⚙️ Settings', 'System configuration']
     };
     const [title, sub] = titles[section] || ['Dashboard', ''];
-    document.getElementById('pageTitle').textContent = title;
-    document.getElementById('pageSubtitle').textContent = sub;
+    const titleEl = document.getElementById('pageTitle');
+    const subEl = document.getElementById('pageSubtitle');
+    if (titleEl) titleEl.textContent = title;
+    if (subEl) subEl.textContent = sub;
 
     const loaders = {
         pos: () => loadPOSProducts('butchery'),
@@ -327,109 +369,9 @@ function startClock() {
 }
 
 // ============================================================
-//  EMOJI PICKER FUNCTIONS
+//  TIME-BASED GREETINGS - COMPLETE
 // ============================================================
-function initEmojiPicker() {
-    const picker = document.getElementById('emojiPicker');
-    if (!picker) return;
-    picker.innerHTML = AVAILABLE_EMOJIS.map(emoji => 
-        `<span class="emoji-option" data-emoji="${emoji}" onclick="selectEmoji('${emoji}')">${emoji}</span>`
-    ).join('');
-}
 
-function toggleEmojiPicker() {
-    const container = document.getElementById('emojiPickerContainer');
-    if (container) {
-        container.style.display = container.style.display === 'none' ? 'block' : 'none';
-    }
-}
-
-function selectEmoji(emoji) {
-    currentProductEmoji = emoji;
-    document.getElementById('selectedEmojiDisplay').textContent = emoji;
-    document.getElementById('productEmoji').value = emoji;
-    document.querySelectorAll('.emoji-option').forEach(el => {
-        el.classList.toggle('selected', el.dataset.emoji === emoji);
-    });
-    document.getElementById('emojiPickerContainer').style.display = 'none';
-}
-
-function clearEmoji() {
-    currentProductEmoji = '📦';
-    const display = document.getElementById('selectedEmojiDisplay');
-    const input = document.getElementById('productEmoji');
-    if (display) display.textContent = '📦';
-    if (input) input.value = '📦';
-    document.querySelectorAll('.emoji-option').forEach(el => el.classList.remove('selected'));
-}
-
-// ============================================================
-//  IMAGE UPLOAD FUNCTIONS
-// ============================================================
-async function uploadProductImage(file) {
-    try {
-        const fileExt = file.name.split('.').pop();
-        const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
-        const filePath = `products/${fileName}`;
-        
-        const { data, error } = await supabaseClient.storage
-            .from('product-images')
-            .upload(filePath, file);
-            
-        if (error) throw error;
-        
-        const { data: urlData } = supabaseClient.storage
-            .from('product-images')
-            .getPublicUrl(filePath);
-            
-        return urlData.publicUrl;
-        
-    } catch (error) {
-        console.error('Image upload error:', error);
-        showToast('❌ Image upload failed: ' + error.message, 'error');
-        return null;
-    }
-}
-
-function handleProductImageUpload(event) {
-    const file = event.target.files[0];
-    if (!file) return;
-    
-    const reader = new FileReader();
-    reader.onload = function(e) {
-        const preview = document.getElementById('productImagePreview');
-        if (preview) {
-            preview.src = e.target.result;
-            preview.style.display = 'block';
-            document.getElementById('clearImageBtn').style.display = 'inline-flex';
-        }
-    };
-    reader.readAsDataURL(file);
-    currentProductImageFile = file;
-}
-
-function clearProductImage() {
-    currentProductImageFile = null;
-    const preview = document.getElementById('productImagePreview');
-    const fileInput = document.getElementById('productImageFile');
-    const clearBtn = document.getElementById('clearImageBtn');
-    const urlInput = document.getElementById('productImageUrl');
-    if (preview) { preview.src = ''; preview.style.display = 'none'; }
-    if (fileInput) fileInput.value = '';
-    if (clearBtn) clearBtn.style.display = 'none';
-    if (urlInput) urlInput.value = '';
-}
-
-document.addEventListener('DOMContentLoaded', function() {
-    const fileInput = document.getElementById('productImageFile');
-    if (fileInput) {
-        fileInput.addEventListener('change', handleProductImageUpload);
-    }
-});
-
-// ============================================================
-//  TIME-BASED GREETINGS
-// ============================================================
 function getTimeBasedGreeting() {
     const now = new Date();
     const hour = now.getHours();
@@ -588,6 +530,104 @@ function initGreeting() {
 }
 
 // ============================================================
+//  EMOJI PICKER FUNCTIONS
+// ============================================================
+function initEmojiPicker() {
+    const picker = document.getElementById('emojiPicker');
+    if (!picker) return;
+    picker.innerHTML = AVAILABLE_EMOJIS.map(emoji => 
+        `<span class="emoji-option" data-emoji="${emoji}" onclick="selectEmoji('${emoji}')">${emoji}</span>`
+    ).join('');
+}
+
+function toggleEmojiPicker() {
+    const container = document.getElementById('emojiPickerContainer');
+    if (container) {
+        container.style.display = container.style.display === 'none' ? 'block' : 'none';
+    }
+}
+
+function selectEmoji(emoji) {
+    currentProductEmoji = emoji;
+    const display = document.getElementById('selectedEmojiDisplay');
+    const input = document.getElementById('productEmoji');
+    if (display) display.textContent = emoji;
+    if (input) input.value = emoji;
+    document.querySelectorAll('.emoji-option').forEach(el => {
+        el.classList.toggle('selected', el.dataset.emoji === emoji);
+    });
+    const container = document.getElementById('emojiPickerContainer');
+    if (container) container.style.display = 'none';
+}
+
+function clearEmoji() {
+    currentProductEmoji = '📦';
+    const display = document.getElementById('selectedEmojiDisplay');
+    const input = document.getElementById('productEmoji');
+    if (display) display.textContent = '📦';
+    if (input) input.value = '📦';
+    document.querySelectorAll('.emoji-option').forEach(el => el.classList.remove('selected'));
+}
+
+// ============================================================
+//  IMAGE UPLOAD FUNCTIONS
+// ============================================================
+async function uploadProductImage(file) {
+    try {
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
+        const filePath = `products/${fileName}`;
+        
+        const { data, error } = await supabaseClient.storage
+            .from('product-images')
+            .upload(filePath, file);
+            
+        if (error) throw error;
+        
+        const { data: urlData } = supabaseClient.storage
+            .from('product-images')
+            .getPublicUrl(filePath);
+            
+        return urlData.publicUrl;
+        
+    } catch (error) {
+        console.error('Image upload error:', error);
+        showToast('❌ Image upload failed: ' + error.message, 'error');
+        return null;
+    }
+}
+
+function handleProductImageUpload(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const preview = document.getElementById('productImagePreview');
+        if (preview) {
+            preview.src = e.target.result;
+            preview.style.display = 'block';
+            const clearBtn = document.getElementById('clearImageBtn');
+            if (clearBtn) clearBtn.style.display = 'inline-flex';
+        }
+    };
+    reader.readAsDataURL(file);
+    currentProductImageFile = file;
+}
+
+function clearProductImage() {
+    currentProductImageFile = null;
+    const preview = document.getElementById('productImagePreview');
+    const fileInput = document.getElementById('productImageFile');
+    const clearBtn = document.getElementById('clearImageBtn');
+    const urlInput = document.getElementById('productImageUrl');
+    if (preview) { preview.src = ''; preview.style.display = 'none'; }
+    if (fileInput) fileInput.value = '';
+    if (clearBtn) clearBtn.style.display = 'none';
+    if (urlInput) urlInput.value = '';
+}
+
+// ============================================================
 //  DASHBOARD
 // ============================================================
 async function loadDashboard() {
@@ -637,6 +677,7 @@ async function loadRecentOrders() {
     try {
         const { data: orders } = await supabaseClient.from('orders').select('*').order('created_at', { ascending: false }).limit(8);
         const table = document.getElementById('recentOrdersTable');
+        if (!table) return;
         if (!orders?.length) {
             table.innerHTML = '<div class="empty-state"><i class="fas fa-inbox"></i><p>No recent orders</p></div>';
             return;
@@ -661,6 +702,7 @@ async function loadRecentOrders() {
 async function loadTopProducts() {
     try {
         const list = document.getElementById('topProductsList');
+        if (!list) return;
         let items = [];
         
         try {
@@ -712,13 +754,13 @@ async function loadTopProducts() {
 
 async function createSalesChart(orders) {
     try {
+        const ctx = document.getElementById('salesChart');
+        if (!ctx) return;
         const daily = {};
         orders.forEach(o => {
             const d = new Date(o.created_at).toLocaleDateString();
             daily[d] = (daily[d] || 0) + (o.total || 0);
         });
-        const ctx = document.getElementById('salesChart');
-        if (!ctx) return;
         if (salesChart) salesChart.destroy();
         salesChart = new Chart(ctx, {
             type: 'line',
@@ -786,6 +828,7 @@ async function loadPOSProducts(type) {
             .eq('is_active', true);
         products = productsData || [];
         const container = document.getElementById('posContainer');
+        if (!container) return;
         if (!products.length) {
             container.innerHTML = `<div class="empty-state"><i class="fas fa-box-open"></i><p>No ${type} products available</p></div>`;
             return;
@@ -835,8 +878,10 @@ async function loadPOSProducts(type) {
             </div>
         `;
         container.innerHTML = html;
-        document.getElementById('posQty')?.addEventListener('input', calculateTotalPOS);
-        document.getElementById('posAmount')?.addEventListener('input', calculateTotalPOS);
+        const qtyEl = document.getElementById('posQty');
+        const amountEl = document.getElementById('posAmount');
+        if (qtyEl) qtyEl.addEventListener('input', calculateTotalPOS);
+        if (amountEl) amountEl.addEventListener('input', calculateTotalPOS);
     } catch (e) {
         console.error('POS load error:', e);
     }
@@ -845,7 +890,8 @@ async function loadPOSProducts(type) {
 function selectPOSProduct(id) {
     selectedProduct = id;
     document.querySelectorAll('.product-card').forEach(el => el.classList.remove('selected'));
-    document.getElementById(`pos-${id}`)?.classList.add('selected');
+    const el = document.getElementById(`pos-${id}`);
+    if (el) el.classList.add('selected');
 }
 
 function quickAmount(amount) {
@@ -859,8 +905,13 @@ function calculateTotalPOS() {
     if (!selectedProduct) return;
     const product = products.find(p => p.id === selectedProduct);
     if (!product) return;
-    if (amount && !qty) document.getElementById('posQty').value = (amount / product.selling_price).toFixed(3);
-    else if (qty && !amount) document.getElementById('posAmount').value = (qty * product.selling_price).toFixed(2);
+    if (amount && !qty) {
+        const qtyEl = document.getElementById('posQty');
+        if (qtyEl) qtyEl.value = (amount / product.selling_price).toFixed(3);
+    } else if (qty && !amount) {
+        const amountEl = document.getElementById('posAmount');
+        if (amountEl) amountEl.value = (qty * product.selling_price).toFixed(2);
+    }
 }
 
 function addToCartPOS() {
@@ -882,8 +933,10 @@ function addToCartPOS() {
     });
     updateCartDisplayPOS();
     showToast(`✅ ${product.name} added to cart`, 'success');
-    document.getElementById('posQty').value = '';
-    document.getElementById('posAmount').value = '';
+    const qtyEl = document.getElementById('posQty');
+    const amountEl = document.getElementById('posAmount');
+    if (qtyEl) qtyEl.value = '';
+    if (amountEl) amountEl.value = '';
     selectedProduct = null;
     document.querySelectorAll('.product-card').forEach(el => el.classList.remove('selected'));
 }
@@ -893,6 +946,7 @@ function clearCartPOS() { cart = []; updateCartDisplayPOS(); }
 function updateCartDisplayPOS() {
     const container = document.getElementById('posCartItems');
     const totalEl = document.getElementById('posTotal');
+    if (!container || !totalEl) return;
     if (!cart.length) {
         container.innerHTML = '<div class="empty-state" style="padding:8px;"><p>No items in cart</p></div>';
         totalEl.textContent = 'KES 0.00';
@@ -1012,7 +1066,9 @@ async function updateOrderStatus(orderId, status) {
         loadOrders();
         loadKitchenOrders();
         resetSessionTimer();
-    } catch (e) { showToast('❌ ' + e.message, 'error'); }
+    } catch (e) { 
+        showToast('❌ ' + e.message, 'error'); 
+    }
 }
 
 async function viewOrderDetails(orderId) {
@@ -1022,7 +1078,10 @@ async function viewOrderDetails(orderId) {
             .select('*, order_items(*, products(*))')
             .eq('id', orderId).single();
         if (!order) return;
-        document.getElementById('orderDetailTitle').textContent = `📋 Order #${order.order_number || order.id.slice(0,10)}`;
+        
+        const titleEl = document.getElementById('orderDetailTitle');
+        if (titleEl) titleEl.textContent = `📋 Order #${order.order_number || order.id.slice(0,10)}`;
+        
         const items = order.order_items || [];
         let html = `
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;">
@@ -1060,88 +1119,14 @@ async function viewOrderDetails(orderId) {
                 <button class="btn btn-sm btn-outline" onclick="closeModal('orderDetailModal')">✖ Close</button>
             </div>
         `;
-        document.getElementById('orderDetailContent').innerHTML = html;
+        const contentEl = document.getElementById('orderDetailContent');
+        if (contentEl) contentEl.innerHTML = html;
         openModal('orderDetailModal');
     } catch (e) {
         console.error('View order error:', e);
         showToast('❌ Could not load order details', 'error');
     }
 }
-
-document.querySelectorAll('#orderFilters .filter-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-        document.querySelectorAll('#orderFilters .filter-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        currentFilter = btn.dataset.filter;
-        renderOrders(allOrders);
-    });
-});
-
-// ============================================================
-//  KITCHEN DISPLAY
-// ============================================================
-async function loadKitchenOrders() {
-    try {
-        const { data: orders } = await supabaseClient
-            .from('orders')
-            .select('*, order_items(*, products(*))')
-            .in('status', ['paid', 'preparing', 'ready'])
-            .order('created_at', { ascending: false });
-
-        const container = document.getElementById('kitchenOrders');
-        const countEl = document.getElementById('kitchenOrderCount');
-        if (countEl) countEl.textContent = orders?.length || 0;
-
-        if (!orders?.length) {
-            container.innerHTML = '<div class="empty-state"><i class="fas fa-utensils"></i><p>No kitchen orders</p></div>';
-            return;
-        }
-
-        let filtered = orders;
-        if (kitchenFilter !== 'all') {
-            filtered = orders.filter(o => o.status === kitchenFilter);
-        }
-
-        container.innerHTML = `<div class="orders-grid">${filtered.map(order => {
-            const items = order.order_items || [];
-            return `
-                <div class="order-card ${order.order_type}">
-                    <div class="order-header">
-                        <span class="order-number">#${order.order_number || order.id.slice(0,10)}</span>
-                        <span class="badge ${order.order_type}">${order.order_type}</span>
-                        <span class="status-badge ${order.status}">${order.status}</span>
-                    </div>
-                    <div class="order-items">
-                        ${items.map(item => `
-                            <div class="order-item-row">
-                                <span>${item.products?.emoji || getEmoji(item.products?.name || '📦')} ${item.products?.name || 'Unknown'}</span>
-                                <span>${(item.quantity || 0).toFixed(3)}</span>
-                            </div>
-                        `).join('')}
-                    </div>
-                    <div class="order-footer">
-                        <span class="order-total">KES ${(order.total || 0).toFixed(2)}</span>
-                        <span class="order-time">${new Date(order.created_at).toLocaleTimeString()}</span>
-                    </div>
-                    <div class="order-actions">
-                        ${order.status === 'paid' ? `<button class="btn btn-sm btn-warning" onclick="updateOrderStatus('${order.id}','preparing')"><i class="fas fa-play"></i> Start</button>` : ''}
-                        ${order.status === 'preparing' ? `<button class="btn btn-sm btn-success" onclick="updateOrderStatus('${order.id}','ready')"><i class="fas fa-check"></i> Ready</button>` : ''}
-                        ${order.status === 'ready' ? `<button class="btn btn-sm btn-primary" onclick="updateOrderStatus('${order.id}','completed')"><i class="fas fa-flag-checkered"></i> Complete</button>` : ''}
-                    </div>
-                </div>
-            `;
-        }).join('')}</div>`;
-    } catch (e) { console.error('Kitchen orders error:', e); }
-}
-
-document.querySelectorAll('#kitchenFilters .filter-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-        document.querySelectorAll('#kitchenFilters .filter-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        kitchenFilter = btn.dataset.filter;
-        loadKitchenOrders();
-    });
-});
 
 // ============================================================
 //  PRODUCTS
@@ -1151,6 +1136,7 @@ async function loadProducts() {
         const { data: productsData } = await supabaseClient.from('products').select('*').order('name');
         products = productsData || [];
         const table = document.getElementById('productsTable');
+        if (!table) return;
         if (!products.length) {
             table.innerHTML = '<div class="empty-state"><i class="fas fa-box-open"></i><p>No products</p></div>';
             return;
@@ -1182,27 +1168,40 @@ async function editProduct(id) {
     try {
         const { data: p } = await supabaseClient.from('products').select('*').eq('id', id).single();
         if (!p) return;
-        document.getElementById('productModalTitle').textContent = 'Edit Product';
-        document.getElementById('productId').value = p.id;
-        document.getElementById('productName').value = p.name;
-        document.getElementById('productType').value = p.product_type;
-        document.getElementById('productPrice').value = p.selling_price;
-        document.getElementById('productCost').value = p.cost_price || '';
-        document.getElementById('productUnit').value = p.unit;
-        document.getElementById('productStock').value = p.stock_quantity;
-        document.getElementById('productReorder').value = p.reorder_level;
-        document.getElementById('productStatus').value = p.is_active ? 'active' : 'inactive';
+        const titleEl = document.getElementById('productModalTitle');
+        if (titleEl) titleEl.textContent = 'Edit Product';
+        const idEl = document.getElementById('productId');
+        if (idEl) idEl.value = p.id;
+        const nameEl = document.getElementById('productName');
+        const typeEl = document.getElementById('productType');
+        const priceEl = document.getElementById('productPrice');
+        const costEl = document.getElementById('productCost');
+        const unitEl = document.getElementById('productUnit');
+        const stockEl = document.getElementById('productStock');
+        const reorderEl = document.getElementById('productReorder');
+        const statusEl = document.getElementById('productStatus');
+        if (nameEl) nameEl.value = p.name;
+        if (typeEl) typeEl.value = p.product_type;
+        if (priceEl) priceEl.value = p.selling_price;
+        if (costEl) costEl.value = p.cost_price || '';
+        if (unitEl) unitEl.value = p.unit;
+        if (stockEl) stockEl.value = p.stock_quantity;
+        if (reorderEl) reorderEl.value = p.reorder_level;
+        if (statusEl) statusEl.value = p.is_active ? 'active' : 'inactive';
         
         if (p.emoji) {
             currentProductEmoji = p.emoji;
-            document.getElementById('selectedEmojiDisplay').textContent = p.emoji;
-            document.getElementById('productEmoji').value = p.emoji;
+            const display = document.getElementById('selectedEmojiDisplay');
+            const input = document.getElementById('productEmoji');
+            if (display) display.textContent = p.emoji;
+            if (input) input.value = p.emoji;
         }
         
         if (p.image_url) {
-            document.getElementById('productImagePreview').src = p.image_url;
-            document.getElementById('productImagePreview').style.display = 'block';
-            document.getElementById('productImageUrl').value = p.image_url;
+            const preview = document.getElementById('productImagePreview');
+            const urlInput = document.getElementById('productImageUrl');
+            if (preview) { preview.src = p.image_url; preview.style.display = 'block'; }
+            if (urlInput) urlInput.value = p.image_url;
         }
         
         openModal('productModal');
@@ -1223,27 +1222,27 @@ async function deleteProduct(id) {
     }
 }
 
-document.getElementById('productForm').addEventListener('submit', async (e) => {
+document.getElementById('productForm')?.addEventListener('submit', async (e) => {
     e.preventDefault();
-    const id = document.getElementById('productId').value;
+    const id = document.getElementById('productId')?.value;
     
-    let imageUrl = document.getElementById('productImageUrl').value;
+    let imageUrl = document.getElementById('productImageUrl')?.value || '';
     if (currentProductImageFile) {
         const uploadedUrl = await uploadProductImage(currentProductImageFile);
         if (uploadedUrl) imageUrl = uploadedUrl;
     }
     
     const data = {
-        name: document.getElementById('productName').value,
-        product_type: document.getElementById('productType').value,
-        selling_price: parseFloat(document.getElementById('productPrice').value),
-        cost_price: parseFloat(document.getElementById('productCost').value) || null,
-        unit: document.getElementById('productUnit').value,
-        stock_quantity: parseFloat(document.getElementById('productStock').value) || 0,
-        reorder_level: parseFloat(document.getElementById('productReorder').value) || 0,
-        emoji: document.getElementById('productEmoji').value || '📦',
+        name: document.getElementById('productName')?.value || '',
+        product_type: document.getElementById('productType')?.value || 'butchery',
+        selling_price: parseFloat(document.getElementById('productPrice')?.value) || 0,
+        cost_price: parseFloat(document.getElementById('productCost')?.value) || null,
+        unit: document.getElementById('productUnit')?.value || 'KG',
+        stock_quantity: parseFloat(document.getElementById('productStock')?.value) || 0,
+        reorder_level: parseFloat(document.getElementById('productReorder')?.value) || 0,
+        emoji: document.getElementById('productEmoji')?.value || '📦',
         image_url: imageUrl || null,
-        is_active: document.getElementById('productStatus').value === 'active'
+        is_active: document.getElementById('productStatus')?.value === 'active'
     };
     
     try {
@@ -1269,6 +1268,7 @@ async function loadInventory() {
         const { data: productsData } = await supabaseClient.from('products').select('*').order('name');
         products = productsData || [];
         const table = document.getElementById('inventoryTable');
+        if (!table) return;
         if (!products.length) {
             table.innerHTML = '<div class="empty-state"><i class="fas fa-warehouse"></i><p>No inventory</p></div>';
             return;
@@ -1288,7 +1288,6 @@ async function loadInventory() {
         html += '</tbody></table></div>';
         table.innerHTML = html;
 
-        // Load stock movements
         await loadStockMovements();
     } catch (e) {
         console.error('Inventory error:', e);
@@ -1304,6 +1303,7 @@ async function loadStockMovements() {
             .limit(15);
         
         const movementTable = document.getElementById('stockMovementsTable');
+        if (!movementTable) return;
         if (!movements?.length) {
             movementTable.innerHTML = '<div class="empty-state"><p>No movements</p></div>';
             return;
@@ -1353,12 +1353,12 @@ async function loadProductDropdown() {
     }
 }
 
-document.getElementById('stockForm').addEventListener('submit', async (e) => {
+document.getElementById('stockForm')?.addEventListener('submit', async (e) => {
     e.preventDefault();
-    const productId = document.getElementById('stockProduct').value;
-    const type = document.getElementById('adjustmentType').value;
-    const qty = parseFloat(document.getElementById('adjustmentQty').value);
-    const reason = document.getElementById('adjustmentReason').value || 'Manual adjustment';
+    const productId = document.getElementById('stockProduct')?.value;
+    const type = document.getElementById('adjustmentType')?.value;
+    const qty = parseFloat(document.getElementById('adjustmentQty')?.value) || 0;
+    const reason = document.getElementById('adjustmentReason')?.value || 'Manual adjustment';
     
     if (!productId) {
         showToast('Please select a product', 'error');
@@ -1390,36 +1390,75 @@ document.getElementById('stockForm').addEventListener('submit', async (e) => {
 });
 
 // ============================================================
-//  USERS - WITH PIN
+//  USERS
 // ============================================================
-function showAddUser() {
-    document.getElementById('userModalTitle').textContent = 'Add New User';
-    document.getElementById('userForm').reset();
-    document.getElementById('userSubmitBtn').innerHTML = '<i class="fas fa-save"></i> Create User';
-    openModal('userModal');
+async function loadUsers() {
+    try {
+        const { data: usersData } = await supabaseClient
+            .from('users')
+            .select('*, roles(name)')
+            .order('full_name');
+        const table = document.getElementById('usersTable');
+        if (!table) return;
+        if (!usersData?.length) {
+            table.innerHTML = '<div class="empty-state"><i class="fas fa-users"></i><p>No users</p></div>';
+            return;
+        }
+        let html = '<div class="table-wrapper"><table class="data-table"><thead><tr><th>👤 Name</th><th>📧 Email</th><th>👑 Role</th><th>🔐 PIN</th><th>🔑 2FA</th><th>📊 Status</th><th>⚙️ Actions</th></tr></thead><tbody>';
+        usersData.forEach(u => {
+            const roleEmoji = u.roles?.name === 'admin' ? '👑' : u.roles?.name === 'cashier' ? '💰' : u.roles?.name === 'butcher' ? '🥩' : '🍳';
+            html += `<tr>
+                <td><strong>${u.full_name}</strong></td>
+                <td>${u.email}</td>
+                <td><span class="badge ${u.roles?.name || 'cashier'}">${roleEmoji} ${u.roles?.name || 'Unknown'}</span></td>
+                <td>${u.pin ? '✅ Set' : '❌ Not set'}</td>
+                <td>${u.two_fa_enabled ? '✅ Enabled' : '❌ Disabled'}</td>
+                <td><span class="status-badge ${u.status}">${u.status}</span></td>
+                <td>
+                    <button class="btn btn-sm btn-warning" onclick="editUser('${u.id}')" title="Edit User"><i class="fas fa-edit"></i></button>
+                    <button class="btn btn-sm btn-danger" onclick="deleteUser('${u.id}')" title="Delete User"><i class="fas fa-trash"></i></button>
+                </td>
+            </tr>`;
+        });
+        html += '</tbody></table></div>';
+        table.innerHTML = html;
+    } catch (e) {
+        console.error('Load users error:', e);
+    }
 }
 
-document.getElementById('userForm').addEventListener('submit', async (e) => {
+async function deleteUser(id) {
+    if (!confirm('Delete this user?')) return;
+    try {
+        await supabaseClient.from('users').delete().eq('id', id);
+        showToast('User deleted', 'success');
+        loadUsers();
+    } catch (e) {
+        showToast('❌ Could not delete user', 'error');
+    }
+}
+
+document.getElementById('userForm')?.addEventListener('submit', async (e) => {
     e.preventDefault();
     const btn = document.getElementById('userSubmitBtn');
+    if (!btn) return;
     btn.innerHTML = '<span class="spinner"></span> Creating...';
     btn.disabled = true;
     try {
-        const fullName = document.getElementById('userFullName').value.trim();
-        const email = document.getElementById('userEmail').value.trim();
-        const password = document.getElementById('userPassword').value;
-        const roleId = parseInt(document.getElementById('userRole').value);
-        const twoFA = parseInt(document.getElementById('user2FA').value);
-        const status = document.getElementById('userStatus').value;
-        const phone = document.getElementById('userPhone').value;
-        const pin = document.getElementById('userPin').value;
+        const fullName = document.getElementById('userFullName')?.value?.trim() || '';
+        const email = document.getElementById('userEmail')?.value?.trim() || '';
+        const password = document.getElementById('userPassword')?.value || '';
+        const roleId = parseInt(document.getElementById('userRole')?.value) || 0;
+        const twoFA = parseInt(document.getElementById('user2FA')?.value) || 0;
+        const status = document.getElementById('userStatus')?.value || 'active';
+        const phone = document.getElementById('userPhone')?.value || '';
+        const pin = document.getElementById('userPin')?.value || '';
 
         if (!fullName || !email || !password || !roleId) throw new Error('Fill all required fields');
         if (pin.length !== 4 || !/^\d{4}$/.test(pin)) {
             throw new Error('PIN must be exactly 4 digits');
         }
 
-        // Create user
         const { data: authData, error: authError } = await supabaseClient.auth.admin.createUser({
             email: email,
             password: password,
@@ -1479,53 +1518,8 @@ document.getElementById('userForm').addEventListener('submit', async (e) => {
     }
 });
 
-async function loadUsers() {
-    try {
-        const { data: usersData } = await supabaseClient
-            .from('users')
-            .select('*, roles(name)')
-            .order('full_name');
-        const table = document.getElementById('usersTable');
-        if (!usersData?.length) {
-            table.innerHTML = '<div class="empty-state"><i class="fas fa-users"></i><p>No users</p></div>';
-            return;
-        }
-        let html = '<div class="table-wrapper"><table class="data-table"><thead><tr><th>👤 Name</th><th>📧 Email</th><th>👑 Role</th><th>🔐 PIN</th><th>🔑 2FA</th><th>📊 Status</th><th>⚙️ Actions</th></tr></thead><tbody>';
-        usersData.forEach(u => {
-            const roleEmoji = u.roles?.name === 'admin' ? '👑' : u.roles?.name === 'cashier' ? '💰' : u.roles?.name === 'butcher' ? '🥩' : '🍳';
-            html += `<tr>
-                <td><strong>${u.full_name}</strong></td>
-                <td>${u.email}</td>
-                <td><span class="badge ${u.roles?.name || 'cashier'}">${roleEmoji} ${u.roles?.name || 'Unknown'}</span></td>
-                <td>${u.pin ? '✅ Set' : '❌ Not set'}</td>
-                <td>${u.two_fa_enabled ? '✅ Enabled' : '❌ Disabled'}</td>
-                <td><span class="status-badge ${u.status}">${u.status}</span></td>
-                <td>
-                    <button class="btn btn-sm btn-warning" onclick="editUser('${u.id}')" title="Edit User"><i class="fas fa-edit"></i></button>
-                    <button class="btn btn-sm btn-danger" onclick="deleteUser('${u.id}')" title="Delete User"><i class="fas fa-trash"></i></button>
-                </td>
-            </tr>`;
-        });
-        html += '</tbody></table></div>';
-        table.innerHTML = html;
-    } catch (e) {
-        console.error('Load users error:', e);
-    }
-}
-
-async function deleteUser(id) {
-    if (!confirm('Delete this user?')) return;
-    try {
-        await supabaseClient.from('users').delete().eq('id', id);
-        showToast('User deleted', 'success');
-        loadUsers();
-    } catch (e) {
-        showToast('❌ Could not delete user', 'error');
-    }
-}
-
 // ============================================================
-//  EDIT USER - WITH PIN UPDATE
+//  EDIT USER
 // ============================================================
 async function editUser(userId) {
     try {
@@ -1540,15 +1534,25 @@ async function editUser(userId) {
             return;
         }
 
-        document.getElementById('editUserId').value = user.id;
-        document.getElementById('editUserFullName').value = user.full_name || '';
-        document.getElementById('editUserEmail').value = user.email || '';
-        document.getElementById('editUserPhone').value = user.phone || '';
-        document.getElementById('editUserRole').value = user.role_id || 2;
-        document.getElementById('editUser2FA').value = user.two_fa_enabled ? 1 : 0;
-        document.getElementById('editUserStatus').value = user.status || 'active';
-        document.getElementById('editUserPin').value = '';
-        document.getElementById('editUserModalTitle').textContent = `✏️ Edit User: ${user.full_name}`;
+        const idEl = document.getElementById('editUserId');
+        const nameEl = document.getElementById('editUserFullName');
+        const emailEl = document.getElementById('editUserEmail');
+        const phoneEl = document.getElementById('editUserPhone');
+        const roleEl = document.getElementById('editUserRole');
+        const twoFaEl = document.getElementById('editUser2FA');
+        const statusEl = document.getElementById('editUserStatus');
+        const pinEl = document.getElementById('editUserPin');
+        const titleEl = document.getElementById('editUserModalTitle');
+
+        if (idEl) idEl.value = user.id;
+        if (nameEl) nameEl.value = user.full_name || '';
+        if (emailEl) emailEl.value = user.email || '';
+        if (phoneEl) phoneEl.value = user.phone || '';
+        if (roleEl) roleEl.value = user.role_id || 2;
+        if (twoFaEl) twoFaEl.value = user.two_fa_enabled ? 1 : 0;
+        if (statusEl) statusEl.value = user.status || 'active';
+        if (pinEl) pinEl.value = '';
+        if (titleEl) titleEl.textContent = `✏️ Edit User: ${user.full_name}`;
 
         openModal('editUserModal');
 
@@ -1562,21 +1566,23 @@ document.getElementById('editUserForm')?.addEventListener('submit', async functi
     e.preventDefault();
 
     const btn = document.getElementById('editUserSubmitBtn');
-    const originalText = btn.innerHTML;
-    btn.innerHTML = '<span class="spinner"></span> Updating...';
-    btn.disabled = true;
+    const originalText = btn?.innerHTML || 'Update User';
+    if (btn) {
+        btn.innerHTML = '<span class="spinner"></span> Updating...';
+        btn.disabled = true;
+    }
 
     try {
-        const userId = document.getElementById('editUserId').value;
-        const pin = document.getElementById('editUserPin').value;
+        const userId = document.getElementById('editUserId')?.value;
+        const pin = document.getElementById('editUserPin')?.value || '';
         
         const data = {
-            full_name: document.getElementById('editUserFullName').value.trim(),
-            email: document.getElementById('editUserEmail').value.trim(),
-            phone: document.getElementById('editUserPhone').value.trim() || null,
-            role_id: parseInt(document.getElementById('editUserRole').value),
-            two_fa_enabled: parseInt(document.getElementById('editUser2FA').value) === 1,
-            status: document.getElementById('editUserStatus').value
+            full_name: document.getElementById('editUserFullName')?.value?.trim() || '',
+            email: document.getElementById('editUserEmail')?.value?.trim() || '',
+            phone: document.getElementById('editUserPhone')?.value?.trim() || null,
+            role_id: parseInt(document.getElementById('editUserRole')?.value) || 2,
+            two_fa_enabled: parseInt(document.getElementById('editUser2FA')?.value) === 1,
+            status: document.getElementById('editUserStatus')?.value || 'active'
         };
         
         if (pin && pin.length === 4 && /^\d{4}$/.test(pin)) {
@@ -1600,42 +1606,21 @@ document.getElementById('editUserForm')?.addEventListener('submit', async functi
         console.error('Update user error:', error);
         showToast('❌ Error updating user: ' + error.message, 'error');
     } finally {
-        btn.innerHTML = originalText;
-        btn.disabled = false;
+        if (btn) {
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        }
     }
 });
 
 // ============================================================
 //  CUSTOMERS
 // ============================================================
-function showAddCustomer() {
-    document.getElementById('customerModalTitle').textContent = 'Add Customer';
-    document.getElementById('customerForm').reset();
-    openModal('customerModal');
-}
-
-document.getElementById('customerForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const data = {
-        name: document.getElementById('customerName').value.trim(),
-        phone: document.getElementById('customerPhone').value.trim(),
-        email: document.getElementById('customerEmail').value.trim() || null,
-        loyalty_points: parseInt(document.getElementById('customerPoints').value) || 0
-    };
-    try {
-        await supabaseClient.from('customers').insert(data);
-        showToast('✅ Customer added!', 'success');
-        closeModal('customerModal');
-        loadCustomers();
-    } catch (e) {
-        showToast('❌ Could not add customer: ' + e.message, 'error');
-    }
-});
-
 async function loadCustomers() {
     try {
         const { data: customers } = await supabaseClient.from('customers').select('*').order('name');
         const table = document.getElementById('customersTable');
+        if (!table) return;
         if (!customers?.length) {
             table.innerHTML = '<div class="empty-state"><i class="fas fa-users"></i><p>No customers</p></div>';
             return;
@@ -1670,38 +1655,32 @@ async function deleteCustomer(id) {
     }
 }
 
-// ============================================================
-//  SUPPLIERS
-// ============================================================
-function showAddSupplier() {
-    document.getElementById('supplierModalTitle').textContent = 'Add Supplier';
-    document.getElementById('supplierForm').reset();
-    openModal('supplierModal');
-}
-
-document.getElementById('supplierForm').addEventListener('submit', async (e) => {
+document.getElementById('customerForm')?.addEventListener('submit', async (e) => {
     e.preventDefault();
     const data = {
-        company: document.getElementById('supplierCompany').value.trim(),
-        contact: document.getElementById('supplierContact').value.trim() || null,
-        phone: document.getElementById('supplierPhone').value.trim(),
-        email: document.getElementById('supplierEmail').value.trim() || null,
-        products: document.getElementById('supplierProducts').value.trim() || null
+        name: document.getElementById('customerName')?.value?.trim() || '',
+        phone: document.getElementById('customerPhone')?.value?.trim() || '',
+        email: document.getElementById('customerEmail')?.value?.trim() || null,
+        loyalty_points: parseInt(document.getElementById('customerPoints')?.value) || 0
     };
     try {
-        await supabaseClient.from('suppliers').insert(data);
-        showToast('✅ Supplier added!', 'success');
-        closeModal('supplierModal');
-        loadSuppliers();
+        await supabaseClient.from('customers').insert(data);
+        showToast('✅ Customer added!', 'success');
+        closeModal('customerModal');
+        loadCustomers();
     } catch (e) {
-        showToast('❌ Could not add supplier: ' + e.message, 'error');
+        showToast('❌ Could not add customer: ' + e.message, 'error');
     }
 });
 
+// ============================================================
+//  SUPPLIERS
+// ============================================================
 async function loadSuppliers() {
     try {
         const { data: suppliers } = await supabaseClient.from('suppliers').select('*').order('company');
         const table = document.getElementById('suppliersTable');
+        if (!table) return;
         if (!suppliers?.length) {
             table.innerHTML = '<div class="empty-state"><i class="fas fa-truck"></i><p>No suppliers</p></div>';
             return;
@@ -1736,6 +1715,83 @@ async function deleteSupplier(id) {
     }
 }
 
+document.getElementById('supplierForm')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const data = {
+        company: document.getElementById('supplierCompany')?.value?.trim() || '',
+        contact: document.getElementById('supplierContact')?.value?.trim() || null,
+        phone: document.getElementById('supplierPhone')?.value?.trim() || '',
+        email: document.getElementById('supplierEmail')?.value?.trim() || null,
+        products: document.getElementById('supplierProducts')?.value?.trim() || null
+    };
+    try {
+        await supabaseClient.from('suppliers').insert(data);
+        showToast('✅ Supplier added!', 'success');
+        closeModal('supplierModal');
+        loadSuppliers();
+    } catch (e) {
+        showToast('❌ Could not add supplier: ' + e.message, 'error');
+    }
+});
+
+// ============================================================
+//  KITCHEN DISPLAY
+// ============================================================
+async function loadKitchenOrders() {
+    try {
+        const { data: orders } = await supabaseClient
+            .from('orders')
+            .select('*, order_items(*, products(*))')
+            .in('status', ['paid', 'preparing', 'ready'])
+            .order('created_at', { ascending: false });
+
+        const container = document.getElementById('kitchenOrders');
+        const countEl = document.getElementById('kitchenOrderCount');
+        if (!container) return;
+        if (countEl) countEl.textContent = orders?.length || 0;
+
+        if (!orders?.length) {
+            container.innerHTML = '<div class="empty-state"><i class="fas fa-utensils"></i><p>No kitchen orders</p></div>';
+            return;
+        }
+
+        let filtered = orders;
+        if (kitchenFilter !== 'all') {
+            filtered = orders.filter(o => o.status === kitchenFilter);
+        }
+
+        container.innerHTML = `<div class="orders-grid">${filtered.map(order => {
+            const items = order.order_items || [];
+            return `
+                <div class="order-card ${order.order_type}">
+                    <div class="order-header">
+                        <span class="order-number">#${order.order_number || order.id.slice(0,10)}</span>
+                        <span class="badge ${order.order_type}">${order.order_type}</span>
+                        <span class="status-badge ${order.status}">${order.status}</span>
+                    </div>
+                    <div class="order-items">
+                        ${items.map(item => `
+                            <div class="order-item-row">
+                                <span>${item.products?.emoji || getEmoji(item.products?.name || '📦')} ${item.products?.name || 'Unknown'}</span>
+                                <span>${(item.quantity || 0).toFixed(3)}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                    <div class="order-footer">
+                        <span class="order-total">KES ${(order.total || 0).toFixed(2)}</span>
+                        <span class="order-time">${new Date(order.created_at).toLocaleTimeString()}</span>
+                    </div>
+                    <div class="order-actions">
+                        ${order.status === 'paid' ? `<button class="btn btn-sm btn-warning" onclick="updateOrderStatus('${order.id}','preparing')"><i class="fas fa-play"></i> Start</button>` : ''}
+                        ${order.status === 'preparing' ? `<button class="btn btn-sm btn-success" onclick="updateOrderStatus('${order.id}','ready')"><i class="fas fa-check"></i> Ready</button>` : ''}
+                        ${order.status === 'ready' ? `<button class="btn btn-sm btn-primary" onclick="updateOrderStatus('${order.id}','completed')"><i class="fas fa-flag-checkered"></i> Complete</button>` : ''}
+                    </div>
+                </div>
+            `;
+        }).join('')}</div>`;
+    } catch (e) { console.error('Kitchen orders error:', e); }
+}
+
 // ============================================================
 //  PROFIT & LOSS
 // ============================================================
@@ -1753,9 +1809,12 @@ async function loadProfitData() {
             });
         });
         const profit = revenue - cost;
-        document.getElementById('totalRevenue').textContent = `KES ${revenue.toFixed(2)}`;
-        document.getElementById('totalCost').textContent = `KES ${cost.toFixed(2)}`;
-        document.getElementById('netProfit').textContent = `KES ${profit.toFixed(2)}`;
+        const revenueEl = document.getElementById('totalRevenue');
+        const costEl = document.getElementById('totalCost');
+        const profitEl = document.getElementById('netProfit');
+        if (revenueEl) revenueEl.textContent = `KES ${revenue.toFixed(2)}`;
+        if (costEl) costEl.textContent = `KES ${cost.toFixed(2)}`;
+        if (profitEl) profitEl.textContent = `KES ${profit.toFixed(2)}`;
 
         const ctx = document.getElementById('profitChart');
         if (!ctx) return;
@@ -1791,6 +1850,7 @@ async function loadAuditLogs() {
         }
         const { data: logs } = await query.limit(50);
         const table = document.getElementById('auditTable');
+        if (!table) return;
         if (!logs?.length) {
             table.innerHTML = '<div class="empty-state"><i class="fas fa-history"></i><p>No audit logs found</p></div>';
             return;
@@ -1821,6 +1881,7 @@ async function generateReport() {
             .gte('created_at', start + 'T00:00:00')
             .lte('created_at', end + 'T23:59:59');
         const container = document.getElementById('reportContent');
+        if (!container) return;
         if (!orders?.length) {
             container.innerHTML = '<div class="empty-state"><i class="fas fa-calendar-alt"></i><p>No orders in this period</p></div>';
             return;
@@ -2044,6 +2105,26 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (reportStart) reportStart.value = lastWeek;
     if (reportEnd) reportEnd.value = today;
     if (auditDate) auditDate.value = today;
+
+    // Set up order filters
+    document.querySelectorAll('#orderFilters .filter-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            document.querySelectorAll('#orderFilters .filter-btn').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            currentFilter = this.dataset.filter;
+            renderOrders(allOrders);
+        });
+    });
+
+    // Set up kitchen filters
+    document.querySelectorAll('#kitchenFilters .filter-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            document.querySelectorAll('#kitchenFilters .filter-btn').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            kitchenFilter = this.dataset.filter;
+            loadKitchenOrders();
+        });
+    });
 
     // Load all data
     setTimeout(async () => {
