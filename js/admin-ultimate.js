@@ -40,7 +40,149 @@ let unreadCount = 0;
 let isInitialized = false;
 let currentProductImageFile = null;
 let currentProductEmoji = '📦';
+// ============================================================
+//  TIME-BASED GREETINGS
+// ============================================================
 
+function getTimeBasedGreeting() {
+    const hour = new Date().getHours();
+    
+    if (hour >= 5 && hour < 12) {
+        return {
+            greeting: '🌅 Good Morning',
+            emoji: '☀️',
+            message: 'Rise and shine! Start your day with Viewpoint POS.'
+        };
+    } else if (hour >= 12 && hour < 17) {
+        return {
+            greeting: '🌤️ Good Afternoon',
+            emoji: '☀️',
+            message: 'Keep the momentum going! You\'re doing great.'
+        };
+    } else if (hour >= 17 && hour < 21) {
+        return {
+            greeting: '🌆 Good Evening',
+            emoji: '🌅',
+            message: 'Wind down and finish strong!'
+        };
+    } else {
+        return {
+            greeting: '🌙 Good Night',
+            emoji: '🌙',
+            message: 'Late night hustle! Don\'t forget to rest.'
+        };
+    }
+}
+
+function updateGreeting() {
+    const greetingData = getTimeBasedGreeting();
+    const greetingElement = document.getElementById('greetingText');
+    const messageElement = document.getElementById('greetingMessage');
+    const userElement = document.getElementById('userName');
+    
+    if (greetingElement) {
+        greetingElement.textContent = `${greetingData.emoji} ${greetingData.greeting}`;
+    }
+    
+    if (messageElement && userElement) {
+        const userName = userElement.textContent || 'Admin';
+        messageElement.textContent = `${greetingData.message} Welcome back, ${userName}!`;
+    }
+}
+
+// Update greeting every minute
+function startGreetingUpdater() {
+    updateGreeting();
+    setInterval(updateGreeting, 60000);
+}
+
+// ============================================================
+//  ADD TO DASHBOARD GREETING SECTION
+// ============================================================
+
+function createGreetingSection() {
+    const greetingData = getTimeBasedGreeting();
+    const userName = document.getElementById('userName')?.textContent || 'Admin';
+    
+    return `
+        <div style="
+            background: var(--primary-gradient);
+            border-radius: var(--radius);
+            padding: 20px 28px;
+            margin-bottom: 20px;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            box-shadow: 0 4px 20px rgba(108,60,225,0.3);
+        ">
+            <div>
+                <h2 style="font-size: 24px; font-weight: 700; margin: 0; display: flex; align-items: center; gap: 10px;">
+                    <span>${greetingData.emoji}</span>
+                    <span id="greetingText">${greetingData.greeting}</span>
+                </h2>
+                <p style="margin: 4px 0 0; opacity: 0.9; font-size: 14px;" id="greetingMessage">
+                    ${greetingData.message} Welcome back, ${userName}!
+                </p>
+            </div>
+            <div style="display: flex; align-items: center; gap: 16px;">
+                <div style="text-align: right;">
+                    <div style="font-size: 12px; opacity: 0.8;">Today is</div>
+                    <div style="font-weight: 600; font-size: 14px;" id="todayDate"></div>
+                </div>
+                <div style="
+                    width: 50px;
+                    height: 50px;
+                    border-radius: 50%;
+                    background: rgba(255,255,255,0.2);
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 24px;
+                ">
+                    ${greetingData.emoji}
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+function updateTodayDate() {
+    const dateElement = document.getElementById('todayDate');
+    if (dateElement) {
+        const now = new Date();
+        const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+        dateElement.textContent = now.toLocaleDateString('en-US', options);
+    }
+}
+
+// ============================================================
+//  GREETING NOTIFICATION
+// ============================================================
+
+function sendGreetingNotification() {
+    const greetingData = getTimeBasedGreeting();
+    const userName = document.getElementById('userName')?.textContent || 'Admin';
+    
+    // Only send once per day
+    const lastGreeting = localStorage.getItem('last_greeting_date');
+    const today = new Date().toISOString().split('T')[0];
+    
+    if (lastGreeting !== today) {
+        localStorage.setItem('last_greeting_date', today);
+        
+        setTimeout(() => {
+            addNotification(
+                `${greetingData.emoji} ${greetingData.greeting}!`,
+                `${greetingData.message} Welcome back, ${userName}! Have a productive day with Viewpoint POS.`,
+                'success',
+                'dashboard'
+            );
+        }, 3000);
+    }
+}
 // ============================================================
 //  EMOJIS
 // ============================================================
