@@ -2066,7 +2066,7 @@ document.getElementById('mpesaForm')?.addEventListener('submit', (e) => {
     showToast('✅ M-Pesa settings saved!', 'success');
 });
 // ============================================================
-//  GENERATE ADMIN RECEIPT
+//  GENERATE ADMIN RECEIPT - IMPROVED VERSION
 // ============================================================
 async function generateAdminReceipt(orderId) {
     try {
@@ -2082,41 +2082,90 @@ async function generateAdminReceipt(orderId) {
         }
 
         const items = order.order_items || [];
-        const businessName = 'Viewpoint Butchery & Restaurant';
+        const now = new Date();
+        const orderNumber = order.order_number || order.id.slice(0,8).toUpperCase();
         
-        let receipt = `
-╔════════════════════════════════════╗
-║       VIEWPOINT BUTCHERY           ║
-║          & RESTAURANT              ║
-╠════════════════════════════════════╣
-║  Receipt: ${order.order_number || order.id.slice(0,10)}
-║  Date: ${new Date().toLocaleDateString()}
-║  Time: ${new Date().toLocaleTimeString()}
-║  Cashier: ${order.users?.full_name || 'System'}
-║  ${order.customer_phone ? `Phone: ${order.customer_phone}` : ''}
-║  Payment: ${(order.payment_method || 'N/A').toUpperCase()}
-╠════════════════════════════════════╣
-║  ITEM                 QTY   AMOUNT ║
-╠════════════════════════════════════╣`;
-
+        // Get business settings
+        const businessName = '🏪 VIEWPOINT BUTCHERY & RESTAURANT';
+        const businessPhone = '+254 700 000 000';
+        const businessEmail = 'info@viewpoint.com';
+        const businessLocation = 'Nairobi, Kenya';
+        const receiptFooter = 'Thank you for shopping with Viewpoint! 🙏';
+        
+        // Calculate totals
+        let subtotal = 0;
+        let tax = 0;
+        let discount = 0;
+        let total = order.total || 0;
+        
         items.forEach(item => {
-            const name = (item.products?.name || 'Unknown').padEnd(20);
-            const qty = (item.quantity || 0).toFixed(3).padEnd(8);
-            const amount = `KES ${(item.total || 0).toFixed(2)}`.padStart(10);
+            subtotal += item.total || 0;
+        });
+        
+        // Calculate tax (16% VAT if applicable)
+        tax = subtotal * 0.16;
+        const grandTotal = subtotal + tax - discount;
+
+        let receipt = `
+╔══════════════════════════════════════════╗
+║                                          ║
+║          ${businessName}          ║
+║                                          ║
+║     📞 ${businessPhone}                    ║
+║     ✉️ ${businessEmail}                    ║
+║     📍 ${businessLocation}                 ║
+║                                          ║
+╠══════════════════════════════════════════╣
+║                                          ║
+║  🧾 RECEIPT #${orderNumber.padEnd(20)} ║
+║                                          ║
+║  📅 Date: ${now.toLocaleDateString('en-US', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' })}
+║  🕐 Time: ${now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
+║  👤 Cashier: ${(order.users?.full_name || 'System').padEnd(20)}
+║  ${order.customer_phone ? `📱 Phone: ${order.customer_phone.padEnd(20)}` : ''}
+║                                          ║
+╠══════════════════════════════════════════╣
+║                                          ║
+║  📦 ITEMS                                ║
+║                                          ║`;
+
+        // Add items with better formatting
+        items.forEach((item, index) => {
+            const name = item.products?.name || 'Unknown';
+            const emoji = item.products?.emoji || getEmoji(name);
+            const qty = (item.quantity || 0);
+            const price = item.unit_price || 0;
+            const totalPrice = item.total || 0;
+            
             receipt += `
-║  ${name} ${qty} ${amount} ║`;
+║  ${(index + 1).toString().padStart(2)}. ${emoji} ${name.padEnd(25)} ║
+║     ${qty.toFixed(3)} × KES ${price.toFixed(2).padStart(8)} = KES ${totalPrice.toFixed(2).padStart(8)} ║`;
         });
 
         receipt += `
-╠════════════════════════════════════╣
-║  SUBTOTAL:                 KES ${(order.subtotal || 0).toFixed(2).padStart(8)} ║
-║  TOTAL:                    KES ${(order.total || 0).toFixed(2).padStart(8)} ║
-║  PAYMENT: ${(order.payment_method || 'N/A').toUpperCase().padEnd(22)} ║
-║  STATUS: PAID ✅                      ║
-╠════════════════════════════════════╣
-║  Thank you for shopping with us! 🙏 ║
-║  https://lipwa.link/11408           ║
-╚════════════════════════════════════╝`;
+║                                          ║
+╠══════════════════════════════════════════╣
+║                                          ║
+║  💰 PAYMENT SUMMARY                      ║
+║                                          ║
+║  Subtotal:                    KES ${subtotal.toFixed(2).padStart(10)} ║
+║  Tax (16% VAT):               KES ${tax.toFixed(2).padStart(10)} ║
+║  Discount:                    KES ${discount.toFixed(2).padStart(10)} ║
+║  ──────────────────────────────────────   ║
+║  TOTAL:                       KES ${grandTotal.toFixed(2).padStart(10)} ║
+║                                          ║
+║  💳 Payment Method: ${(order.payment_method || 'N/A').toUpperCase().padEnd(17)} ║
+║  ✅ Status: PAID                          ║
+║                                          ║
+╠══════════════════════════════════════════╣
+║                                          ║
+║          ${receiptFooter}          ║
+║                                          ║
+║      ⭐⭐⭐ Thank You! ⭐⭐⭐          ║
+║                                          ║
+║    🔗 https://lipwa.link/11408           ║
+║                                          ║
+╚══════════════════════════════════════════╝`;
 
         const contentEl = document.getElementById('receiptContent');
         if (contentEl) {
@@ -2132,7 +2181,7 @@ async function generateAdminReceipt(orderId) {
 }
 
 // ============================================================
-//  PRINT RECEIPT
+//  PRINT RECEIPT - IMPROVED
 // ============================================================
 function printReceipt() {
     const content = document.getElementById('receiptContent');
@@ -2146,19 +2195,137 @@ function printReceipt() {
         win.document.write(`
             <html>
                 <head>
-                    <title>Receipt</title>
+                    <title>🧾 Viewpoint Receipt</title>
                     <style>
-                        body { font-family: 'Courier New', monospace; font-size: 14px; padding: 20px; max-width: 400px; margin: 0 auto; background: white; color: black; }
-                        pre { white-space: pre-wrap; font-family: inherit; margin: 0; }
-                        .no-print { text-align: center; margin-top: 20px; }
-                        .no-print button { padding: 10px 20px; margin: 0 5px; cursor: pointer; border: none; border-radius: 8px; font-size: 14px; }
-                        .btn-print { background: #6C3CE1; color: white; }
-                        .btn-close { background: #EF4444; color: white; }
-                        @media print { .no-print { display: none; } }
+                        * { margin: 0; padding: 0; box-sizing: border-box; }
+                        body {
+                            font-family: 'Courier New', monospace;
+                            font-size: 12px;
+                            padding: 20px;
+                            max-width: 350px;
+                            margin: 0 auto;
+                            background: #ffffff;
+                            color: #000000;
+                            line-height: 1.6;
+                        }
+                        .receipt-container {
+                            border: 1px solid #ddd;
+                            padding: 16px;
+                            border-radius: 8px;
+                            background: #ffffff;
+                        }
+                        .receipt-header {
+                            text-align: center;
+                            border-bottom: 2px dashed #333;
+                            padding-bottom: 10px;
+                            margin-bottom: 10px;
+                        }
+                        .receipt-header h2 {
+                            font-size: 16px;
+                            letter-spacing: 1px;
+                            color: #6C3CE1;
+                        }
+                        .receipt-header p {
+                            font-size: 11px;
+                            color: #666;
+                            margin: 2px 0;
+                        }
+                        .receipt-items {
+                            margin: 10px 0;
+                        }
+                        .receipt-item {
+                            display: flex;
+                            justify-content: space-between;
+                            padding: 2px 0;
+                            border-bottom: 1px dotted #eee;
+                            font-size: 11px;
+                        }
+                        .receipt-item .item-name {
+                            flex: 1;
+                        }
+                        .receipt-item .item-qty {
+                            margin: 0 8px;
+                            text-align: center;
+                        }
+                        .receipt-item .item-price {
+                            text-align: right;
+                            font-weight: bold;
+                        }
+                        .receipt-totals {
+                            border-top: 2px dashed #333;
+                            padding-top: 8px;
+                            margin-top: 8px;
+                        }
+                        .receipt-total-line {
+                            display: flex;
+                            justify-content: space-between;
+                            padding: 2px 0;
+                            font-size: 12px;
+                        }
+                        .receipt-total-line.grand-total {
+                            font-size: 16px;
+                            font-weight: bold;
+                            border-top: 1px solid #333;
+                            padding-top: 6px;
+                            margin-top: 4px;
+                            color: #6C3CE1;
+                        }
+                        .receipt-footer {
+                            text-align: center;
+                            border-top: 2px dashed #333;
+                            padding-top: 10px;
+                            margin-top: 10px;
+                            font-size: 11px;
+                            color: #666;
+                        }
+                        .receipt-footer .thank-you {
+                            font-size: 14px;
+                            font-weight: bold;
+                            color: #6C3CE1;
+                        }
+                        .no-print {
+                            text-align: center;
+                            margin-top: 20px;
+                            padding-top: 16px;
+                            border-top: 1px solid #ddd;
+                        }
+                        .no-print button {
+                            padding: 10px 24px;
+                            margin: 0 6px;
+                            cursor: pointer;
+                            border: none;
+                            border-radius: 8px;
+                            font-size: 14px;
+                            font-weight: 600;
+                            transition: all 0.3s ease;
+                        }
+                        .no-print button:hover {
+                            transform: translateY(-2px);
+                            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                        }
+                        .btn-print {
+                            background: #6C3CE1;
+                            color: white;
+                        }
+                        .btn-close {
+                            background: #EF4444;
+                            color: white;
+                        }
+                        @media print {
+                            .no-print { display: none !important; }
+                            body { padding: 10px; background: white; }
+                            .receipt-container { border: none; padding: 0; }
+                        }
+                        @media (max-width: 400px) {
+                            body { padding: 10px; }
+                            .receipt-container { padding: 10px; }
+                        }
                     </style>
                 </head>
                 <body>
-                    <pre>${receiptText}</pre>
+                    <div class="receipt-container">
+                        <pre style="white-space: pre-wrap; font-family: inherit; margin: 0; font-size: 12px; line-height: 1.6;">${receiptText}</pre>
+                    </div>
                     <div class="no-print">
                         <button class="btn-print" onclick="window.print()">🖨️ Print</button>
                         <button class="btn-close" onclick="window.close()">✖ Close</button>
