@@ -14,7 +14,8 @@
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
- <!-- PWA Support -->
+
+    <!-- PWA Support -->
     <link rel="manifest" href="manifest.json">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
@@ -23,7 +24,7 @@
 
     <style>
         /* ============================================================
-           CSS - Complete (copy from previous version)
+           CSS - Complete
            ============================================================ */
         *,
         *::before,
@@ -122,6 +123,10 @@
             margin-bottom: 20px;
             flex-shrink: 0;
             transition: var(--transition);
+        }
+
+        .brand-panel .logo-icon:hover {
+            transform: scale(1.02);
         }
 
         .brand-panel h1 {
@@ -652,12 +657,13 @@
                         <input type="email" id="pinEmail" placeholder="you@example.com" autocomplete="username" spellcheck="false">
                     </div>
 
-                   <div class="pin-dots" id="pinDots" aria-label="PIN entry dots">
-    <div class="pin-dot" data-i="0"></div>
-    <div class="pin-dot" data-i="1"></div>
-    <div class="pin-dot" data-i="2"></div>
-    <div class="pin-dot" data-i="3"></div>
-</div>
+                    <!-- 4 PIN Dots -->
+                    <div class="pin-dots" id="pinDots" aria-label="PIN entry dots">
+                        <div class="pin-dot" data-i="0"></div>
+                        <div class="pin-dot" data-i="1"></div>
+                        <div class="pin-dot" data-i="2"></div>
+                        <div class="pin-dot" data-i="3"></div>
+                    </div>
 
                     <div class="keypad" role="group" aria-label="PIN keypad">
                         <button type="button" class="key" onclick="pinPress('1')" aria-label="1">1</button>
@@ -710,6 +716,7 @@
             </form>
         </div>
     </div>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
 </script>
 <script>
