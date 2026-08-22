@@ -41,15 +41,12 @@ let isInitialized = false;
 let currentProductImageFile = null;
 let currentProductEmoji = '📦';
 // ============================================================
-//  TIME-BASED GREETINGS
-// ============================================================
-
-// ============================================================
-//  TIME-BASED GREETINGS - WITH INLINE STYLES
+//  TIME-BASED GREETINGS - DYNAMIC WITH INLINE STYLES
 // ============================================================
 
 function getTimeBasedGreeting() {
-    const hour = new Date().getHours();
+    const now = new Date();
+    const hour = now.getHours();
     
     if (hour >= 5 && hour < 12) {
         return {
@@ -61,14 +58,14 @@ function getTimeBasedGreeting() {
     } else if (hour >= 12 && hour < 17) {
         return {
             greeting: 'Good Afternoon',
-            emoji: '🌤️',
+            emoji: '☀️',
             message: 'Keep the momentum going! You\'re doing great.',
             gradient: 'linear-gradient(135deg, #3B82F6, #8B5CF6)'
         };
     } else if (hour >= 17 && hour < 21) {
         return {
             greeting: 'Good Evening',
-            emoji: '🌆',
+            emoji: '🌅',
             message: 'Wind down and finish strong!',
             gradient: 'linear-gradient(135deg, #EF4444, #8B5CF6)'
         };
@@ -82,20 +79,29 @@ function getTimeBasedGreeting() {
     }
 }
 
-function createGreetingSection() {
-    const greetingData = getTimeBasedGreeting();
-    const userName = document.getElementById('userName')?.textContent || 'Admin';
+function getCurrentDateString() {
     const now = new Date();
     const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-    const dateString = now.toLocaleDateString('en-US', options);
+    return now.toLocaleDateString('en-US', options);
+}
+
+function getUserName() {
+    const nameEl = document.getElementById('userName');
+    return nameEl ? nameEl.textContent : 'User';
+}
+
+function createGreetingHTML() {
+    const data = getTimeBasedGreeting();
+    const userName = getUserName();
+    const dateString = getCurrentDateString();
     
     return `
         <div class="greeting-wrapper" style="
-            background: ${greetingData.gradient};
+            background: ${data.gradient};
             border-radius: 16px;
             padding: 20px 28px;
             margin-bottom: 20px;
-            color: white;
+            color: #ffffff;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -117,15 +123,16 @@ function createGreetingSection() {
                     <span style="
                         font-size: 28px;
                         animation: pulse 2s ease-in-out infinite;
-                    ">${greetingData.emoji}</span>
-                    <span id="greetingText">${greetingData.greeting}</span>
+                        display: inline-block;
+                    ">${data.emoji}</span>
+                    <span id="greetingText">${data.greeting}</span>
                 </h2>
                 <p style="
                     margin: 4px 0 0;
                     opacity: 0.9;
                     font-size: 14px;
                 " id="greetingMessage">
-                    ${greetingData.message} Welcome back, ${userName}!
+                    ${data.message} Welcome back, ${userName}!
                 </p>
             </div>
             <div style="
@@ -148,60 +155,60 @@ function createGreetingSection() {
                     font-size: 24px;
                     animation: pulse 2s ease-in-out infinite;
                 ">
-                    ${greetingData.emoji}
+                    ${data.emoji}
                 </div>
             </div>
         </div>
     `;
 }
 
+function renderGreeting() {
+    const container = document.getElementById('greetingContainer');
+    if (container) {
+        container.innerHTML = createGreetingHTML();
+    }
+}
+
 function updateGreeting() {
-    const greetingContainer = document.getElementById('greetingContainer');
-    if (!greetingContainer) return;
-    
-    const greetingData = getTimeBasedGreeting();
-    const userName = document.getElementById('userName')?.textContent || 'Admin';
+    const data = getTimeBasedGreeting();
+    const userName = getUserName();
+    const dateString = getCurrentDateString();
     
     // Update text elements
     const greetingText = document.getElementById('greetingText');
-    const greetingMessage = document.getElementById('greetingMessage');
-    const greetingEmoji = document.getElementById('greetingEmoji');
-    const greetingIconEmoji = document.getElementById('greetingIconEmoji');
+    if (greetingText) greetingText.textContent = data.greeting;
     
-    if (greetingText) greetingText.textContent = greetingData.greeting;
+    const greetingMessage = document.getElementById('greetingMessage');
     if (greetingMessage) {
-        greetingMessage.textContent = `${greetingData.message} Welcome back, ${userName}!`;
+        greetingMessage.textContent = `${data.message} Welcome back, ${userName}!`;
     }
-    if (greetingEmoji) greetingEmoji.textContent = greetingData.emoji;
-    if (greetingIconEmoji) greetingIconEmoji.textContent = greetingData.emoji;
+    
+    const todayDate = document.getElementById('todayDate');
+    if (todayDate) todayDate.textContent = dateString;
+    
+    // Update emojis
+    const emojiSpans = document.querySelectorAll('#greetingContainer span[style*="animation: pulse"]');
+    emojiSpans.forEach(el => {
+        if (el.textContent.length <= 2) {
+            el.textContent = data.emoji;
+        }
+    });
     
     // Update background gradient
     const wrapper = document.querySelector('.greeting-wrapper');
     if (wrapper) {
-        wrapper.style.background = greetingData.gradient;
-    }
-}
-
-function updateTodayDate() {
-    const dateElement = document.getElementById('todayDate');
-    if (dateElement) {
-        const now = new Date();
-        const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-        dateElement.textContent = now.toLocaleDateString('en-US', options);
+        wrapper.style.background = data.gradient;
     }
 }
 
 function startGreetingUpdater() {
-    updateTodayDate();
-    setInterval(() => {
-        updateGreeting();
-        updateTodayDate();
-    }, 60000);
+    updateGreeting();
+    setInterval(updateGreeting, 60000);
 }
 
-function sendGreetingNotification() {
-    const greetingData = getTimeBasedGreeting();
-    const userName = document.getElementById('userName')?.textContent || 'Admin';
+function sendDailyGreetingNotification() {
+    const data = getTimeBasedGreeting();
+    const userName = getUserName();
     
     const lastGreeting = localStorage.getItem('last_greeting_date');
     const today = new Date().toISOString().split('T')[0];
@@ -210,25 +217,22 @@ function sendGreetingNotification() {
         localStorage.setItem('last_greeting_date', today);
         
         setTimeout(() => {
-            addNotification(
-                `${greetingData.emoji} ${greetingData.greeting}!`,
-                `${greetingData.message} Welcome back, ${userName}! Have a productive day with Viewpoint POS.`,
-                'success',
-                'dashboard'
-            );
+            if (typeof addNotification === 'function') {
+                addNotification(
+                    `${data.emoji} ${data.greeting}!`,
+                    `${data.message} Welcome back, ${userName}! Have a productive day with Viewpoint POS.`,
+                    'success',
+                    'dashboard'
+                );
+            }
         }, 3000);
     }
 }
 
-// Initialize greeting
 function initGreeting() {
-    const greetingContainer = document.getElementById('greetingContainer');
-    if (greetingContainer) {
-        greetingContainer.innerHTML = createGreetingSection();
-        updateTodayDate();
-        startGreetingUpdater();
-        sendGreetingNotification();
-    }
+    renderGreeting();
+    startGreetingUpdater();
+    sendDailyGreetingNotification();
 }
 // ============================================================
 //  EMOJIS
