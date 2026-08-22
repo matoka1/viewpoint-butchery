@@ -8,7 +8,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
         /* ============================================================
-           ULTRA MODERN CASHIER POS - COMPLETE STYLES
+           CASHIER POS - WITH DARK MODE
            ============================================================ */
 
         * {
@@ -33,7 +33,7 @@
             --text-secondary: #475569;
             --text-muted: #94A3B8;
             --border: #E2E8F0;
-            --shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+            --shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
             --shadow-lg: 0 10px 40px rgba(0, 0, 0, 0.08);
             --shadow-xl: 0 20px 60px rgba(0, 0, 0, 0.12);
             --radius: 16px;
@@ -43,12 +43,26 @@
             --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
+        /* ===== DARK MODE ===== */
+        [data-theme="dark"] {
+            --bg: #0F172A;
+            --bg-card: #1E293B;
+            --text-primary: #F1F5F9;
+            --text-secondary: #94A3B8;
+            --text-muted: #64748B;
+            --border: #334155;
+            --shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+            --shadow-lg: 0 10px 40px rgba(0, 0, 0, 0.4);
+            --shadow-xl: 0 20px 60px rgba(0, 0, 0, 0.5);
+        }
+
         body {
             font-family: var(--font);
             background: var(--bg);
             color: var(--text-primary);
             min-height: 100vh;
             overflow-x: hidden;
+            transition: var(--transition);
         }
 
         ::-webkit-scrollbar {
@@ -63,7 +77,7 @@
             border-radius: var(--radius-full);
         }
 
-        /* ----- SIDEBAR ----- */
+        /* ===== SIDEBAR ===== */
         .sidebar {
             position: fixed;
             top: 0;
@@ -195,7 +209,7 @@
             transition: var(--transition);
         }
 
-        /* ----- MAIN CONTENT ----- */
+        /* ===== MAIN CONTENT ===== */
         .main-content {
             margin-left: 230px;
             padding: 20px 28px 40px;
@@ -203,7 +217,7 @@
             transition: var(--transition);
         }
 
-        /* ----- TOP BAR ----- */
+        /* ===== TOP BAR ===== */
         .top-bar {
             display: flex;
             justify-content: space-between;
@@ -216,6 +230,7 @@
             flex-wrap: wrap;
             gap: 12px;
             box-shadow: var(--shadow);
+            transition: var(--transition);
         }
 
         .top-bar .page-title h1 {
@@ -247,6 +262,27 @@
             border-radius: var(--radius-full);
             border: 1px solid var(--border);
             font-weight: 500;
+            transition: var(--transition);
+        }
+
+        .theme-toggle {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 1px solid var(--border);
+            background: var(--bg-card);
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+
+        .theme-toggle:hover {
+            border-color: var(--primary);
+            color: var(--primary);
         }
 
         .user-profile {
@@ -274,14 +310,16 @@
         .user-profile .user-name {
             font-size: 14px;
             font-weight: 600;
+            transition: var(--transition);
         }
 
         .user-profile .user-role {
             font-size: 12px;
             color: var(--text-muted);
+            transition: var(--transition);
         }
 
-        /* ----- POS LAYOUT ----- */
+        /* ===== POS LAYOUT ===== */
         .pos-layout {
             display: grid;
             grid-template-columns: 1fr 380px;
@@ -294,13 +332,14 @@
             }
         }
 
-        /* ----- PRODUCT AREA ----- */
+        /* ===== PRODUCT AREA ===== */
         .product-area {
             background: var(--bg-card);
             border-radius: var(--radius);
             padding: 22px 24px;
             border: 1px solid var(--border);
             box-shadow: var(--shadow);
+            transition: var(--transition);
         }
 
         .product-area .section-header {
@@ -315,6 +354,7 @@
         .product-area .section-header h2 {
             font-size: 18px;
             font-weight: 700;
+            transition: var(--transition);
         }
 
         .product-area .section-header .search-box {
@@ -352,7 +392,7 @@
             color: var(--text-muted);
         }
 
-        /* ----- CATEGORY TABS ----- */
+        /* ===== CATEGORY TABS ===== */
         .category-tabs {
             display: flex;
             gap: 10px;
@@ -392,7 +432,7 @@
             font-size: 18px;
         }
 
-        /* ----- PRODUCT GRID ----- */
+        /* ===== PRODUCT GRID ===== */
         .product-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
@@ -441,23 +481,11 @@
             margin-bottom: 6px;
         }
 
-        .product-card .product-image {
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            margin: 0 auto 8px;
-            object-fit: cover;
-            background: var(--bg);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 32px;
-        }
-
         .product-card .product-name {
             font-weight: 600;
             font-size: 13px;
             color: var(--text-primary);
+            transition: var(--transition);
         }
 
         .product-card .product-price {
@@ -471,6 +499,7 @@
             font-size: 11px;
             color: var(--text-muted);
             margin-top: 2px;
+            transition: var(--transition);
         }
 
         .product-card .stock-badge {
@@ -493,7 +522,7 @@
             color: var(--success);
         }
 
-        /* ----- QUICK AMOUNTS ----- */
+        /* ===== QUICK AMOUNTS ===== */
         .quick-amounts {
             display: flex;
             gap: 8px;
@@ -526,7 +555,7 @@
             border-color: var(--primary);
         }
 
-        /* ----- INPUT ROW ----- */
+        /* ===== INPUT ROW ===== */
         .input-row {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -540,6 +569,7 @@
             font-size: 13px;
             color: var(--text-secondary);
             margin-bottom: 4px;
+            transition: var(--transition);
         }
 
         .input-row .form-group input {
@@ -566,7 +596,7 @@
             margin: 12px 0;
         }
 
-        /* ----- ORDER SIDEBAR ----- */
+        /* ===== ORDER SIDEBAR ===== */
         .order-sidebar {
             background: var(--bg-card);
             border-radius: var(--radius);
@@ -576,6 +606,7 @@
             max-height: 85vh;
             display: flex;
             flex-direction: column;
+            transition: var(--transition);
         }
 
         .order-sidebar .order-header {
@@ -590,6 +621,7 @@
         .order-sidebar .order-header h3 {
             font-size: 18px;
             font-weight: 700;
+            transition: var(--transition);
         }
 
         .order-sidebar .order-header .order-count {
@@ -624,28 +656,19 @@
             padding: 10px 0;
             border-bottom: 1px solid var(--border);
             animation: fadeIn 0.3s ease;
-        }
-
-        .order-item .item-info {
-            display: flex;
-            flex-direction: column;
-            gap: 2px;
+            transition: var(--transition);
         }
 
         .order-item .item-info .item-name {
             font-weight: 600;
             font-size: 14px;
+            transition: var(--transition);
         }
 
         .order-item .item-info .item-detail {
             font-size: 12px;
             color: var(--text-muted);
-        }
-
-        .order-item .item-actions {
-            display: flex;
-            align-items: center;
-            gap: 10px;
+            transition: var(--transition);
         }
 
         .order-item .item-actions .item-total {
@@ -776,7 +799,7 @@
             color: #fff;
         }
 
-        /* ----- BUTTONS ----- */
+        /* ===== BUTTONS ===== */
         .btn {
             padding: 10px 20px;
             border: none;
@@ -839,7 +862,18 @@
             font-size: 12px;
         }
 
-        /* ----- MODALS ----- */
+        .btn-cancel {
+            background: linear-gradient(135deg, #EF4444, #DC2626);
+            color: #fff;
+            box-shadow: 0 4px 16px rgba(239, 68, 68, 0.3);
+        }
+
+        .btn-cancel:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(239, 68, 68, 0.4);
+        }
+
+        /* ===== MODALS ===== */
         .modal-overlay {
             display: none;
             position: fixed;
@@ -870,6 +904,7 @@
             border: 1px solid var(--border);
             box-shadow: var(--shadow-xl);
             animation: slideUp 0.3s ease;
+            transition: var(--transition);
         }
 
         .modal-header {
@@ -884,6 +919,7 @@
         .modal-header h3 {
             font-size: 20px;
             font-weight: 700;
+            transition: var(--transition);
         }
 
         .modal-header .close {
@@ -939,15 +975,17 @@
             font-size: 16px;
             font-weight: 600;
             color: var(--text-primary);
+            transition: var(--transition);
         }
 
         .modal .payment-status .status-sub {
             font-size: 14px;
             color: var(--text-muted);
             margin-top: 4px;
+            transition: var(--transition);
         }
 
-        /* ----- RECEIPT ----- */
+        /* ===== RECEIPT ===== */
         .receipt-content {
             font-family: 'Courier New', monospace;
             font-size: 13px;
@@ -960,9 +998,10 @@
             color: var(--text-primary);
             max-height: 400px;
             overflow-y: auto;
+            transition: var(--transition);
         }
 
-        /* ----- TOAST ----- */
+        /* ===== TOAST ===== */
         .toast-container {
             position: fixed;
             top: 24px;
@@ -1001,7 +1040,7 @@
             background: var(--warning);
         }
 
-        /* ----- ANIMATIONS ----- */
+        /* ===== ANIMATIONS ===== */
         @keyframes slideUp {
             from {
                 transform: translateY(30px);
@@ -1041,17 +1080,7 @@
             }
         }
 
-        @keyframes pulse {
-            0%,
-            100% {
-                transform: scale(1);
-            }
-            50% {
-                transform: scale(1.05);
-            }
-        }
-
-        /* ----- EMPTY STATE ----- */
+        /* ===== EMPTY STATE ===== */
         .empty-state {
             text-align: center;
             padding: 30px 20px;
@@ -1068,7 +1097,7 @@
             font-size: 14px;
         }
 
-        /* ----- RESPONSIVE ----- */
+        /* ===== RESPONSIVE ===== */
         @media (max-width: 768px) {
             .sidebar {
                 transform: translateX(-100%);
@@ -1128,45 +1157,8 @@
             }
         }
 
-        /* ----- PRODUCT EMOJI MAP ----- */
-        .product-emoji {
-            font-size: 36px;
-            display: block;
-            margin-bottom: 6px;
-        }
-
-        /* ----- CANCEL BUTTON ----- */
-        .btn-cancel {
-            background: linear-gradient(135deg, #EF4444, #DC2626);
-            color: #fff;
-            box-shadow: 0 4px 16px rgba(239, 68, 68, 0.3);
-        }
-
-        .btn-cancel:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 24px rgba(239, 68, 68, 0.4);
-        }
-
-        .payment-buttons-cancel {
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
-            gap: 10px;
-            margin: 10px 0;
-        }
-
-        .payment-buttons-cancel .btn {
-            padding: 12px;
-            border: none;
-            border-radius: var(--radius-sm);
-            font-weight: 700;
-            font-size: 14px;
-            cursor: pointer;
-            transition: var(--transition);
-            font-family: var(--font);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
+        .hidden {
+            display: none !important;
         }
     </style>
 </head>
@@ -1209,6 +1201,9 @@
             </div>
             <div class="page-actions">
                 <span class="time-display" id="currentTime">--:--:--</span>
+                <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()">
+                    <i class="fas fa-moon"></i>
+                </button>
                 <div class="user-profile">
                     <div class="avatar" id="userAvatar">C</div>
                     <div>
@@ -1408,9 +1403,39 @@
     </script>
 
     <!-- ============================================================
-    JAVASCRIPT - REAL STK PUSH
+    JAVASCRIPT - REAL STK PUSH WITH DARK MODE
     ============================================================ -->
     <script>
+        // ============================================================
+        //  THEME
+        // ============================================================
+        function toggleTheme() {
+            const html = document.documentElement;
+            const isDark = html.getAttribute('data-theme') === 'dark';
+            const icon = document.querySelector('#themeToggle i');
+
+            if (isDark) {
+                html.removeAttribute('data-theme');
+                icon.className = 'fas fa-moon';
+                localStorage.setItem('theme', 'light');
+            } else {
+                html.setAttribute('data-theme', 'dark');
+                icon.className = 'fas fa-sun';
+                localStorage.setItem('theme', 'dark');
+            }
+        }
+
+        function loadTheme() {
+            const theme = localStorage.getItem('theme');
+            const icon = document.querySelector('#themeToggle i');
+            if (theme === 'dark') {
+                document.documentElement.setAttribute('data-theme', 'dark');
+                icon.className = 'fas fa-sun';
+            } else {
+                icon.className = 'fas fa-moon';
+            }
+        }
+
         // ============================================================
         //  CONFIGURATION
         // ============================================================
@@ -1500,18 +1525,56 @@
         });
 
         // ============================================================
-        //  AUTH
+        //  AUTH - FIXED
         // ============================================================
         async function checkAuth() {
-            const stored = localStorage.getItem('viewpoint_session');
-            if (!stored) { window.location.href = 'login.html'; return null; }
             try {
-                const { user } = JSON.parse(stored);
-                currentUser = user;
-                document.getElementById('userAvatar').textContent = user.full_name.charAt(0).toUpperCase();
-                document.getElementById('userName').textContent = user.full_name;
-                return user;
-            } catch (e) { window.location.href = 'login.html'; return null; }
+                const stored = localStorage.getItem('viewpoint_session');
+                if (!stored) {
+                    console.log('❌ No session found');
+                    window.location.href = 'login.html';
+                    return null;
+                }
+
+                const session = JSON.parse(stored);
+                if (!session || !session.user) {
+                    localStorage.removeItem('viewpoint_session');
+                    window.location.href = 'login.html';
+                    return null;
+                }
+
+                // Check if session expired (24 hours)
+                const maxAge = 24 * 60 * 60 * 1000;
+                if (Date.now() - session.loginTime > maxAge) {
+                    localStorage.removeItem('viewpoint_session');
+                    window.location.href = 'login.html';
+                    return null;
+                }
+
+                // ✅ Set currentUser GLOBALLY
+                window.currentUser = session.user;
+                currentUser = session.user;
+
+                console.log('✅ Cashier authenticated:', currentUser.email);
+                console.log('✅ User ID:', currentUser.id);
+
+                // Update UI
+                const avatar = document.getElementById('userAvatar');
+                const userName = document.getElementById('userName');
+                const userRole = document.querySelector('.user-role');
+
+                if (avatar) avatar.textContent = currentUser.full_name?.charAt(0).toUpperCase() || 'C';
+                if (userName) userName.textContent = currentUser.full_name || 'Cashier';
+                if (userRole) userRole.textContent = currentUser.roles?.name || 'Cashier';
+
+                return currentUser;
+
+            } catch (error) {
+                console.error('Auth error:', error);
+                localStorage.removeItem('viewpoint_session');
+                window.location.href = 'login.html';
+                return null;
+            }
         }
 
         async function logout() {
@@ -1917,10 +1980,37 @@
         }
 
         // ============================================================
-        //  PROCESS PAYMENT - REAL STK PUSH
+        //  PROCESS PAYMENT - REAL STK PUSH (FIXED - WITH USER CHECK)
         // ============================================================
         async function processPayment(method) {
             if (isProcessing) return;
+
+            // ✅ CHECK: Make sure user is logged in
+            if (!currentUser || !currentUser.id) {
+                showToast('Please login again. Session expired.', 'error');
+                // Try to restore session
+                const stored = localStorage.getItem('viewpoint_session');
+                if (stored) {
+                    try {
+                        const session = JSON.parse(stored);
+                        if (session && session.user) {
+                            currentUser = session.user;
+                            window.currentUser = session.user;
+                            showToast('Session restored!', 'success');
+                        } else {
+                            window.location.href = 'login.html';
+                            return;
+                        }
+                    } catch (e) {
+                        window.location.href = 'login.html';
+                        return;
+                    }
+                } else {
+                    window.location.href = 'login.html';
+                    return;
+                }
+            }
+
             if (!cart.length) {
                 showToast('Cart is empty! Add items first.', 'error');
                 return;
@@ -1959,7 +2049,7 @@
                 const { data: order, error: orderError } = await supabaseClient
                     .from('orders')
                     .insert({
-                        order_type: cart[0].product_type,
+                        order_type: cart[0].product_type || 'butchery',
                         user_id: currentUser.id,
                         customer_phone: phone || null,
                         subtotal: total,
@@ -1971,7 +2061,13 @@
                     .select()
                     .single();
 
-                if (orderError) throw orderError;
+                if (orderError) {
+                    console.error('Order error:', orderError);
+                    throw new Error('Failed to create order: ' + orderError.message);
+                }
+
+                console.log('✅ Order created:', order.id);
+                console.log('✅ User ID:', currentUser.id);
 
                 pendingPayment.orderId = order.id;
 
@@ -2468,7 +2564,6 @@
         // ============================================================
         function closeModal(id) {
             document.getElementById(id).classList.remove('active');
-            // If payment modal, reset pending payment
             if (id === 'paymentModal') {
                 pendingPayment.isProcessing = false;
                 pendingPayment.cancelled = false;
@@ -2487,11 +2582,13 @@
         window.cancelPayment = cancelPayment;
         window.processPayment = processPayment;
         window.closeModal = closeModal;
+        window.toggleTheme = toggleTheme;
 
         // ============================================================
         //  INIT
         // ============================================================
         document.addEventListener('DOMContentLoaded', async () => {
+            loadTheme();
             await checkAuth();
             startClock();
             loadProducts('butchery');
