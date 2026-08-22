@@ -154,7 +154,7 @@
         /* ===== MODALS ===== */
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); backdrop-filter: blur(8px); z-index: 2000; justify-content: center; align-items: center; padding: 20px; }
         .modal-overlay.active { display: flex; }
-        .modal { background: var(--bg-card); border-radius: var(--radius); max-width: 520px; width: 100%; max-height: 90vh; overflow-y: auto; padding: 28px 32px; border: 1px solid var(--border); box-shadow: var(--shadow-lg); animation: slideUp 0.3s ease; }
+        .modal { background: var(--bg-card); border-radius: var(--radius); max-width: 580px; width: 100%; max-height: 90vh; overflow-y: auto; padding: 28px 32px; border: 1px solid var(--border); box-shadow: var(--shadow-lg); animation: slideUp 0.3s ease; }
         .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; padding-bottom: 14px; border-bottom: 1px solid var(--border); }
         .modal-header h3 { font-size: 20px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
         .modal-header .close { width: 36px; height: 36px; border-radius: 50%; border: none; background: var(--bg); color: var(--text-secondary); font-size: 18px; cursor: pointer; transition: var(--transition); display: flex; align-items: center; justify-content: center; }
@@ -163,6 +163,63 @@
         .form-group label { display: block; font-weight: 600; font-size: 13px; color: var(--text-secondary); margin-bottom: 4px; }
         .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 10px 14px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 14px; font-family: var(--font); background: var(--bg); color: var(--text-primary); transition: var(--transition); }
         .form-group input:focus, .form-group select:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 4px rgba(108,60,225,0.1); }
+
+        /* ===== EMOJI PICKER ===== */
+        .emoji-picker {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            gap: 4px;
+            padding: 8px;
+            background: var(--bg);
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border);
+            max-height: 120px;
+            overflow-y: auto;
+        }
+        .emoji-picker .emoji-option {
+            font-size: 24px;
+            padding: 4px;
+            text-align: center;
+            cursor: pointer;
+            border-radius: var(--radius-sm);
+            transition: var(--transition);
+            background: transparent;
+            border: 2px solid transparent;
+        }
+        .emoji-picker .emoji-option:hover {
+            background: rgba(108,60,225,0.1);
+            transform: scale(1.1);
+        }
+        .emoji-picker .emoji-option.selected {
+            border-color: var(--primary);
+            background: rgba(108,60,225,0.1);
+        }
+        .selected-emoji-display {
+            font-size: 48px;
+            text-align: center;
+            padding: 8px;
+            background: var(--bg);
+            border-radius: var(--radius-sm);
+            border: 2px dashed var(--border);
+            min-height: 70px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .product-image-preview {
+            width: 80px;
+            height: 80px;
+            border-radius: var(--radius-sm);
+            object-fit: cover;
+            border: 2px solid var(--border);
+            background: var(--bg);
+        }
+        .product-image-upload {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
 
         /* ===== TOAST ===== */
         .toast-container { position: fixed; top: 24px; right: 24px; z-index: 3000; display: flex; flex-direction: column; gap: 10px; max-width: 400px; }
@@ -262,8 +319,9 @@
             .top-bar .page-title h1 { font-size: 18px; }
             .user-profile .user-name, .user-profile .user-role { display: none; }
             .orders-grid { grid-template-columns: 1fr; }
+            .emoji-picker { grid-template-columns: repeat(6, 1fr); }
         }
-        @media (max-width: 480px) { .stats-grid { grid-template-columns: 1fr; } .modal { padding: 20px; } }
+        @media (max-width: 480px) { .stats-grid { grid-template-columns: 1fr; } .modal { padding: 20px; } .emoji-picker { grid-template-columns: repeat(5, 1fr); } }
     </style>
 </head>
 <body>
@@ -491,8 +549,100 @@
 
     <!-- ===== MODALS ===== -->
 
-    <!-- Product Modal -->
-    <div class="modal-overlay" id="productModal"><div class="modal"><div class="modal-header"><h3>📦 <span id="productModalTitle">Add Product</span></h3><button class="close" onclick="closeModal('productModal')">&times;</button></div><form id="productForm"><input type="hidden" id="productId"><div class="form-group"><label>Name *</label><input type="text" id="productName" required></div><div class="form-group"><label>Type *</label><select id="productType" required><option value="butchery">🥩 Butchery</option><option value="restaurant">🍽️ Restaurant</option></select></div><div class="form-group"><label>Selling Price (KES) *</label><input type="number" id="productPrice" step="0.01" required></div><div class="form-group"><label>Cost Price (KES)</label><input type="number" id="productCost" step="0.01"></div><div class="form-group"><label>Unit *</label><input type="text" id="productUnit" value="KG" required></div><div class="form-group"><label>Stock Quantity</label><input type="number" id="productStock" step="0.001"></div><div class="form-group"><label>Reorder Level</label><input type="number" id="productReorder" step="0.001"></div><div class="form-group"><label>Status</label><select id="productStatus"><option value="active">✅ Active</option><option value="inactive">❌ Inactive</option></select></div><button type="submit" class="btn btn-primary btn-block">💾 Save Product</button></form></div></div>
+    <!-- Product Modal with Emoji Picker and Image Upload -->
+    <div class="modal-overlay" id="productModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>📦 <span id="productModalTitle">Add Product</span></h3>
+                <button class="close" onclick="closeModal('productModal')">&times;</button>
+            </div>
+            <form id="productForm">
+                <input type="hidden" id="productId">
+                
+                <div class="form-group">
+                    <label>Product Emoji</label>
+                    <div class="selected-emoji-display" id="selectedEmojiDisplay">📦</div>
+                    <div style="margin-top:6px;display:flex;gap:6px;flex-wrap:wrap;">
+                        <button type="button" class="btn btn-sm btn-outline" onclick="toggleEmojiPicker()">
+                            <i class="fas fa-smile"></i> Choose Emoji
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline" onclick="clearEmoji()">
+                            <i class="fas fa-times"></i> Clear
+                        </button>
+                    </div>
+                    <div id="emojiPickerContainer" style="display:none;margin-top:8px;">
+                        <div class="emoji-picker" id="emojiPicker">
+                            <!-- Emojis will be populated by JavaScript -->
+                        </div>
+                    </div>
+                    <input type="hidden" id="productEmoji" value="📦">
+                </div>
+
+                <div class="form-group">
+                    <label>Product Image</label>
+                    <div class="product-image-upload">
+                        <img id="productImagePreview" class="product-image-preview" src="" alt="Preview" style="display:none;">
+                        <div style="flex:1;">
+                            <input type="file" id="productImageFile" accept="image/*" style="width:100%;padding:8px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg);">
+                            <small style="color:var(--text-muted);font-size:11px;">Upload an image for the product (optional)</small>
+                        </div>
+                        <button type="button" class="btn btn-sm btn-danger" onclick="clearProductImage()" style="display:none;" id="clearImageBtn">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <input type="hidden" id="productImageUrl" value="">
+                </div>
+
+                <div class="form-group">
+                    <label>Name *</label>
+                    <input type="text" id="productName" required>
+                </div>
+                
+                <div class="form-group">
+                    <label>Type *</label>
+                    <select id="productType" required>
+                        <option value="butchery">🥩 Butchery</option>
+                        <option value="restaurant">🍽️ Restaurant</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>Selling Price (KES) *</label>
+                    <input type="number" id="productPrice" step="0.01" required>
+                </div>
+                
+                <div class="form-group">
+                    <label>Cost Price (KES)</label>
+                    <input type="number" id="productCost" step="0.01">
+                </div>
+                
+                <div class="form-group">
+                    <label>Unit *</label>
+                    <input type="text" id="productUnit" value="KG" required>
+                </div>
+                
+                <div class="form-group">
+                    <label>Stock Quantity</label>
+                    <input type="number" id="productStock" step="0.001">
+                </div>
+                
+                <div class="form-group">
+                    <label>Reorder Level</label>
+                    <input type="number" id="productReorder" step="0.001">
+                </div>
+                
+                <div class="form-group">
+                    <label>Status</label>
+                    <select id="productStatus">
+                        <option value="active">✅ Active</option>
+                        <option value="inactive">❌ Inactive</option>
+                    </select>
+                </div>
+                
+                <button type="submit" class="btn btn-primary btn-block">💾 Save Product</button>
+            </form>
+        </div>
+    </div>
 
     <!-- User Modal with PIN -->
     <div class="modal-overlay" id="userModal"><div class="modal"><div class="modal-header"><h3>👤 <span id="userModalTitle">Add New User</span></h3><button class="close" onclick="closeModal('userModal')">&times;</button></div><form id="userForm"><div class="form-group"><label>Full Name *</label><input type="text" id="userFullName" required></div><div class="form-group"><label>Email *</label><input type="email" id="userEmail" required></div><div class="form-group"><label>Password *</label><input type="password" id="userPassword" minlength="6" required></div><div class="form-group"><label>Phone</label><input type="text" id="userPhone"></div><div class="form-group"><label>Role *</label><select id="userRole" required><option value="">Select role...</option><option value="1">👑 Admin</option><option value="2">💰 Cashier</option><option value="3">🥩 Butcher</option><option value="4">🍳 Kitchen</option></select></div><div class="form-group"><label>Login PIN (4 digits) *</label><input type="password" id="userPin" maxlength="4" pattern="[0-9]{4}" placeholder="Enter 4-digit PIN" required><small style="color:var(--text-muted);font-size:12px;">Must be exactly 4 digits</small></div><div class="form-group"><label>2FA Enabled</label><select id="user2FA"><option value="0">❌ Disabled</option><option value="1">✅ Enabled</option></select></div><div class="form-group"><label>Status</label><select id="userStatus"><option value="active">✅ Active</option><option value="inactive">❌ Inactive</option></select></div><button type="submit" class="btn btn-primary btn-block" id="userSubmitBtn"><i class="fas fa-save"></i> Create User</button></form></div></div>
@@ -503,7 +653,7 @@
     <!-- Supplier Modal -->
     <div class="modal-overlay" id="supplierModal"><div class="modal"><div class="modal-header"><h3>🚚 <span id="supplierModalTitle">Add Supplier</span></h3><button class="close" onclick="closeModal('supplierModal')">&times;</button></div><form id="supplierForm"><div class="form-group"><label>Company Name *</label><input type="text" id="supplierCompany" required></div><div class="form-group"><label>Contact Person</label><input type="text" id="supplierContact"></div><div class="form-group"><label>Phone *</label><input type="tel" id="supplierPhone" required></div><div class="form-group"><label>Email</label><input type="email" id="supplierEmail"></div><div class="form-group"><label>Products Supplied</label><input type="text" id="supplierProducts" placeholder="e.g., Beef, Chicken"></div><button type="submit" class="btn btn-primary btn-block">💾 Save Supplier</button></form></div></div>
 
-    <!-- Stock Modal - Fixed dropdown -->
+    <!-- Stock Modal -->
     <div class="modal-overlay" id="stockModal"><div class="modal"><div class="modal-header"><h3>📦 Adjust Stock</h3><button class="close" onclick="closeModal('stockModal')">&times;</button></div><form id="stockForm"><div class="form-group"><label>Product *</label><select id="stockProduct" required><option value="">Loading products...</option></select></div><div class="form-group"><label>Adjustment Type *</label><select id="adjustmentType" required><option value="add">➕ Add Stock</option><option value="remove">➖ Remove Stock</option></select></div><div class="form-group"><label>Quantity *</label><input type="number" id="adjustmentQty" step="0.001" required></div><div class="form-group"><label>Reason</label><input type="text" id="adjustmentReason" placeholder="e.g., Restock, Spoilage"></div><button type="submit" class="btn btn-primary btn-block">✅ Apply Adjustment</button></form></div></div>
 
     <!-- Order Detail Modal -->
@@ -613,7 +763,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/admin-ultimate.js"></script>
     
-    <!-- Auth Check - Fixes PIN Login Issue -->
+    <!-- Auth Check -->
     <script>
         (function() {
             'use strict';
@@ -637,7 +787,6 @@
                         return;
                     }
                     
-                    // Check if session expired (24 hours)
                     const maxAge = 24 * 60 * 60 * 1000;
                     if (Date.now() - session.loginTime > maxAge) {
                         localStorage.removeItem(SESSION_KEY);
@@ -645,11 +794,8 @@
                         return;
                     }
                     
-                    // User is authenticated
                     console.log('✅ Authenticated as:', session.user.email);
-                    console.log('Login method:', session.loginMethod);
                     
-                    // Update UI with user info
                     const userNameEl = document.getElementById('userName');
                     const userRoleEl = document.querySelector('.user-role');
                     const userAvatar = document.getElementById('userAvatar');
@@ -674,7 +820,6 @@
                 }
             }
             
-            // Logout function
             window.logout = function() {
                 localStorage.removeItem(SESSION_KEY);
                 if (typeof supabase !== 'undefined' && supabase.auth) {
@@ -683,14 +828,12 @@
                 window.location.href = LOGIN_URL;
             };
             
-            // Run auth check
             if (document.readyState === 'loading') {
                 document.addEventListener('DOMContentLoaded', checkAuth);
             } else {
                 checkAuth();
             }
             
-            // Handle logout button click
             document.addEventListener('DOMContentLoaded', function() {
                 const logoutBtn = document.getElementById('logoutBtn');
                 if (logoutBtn) {
