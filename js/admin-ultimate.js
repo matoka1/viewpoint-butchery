@@ -1,7 +1,7 @@
 // ============================================================
-//  ULTIMATE ADMIN DASHBOARD - COMPLETE 1900+ LINES
-//  ALL FEATURES INCLUDED - WITH PAYHERO INTEGRATION
-//  FUNCTIONS IN CORRECT ORDER - FULL VERSION
+//  ULTIMATE ADMIN DASHBOARD - COMPLETE 2200+ LINES
+//  ALL FEATURES INCLUDED - WITH EMOJI PICKER & IMAGE UPLOAD
+//  FULL VERSION - ALL FUNCTIONS
 // ============================================================
 
 // ===== CONFIG ===== 
@@ -38,8 +38,31 @@ let sessionTimeout = 30;
 let notifications = [];
 let unreadCount = 0;
 let isInitialized = false;
+let currentProductImageFile = null;
+let currentProductEmoji = '📦';
 
-// ===== EMOJIS =====
+// ============================================================
+//  EMOJIS
+// ============================================================
+const AVAILABLE_EMOJIS = [
+    // Food & Meat
+    '🥩', '🍗', '🐄', '🐖', '🐑', '🐐', '🐓', '🦃', '🐟', '🦐', '🦞', '🦀',
+    // Meals
+    '🍖', '🍔', '🌭', '🍕', '🧆', '🌮', '🌯', '🥙', '🍲', '🍛', '🍣', '🍱', '🥘',
+    // Vegetables
+    '🥬', '🥒', '🥑', '🍅', '🌽', '🥕', '🧅', '🧄', '🫑', '🌶️',
+    // Fruits
+    '🍎', '🍊', '🍋', '🍌', '🍉', '🍇', '🍓', '🫐', '🍑', '🍒',
+    // Drinks
+    '🥤', '🧃', '🧉', '🍵', '☕', '🍺', '🍷', '🥂', '🥛',
+    // Other Food
+    '🍞', '🧇', '🥞', '🧈', '🧀', '🍳', '🥓', '🥩', '🍝', '🍜',
+    // Desserts
+    '🍦', '🍧', '🍨', '🍩', '🍪', '🧁', '🎂', '🍰',
+    // General
+    '📦', '🏷️', '⭐', '💎', '🎯', '🔥', '👍', '👌'
+];
+
 const PRODUCT_EMOJIS = {
     'Beef': '🥩',
     'Goat Meat': '🐐',
@@ -60,6 +83,108 @@ const PRODUCT_EMOJIS = {
 function getEmoji(name) {
     return PRODUCT_EMOJIS[name] || PRODUCT_EMOJIS['default'];
 }
+
+// ============================================================
+//  EMOJI PICKER FUNCTIONS
+// ============================================================
+function initEmojiPicker() {
+    const picker = document.getElementById('emojiPicker');
+    if (!picker) return;
+    
+    picker.innerHTML = AVAILABLE_EMOJIS.map(emoji => 
+        `<span class="emoji-option" data-emoji="${emoji}" onclick="selectEmoji('${emoji}')">${emoji}</span>`
+    ).join('');
+}
+
+function toggleEmojiPicker() {
+    const container = document.getElementById('emojiPickerContainer');
+    if (container) {
+        container.style.display = container.style.display === 'none' ? 'block' : 'none';
+    }
+}
+
+function selectEmoji(emoji) {
+    currentProductEmoji = emoji;
+    document.getElementById('selectedEmojiDisplay').textContent = emoji;
+    document.getElementById('productEmoji').value = emoji;
+    
+    // Highlight selected
+    document.querySelectorAll('.emoji-option').forEach(el => {
+        el.classList.toggle('selected', el.dataset.emoji === emoji);
+    });
+    
+    // Close picker
+    document.getElementById('emojiPickerContainer').style.display = 'none';
+}
+
+function clearEmoji() {
+    currentProductEmoji = '📦';
+    document.getElementById('selectedEmojiDisplay').textContent = '📦';
+    document.getElementById('productEmoji').value = '📦';
+    document.querySelectorAll('.emoji-option').forEach(el => el.classList.remove('selected'));
+}
+
+// ============================================================
+//  IMAGE UPLOAD FUNCTIONS
+// ============================================================
+async function uploadProductImage(file) {
+    try {
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
+        const filePath = `products/${fileName}`;
+        
+        const { data, error } = await supabaseClient.storage
+            .from('product-images')
+            .upload(filePath, file);
+            
+        if (error) throw error;
+        
+        // Get public URL
+        const { data: urlData } = supabaseClient.storage
+            .from('product-images')
+            .getPublicUrl(filePath);
+            
+        return urlData.publicUrl;
+        
+    } catch (error) {
+        console.error('Image upload error:', error);
+        showToast('❌ Image upload failed: ' + error.message, 'error');
+        return null;
+    }
+}
+
+function handleProductImageUpload(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    
+    // Preview
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const preview = document.getElementById('productImagePreview');
+        preview.src = e.target.result;
+        preview.style.display = 'block';
+        document.getElementById('clearImageBtn').style.display = 'inline-flex';
+    };
+    reader.readAsDataURL(file);
+    
+    currentProductImageFile = file;
+}
+
+function clearProductImage() {
+    currentProductImageFile = null;
+    document.getElementById('productImagePreview').src = '';
+    document.getElementById('productImagePreview').style.display = 'none';
+    document.getElementById('productImageFile').value = '';
+    document.getElementById('clearImageBtn').style.display = 'none';
+    document.getElementById('productImageUrl').value = '';
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const fileInput = document.getElementById('productImageFile');
+    if (fileInput) {
+        fileInput.addEventListener('change', handleProductImageUpload);
+    }
+});
 
 // ============================================================
 //  TOAST SYSTEM
@@ -105,8 +230,6 @@ function addNotification(title, message, type = 'info', link = null) {
     unreadCount++;
     updateNotificationBadge();
     renderNotifications();
-    
-    // Also show toast
     showToast(message, type);
 }
 
@@ -334,8 +457,7 @@ function navigateTo(section) {
         reports: ['📊 Reports', 'Sales and performance reports'],
         profit: ['💰 Profit & Loss', 'Track your profitability'],
         audit: ['📜 Audit Trail', 'Complete activity log'],
-        settings: ['⚙️ Settings', 'System configuration'],
-        notifications: ['🔔 Notifications', 'All system notifications']
+        settings: ['⚙️ Settings', 'System configuration']
     };
     const [title, sub] = titles[section] || ['Dashboard', ''];
     document.getElementById('pageTitle').textContent = title;
@@ -367,6 +489,19 @@ function navigateTo(section) {
 function openModal(id) {
     const el = document.getElementById(id);
     if (el) el.classList.add('active');
+    
+    // Load product dropdown for stock modal
+    if (id === 'stockModal') {
+        loadProductDropdown();
+    }
+    
+    // Initialize emoji picker for product modal
+    if (id === 'productModal') {
+        setTimeout(initEmojiPicker, 100);
+        // Reset emoji picker state
+        clearEmoji();
+        clearProductImage();
+    }
 }
 
 function closeModal(id) {
@@ -405,7 +540,6 @@ async function handlePayHeroWebhook(payload) {
         
         const { transaction_id, status, receipt_number, amount, phone, reference } = payload;
         
-        // Find the payment by transaction reference
         const { data: payment, error } = await supabaseClient
             .from('payments')
             .select('*, orders(*)')
@@ -418,7 +552,6 @@ async function handlePayHeroWebhook(payload) {
         }
         
         if (status === 'completed') {
-            // Record M-Pesa transaction
             await supabaseClient.from('mpesa_transactions').insert({
                 payment_id: payment.id,
                 phone_number: phone,
@@ -430,20 +563,17 @@ async function handlePayHeroWebhook(payload) {
                 created_at: new Date().toISOString()
             });
             
-            // Update payment status
             await supabaseClient.from('payments').update({
                 status: 'completed',
                 completed_at: new Date().toISOString()
             }).eq('id', payment.id);
             
-            // Update order status
             await supabaseClient.from('orders').update({
                 status: 'paid',
                 payment_status: 'completed',
                 completed_at: new Date().toISOString()
             }).eq('id', payment.order_id);
             
-            // Update inventory
             const { data: orderItems } = await supabaseClient
                 .from('order_items')
                 .select('*, products(*)')
@@ -457,7 +587,6 @@ async function handlePayHeroWebhook(payload) {
                 }
             }
             
-            // Add notification
             addNotification(
                 '💰 Payment Received',
                 `M-Pesa payment of KES ${amount} confirmed. Receipt: ${receipt_number}`,
@@ -465,13 +594,11 @@ async function handlePayHeroWebhook(payload) {
                 'orders'
             );
             
-            // Generate receipt
             await generateAdminReceipt(payment.order_id);
             
             return { success: true, message: 'Payment processed successfully' };
             
         } else if (status === 'failed' || status === 'cancelled') {
-            // Update payment as failed
             await supabaseClient.from('payments').update({
                 status: 'failed'
             }).eq('id', payment.id);
@@ -554,7 +681,6 @@ async function initiatePayHeroSTK(phone, amount, orderId, description = 'Viewpoi
     try {
         console.log('📱 Sending PayHero STK Push...', { phone, amount, orderId });
         
-        // Call Edge Function
         const { data, error } = await supabaseClient.functions.invoke('payhero', {
             body: {
                 action: 'stk_push',
@@ -570,7 +696,6 @@ async function initiatePayHeroSTK(phone, amount, orderId, description = 'Viewpoi
         if (error) throw error;
         
         if (data.success) {
-            // Record transaction
             await supabaseClient.from('mpesa_transactions').insert({
                 payment_id: data.payment_id,
                 phone_number: phone,
@@ -608,7 +733,7 @@ async function initiatePayHeroSTK(phone, amount, orderId, description = 'Viewpoi
 }
 
 // ============================================================
-//  CHECK PAYHERO STATUS - FIXED (REAL API)
+//  CHECK PAYHERO STATUS
 // ============================================================
 async function checkPayHeroStatus(transactionId) {
     try {
@@ -623,7 +748,6 @@ async function checkPayHeroStatus(transactionId) {
         
         console.log('🔍 Status response:', data);
         
-        // ✅ Check if transaction is completed
         if (data && data.success === true && data.status === 'completed') {
             return {
                 success: true,
@@ -661,7 +785,7 @@ async function checkPayHeroStatus(transactionId) {
 }
 
 // ============================================================
-//  PROCESS PAYMENT WITH PAYHERO - FIXED
+//  PROCESS PAYMENT WITH PAYHERO
 // ============================================================
 async function processPaymentPOS(method) {
     if (!cart.length) {
@@ -762,9 +886,6 @@ async function processPaymentPOS(method) {
                     transaction_reference: stkResult.transaction_id
                 }).eq('id', payment.id);
 
-                // ============================================================
-                //  ✅ POLLING - FIXED (maxAttempts: 25, interval: 1500ms)
-                // ============================================================
                 let attempts = 0;
                 const maxAttempts = 25;
                 let paymentConfirmed = false;
@@ -837,7 +958,6 @@ async function processPaymentPOS(method) {
                         break;
                     }
 
-                    // Update progress
                     if (!paymentConfirmed) {
                         const remaining = Math.round((maxAttempts - attempts) * 1.5);
                         content.innerHTML = `
@@ -889,7 +1009,6 @@ async function processPaymentPOS(method) {
             }
 
         } else {
-            // Cash payment
             await completePayment(order.id, payment.id, total, items, phone);
 
             content.innerHTML = `
@@ -927,6 +1046,11 @@ async function processPaymentPOS(method) {
             modal.classList.remove('active');
         }, 2000);
     }
+}
+
+function cancelPayment() {
+    closeModal('paymentModal');
+    showToast('Payment cancelled', 'warning');
 }
 
 // ============================================================
@@ -1033,7 +1157,7 @@ function printReceipt() {
 }
 
 // ============================================================
-//  EXPORT FUNCTIONS - FULL
+//  EXPORT FUNCTIONS
 // ============================================================
 async function exportReport(format) {
     const start = document.getElementById('reportStart')?.value;
@@ -1055,13 +1179,11 @@ async function exportReport(format) {
         }
         
         if (format === 'csv') {
-            // Generate CSV
             let csv = 'Order ID,Type,Total,Payment,Status,Date\n';
             orders.forEach(o => {
                 csv += `${o.order_number || o.id.slice(0,8)},${o.order_type},${o.total},${o.payment_method || 'N/A'},${o.status},${new Date(o.created_at).toLocaleDateString()}\n`;
             });
             
-            // Download
             const blob = new Blob([csv], { type: 'text/csv' });
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
@@ -1118,6 +1240,7 @@ function importProducts() {
                             unit: values[4]?.trim() || 'KG',
                             stock_quantity: parseFloat(values[5]) || 0,
                             reorder_level: parseFloat(values[6]) || 0,
+                            emoji: values[7]?.trim() || '📦',
                             is_active: true
                         };
                         
@@ -1207,7 +1330,7 @@ async function loadRecentOrders() {
 }
 
 async function loadTopProducts() {
-    const { data: items } = await supabaseClient.from('order_items').select('product_id, quantity, products(name)').limit(30);
+    const { data: items } = await supabaseClient.from('order_items').select('product_id, quantity, products(name, emoji)').limit(30);
     const list = document.getElementById('topProductsList');
     if (!items?.length) {
         list.innerHTML = '<div class="empty-state"><p>No sales data</p></div>';
@@ -1219,15 +1342,18 @@ async function loadTopProducts() {
         counts[name] = (counts[name] || 0) + item.quantity;
     });
     const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 5);
-    list.innerHTML = sorted.map(([name, qty], i) => `
+    list.innerHTML = sorted.map(([name, qty], i) => {
+        const emoji = items.find(it => it.products?.name === name)?.products?.emoji || getEmoji(name);
+        return `
             <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);">
                 <div style="display:flex;align-items:center;gap:10px;">
                     <span style="display:inline-flex;width:26px;height:26px;border-radius:50%;background:${['#6C3CE1','#10B981','#F59E0B','#EF4444','#3B82F6'][i]};color:#fff;align-items:center;justify-content:center;font-weight:700;font-size:12px;">${i+1}</span>
-                    <span style="font-weight:500;">${getEmoji(name)} ${name}</span>
+                    <span style="font-weight:500;">${emoji} ${name}</span>
                 </div>
                 <span style="font-weight:700;color:var(--primary);">${qty.toFixed(1)}</span>
             </div>
-        `).join('');
+        `;
+    }).join('');
 }
 
 async function createSalesChart(orders) {
@@ -1305,7 +1431,7 @@ async function loadPOSProducts(type) {
             <div class="product-grid">
                 ${products.map(p => `
                     <div class="product-card" onclick="selectPOSProduct('${p.id}')" id="pos-${p.id}">
-                        <span class="product-emoji">${getEmoji(p.name)}</span>
+                        <span class="product-emoji">${p.emoji || getEmoji(p.name)}</span>
                         <div class="product-name">${p.name}</div>
                         <div class="product-price">KES ${p.selling_price}/${p.unit}</div>
                         <div class="product-stock">Stock: ${p.stock_quantity}</div>
@@ -1385,7 +1511,7 @@ function addToCartPOS() {
         quantity,
         total,
         unit_price: product.selling_price,
-        emoji: getEmoji(product.name)
+        emoji: product.emoji || getEmoji(product.name)
     });
     updateCartDisplayPOS();
     showToast(`✅ ${product.name} added to cart`, 'success');
@@ -1456,7 +1582,7 @@ function renderOrders(orders) {
                     <div class="order-items">
                         ${items.slice(0,3).map(item => `
                             <div class="order-item-row">
-                                <span>${getEmoji(item.products?.name || '📦')} ${item.products?.name || 'Unknown'}</span>
+                                <span>${item.products?.emoji || getEmoji(item.products?.name || '📦')} ${item.products?.name || 'Unknown'}</span>
                                 <span>${item.quantity.toFixed(3)} ${item.products?.unit || ''}</span>
                                 <span>KES ${item.total.toFixed(2)}</span>
                             </div>
@@ -1538,7 +1664,7 @@ async function viewOrderDetails(orderId) {
                 <h4 style="margin-bottom:6px;">🛒 Items</h4>
                 ${items.map(item => `
                     <div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border);font-size:14px;">
-                        <span>${getEmoji(item.products?.name || '📦')} ${item.products?.name || 'Unknown'}</span>
+                        <span>${item.products?.emoji || getEmoji(item.products?.name || '📦')} ${item.products?.name || 'Unknown'}</span>
                         <span>${item.quantity.toFixed(3)} × KES ${item.unit_price.toFixed(2)}</span>
                         <span style="font-weight:600;">KES ${item.total.toFixed(2)}</span>
                     </div>
@@ -1599,7 +1725,7 @@ async function loadKitchenOrders() {
                     <div class="order-items">
                         ${items.map(item => `
                             <div class="order-item-row">
-                                <span>${getEmoji(item.products?.name || '📦')} ${item.products?.name || 'Unknown'}</span>
+                                <span>${item.products?.emoji || getEmoji(item.products?.name || '📦')} ${item.products?.name || 'Unknown'}</span>
                                 <span>${item.quantity.toFixed(3)}</span>
                             </div>
                         `).join('')}
@@ -1642,7 +1768,7 @@ async function loadProducts() {
     let html = '<div class="table-wrapper"><table class="data-table"><thead><tr><th>📦 Name</th><th>📂 Type</th><th>💰 Price</th><th>📊 Stock</th><th>📌 Status</th><th>⚙️ Actions</th></tr></thead><tbody>';
     products.forEach(p => {
         html += `<tr>
-                <td><strong>${getEmoji(p.name)} ${p.name}</strong></td>
+                <td><strong>${p.emoji || getEmoji(p.name)} ${p.name}</strong></td>
                 <td><span class="badge ${p.product_type}">${p.product_type}</span></td>
                 <td>KES ${p.selling_price}</td>
                 <td>${p.stock_quantity} ${p.unit}</td>
@@ -1670,6 +1796,21 @@ async function editProduct(id) {
     document.getElementById('productStock').value = p.stock_quantity;
     document.getElementById('productReorder').value = p.reorder_level;
     document.getElementById('productStatus').value = p.is_active ? 'active' : 'inactive';
+    
+    // Set emoji
+    if (p.emoji) {
+        currentProductEmoji = p.emoji;
+        document.getElementById('selectedEmojiDisplay').textContent = p.emoji;
+        document.getElementById('productEmoji').value = p.emoji;
+    }
+    
+    // Set image if exists
+    if (p.image_url) {
+        document.getElementById('productImagePreview').src = p.image_url;
+        document.getElementById('productImagePreview').style.display = 'block';
+        document.getElementById('productImageUrl').value = p.image_url;
+    }
+    
     openModal('productModal');
 }
 
@@ -1689,6 +1830,17 @@ async function deleteProduct(id) {
 document.getElementById('productForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     const id = document.getElementById('productId').value;
+    
+    let imageUrl = document.getElementById('productImageUrl').value;
+    
+    // Upload image if new file selected
+    if (currentProductImageFile) {
+        const uploadedUrl = await uploadProductImage(currentProductImageFile);
+        if (uploadedUrl) {
+            imageUrl = uploadedUrl;
+        }
+    }
+    
     const data = {
         name: document.getElementById('productName').value,
         product_type: document.getElementById('productType').value,
@@ -1697,8 +1849,11 @@ document.getElementById('productForm').addEventListener('submit', async (e) => {
         unit: document.getElementById('productUnit').value,
         stock_quantity: parseFloat(document.getElementById('productStock').value) || 0,
         reorder_level: parseFloat(document.getElementById('productReorder').value) || 0,
+        emoji: document.getElementById('productEmoji').value || '📦',
+        image_url: imageUrl || null,
         is_active: document.getElementById('productStatus').value === 'active'
     };
+    
     if (id) {
         await supabaseClient.from('products').update(data).eq('id', id);
         showToast('✅ Product updated!', 'success');
@@ -1706,12 +1861,14 @@ document.getElementById('productForm').addEventListener('submit', async (e) => {
         await supabaseClient.from('products').insert(data);
         showToast('✅ Product created!', 'success');
     }
+    
     await supabaseClient.from('audit_logs').insert({
         user_id: currentUser.id,
         action: id ? 'Product Updated' : 'Product Created',
         entity_type: 'product',
         new_value: data
     });
+    
     closeModal('productModal');
     loadProducts();
 });
@@ -1731,7 +1888,7 @@ async function loadInventory() {
     products.forEach(p => {
         const isLow = p.stock_quantity <= p.reorder_level;
         html += `<tr style="${isLow ? 'background:rgba(245,158,11,0.08);' : ''}">
-                <td><strong>${getEmoji(p.name)} ${p.name}</strong> ${isLow ? '⚠️' : ''}</td>
+                <td><strong>${p.emoji || getEmoji(p.name)} ${p.name}</strong> ${isLow ? '⚠️' : ''}</td>
                 <td><span class="badge ${p.product_type}">${p.product_type}</span></td>
                 <td><strong>${p.stock_quantity}</strong></td>
                 <td>${p.unit}</td>
@@ -1742,7 +1899,7 @@ async function loadInventory() {
     html += '</tbody></table></div>';
     table.innerHTML = html;
 
-    const { data: movements } = await supabaseClient.from('inventory_movements').select('*, products(name)').order('created_at', { ascending: false }).limit(15);
+    const { data: movements } = await supabaseClient.from('inventory_movements').select('*, products(name, emoji)').order('created_at', { ascending: false }).limit(15);
     const movementTable = document.getElementById('stockMovementsTable');
     if (!movements?.length) {
         movementTable.innerHTML = '<div class="empty-state"><p>No movements</p></div>';
@@ -1752,7 +1909,7 @@ async function loadInventory() {
     movements.forEach(m => {
         const isAdd = m.quantity > 0;
         mHtml += `<tr>
-                <td>${getEmoji(m.products?.name || '📦')} ${m.products?.name || 'Unknown'}</td>
+                <td>${m.products?.emoji || getEmoji(m.products?.name || '📦')} ${m.products?.name || 'Unknown'}</td>
                 <td><span class="badge ${isAdd ? 'success' : 'danger'}">${isAdd ? '➕ Restock' : '➖ Sale'}</span></td>
                 <td style="color:${isAdd ? 'var(--success)' : 'var(--danger)'};">${isAdd ? '+' : ''}${m.quantity}</td>
                 <td>${new Date(m.created_at).toLocaleString()}</td>
@@ -1763,9 +1920,26 @@ async function loadInventory() {
 }
 
 async function loadProductDropdown() {
-    const { data: productsData } = await supabaseClient.from('products').select('id, name').order('name');
-    const select = document.getElementById('stockProduct');
-    select.innerHTML = productsData.map(p => `<option value="${p.id}">${getEmoji(p.name)} ${p.name}</option>`).join('');
+    try {
+        const { data: productsData } = await supabaseClient.from('products').select('id, name, emoji').order('name');
+        const select = document.getElementById('stockProduct');
+        if (!select) return;
+        
+        if (!productsData || !productsData.length) {
+            select.innerHTML = '<option value="">No products available</option>';
+            return;
+        }
+        
+        select.innerHTML = productsData.map(p => 
+            `<option value="${p.id}">${p.emoji || '📦'} ${p.name}</option>`
+        ).join('');
+    } catch (error) {
+        console.error('Load product dropdown error:', error);
+        const select = document.getElementById('stockProduct');
+        if (select) {
+            select.innerHTML = '<option value="">Error loading products</option>';
+        }
+    }
 }
 
 document.getElementById('stockForm').addEventListener('submit', async (e) => {
@@ -1774,6 +1948,12 @@ document.getElementById('stockForm').addEventListener('submit', async (e) => {
     const type = document.getElementById('adjustmentType').value;
     const qty = parseFloat(document.getElementById('adjustmentQty').value);
     const reason = document.getElementById('adjustmentReason').value || 'Manual adjustment';
+    
+    if (!productId) {
+        showToast('Please select a product', 'error');
+        return;
+    }
+    
     const { data: product } = await supabaseClient.from('products').select('stock_quantity').eq('id', productId).single();
     const newStock = type === 'add' ? product.stock_quantity + qty : product.stock_quantity - qty;
     await supabaseClient.from('products').update({ stock_quantity: newStock }).eq('id', productId);
@@ -1799,7 +1979,7 @@ document.getElementById('stockForm').addEventListener('submit', async (e) => {
 });
 
 // ============================================================
-//  USERS - WITH NO EMAIL CONFIRMATION
+//  USERS - WITH PIN MANAGEMENT
 // ============================================================
 function showAddUser() {
     document.getElementById('userModalTitle').textContent = 'Add New User';
@@ -1821,22 +2001,26 @@ document.getElementById('userForm').addEventListener('submit', async (e) => {
         const twoFA = parseInt(document.getElementById('user2FA').value);
         const status = document.getElementById('userStatus').value;
         const phone = document.getElementById('userPhone').value;
+        const pin = document.getElementById('userPin').value;
 
         if (!fullName || !email || !password || !roleId) throw new Error('Fill all required fields');
+        if (pin.length !== 4 || !/^\d{4}$/.test(pin)) {
+            throw new Error('PIN must be exactly 4 digits');
+        }
 
-        // ✅ Create user with email_confirm: true (auto-confirm)
+        // Create user with email_confirm: true
         const { data: authData, error: authError } = await supabaseClient.auth.admin.createUser({
             email: email,
             password: password,
             email_confirm: true,
             user_metadata: {
                 full_name: fullName,
-                phone: phone || ''
+                phone: phone || '',
+                pin: pin
             }
         });
 
         if (authError) {
-            // Fallback: Try signUp if admin API fails
             const { data: signUpData, error: signUpError } = await supabaseClient.auth.signUp({
                 email: email,
                 password: password,
@@ -1844,7 +2028,8 @@ document.getElementById('userForm').addEventListener('submit', async (e) => {
                     email_confirm: false,
                     data: {
                         full_name: fullName,
-                        phone: phone || ''
+                        phone: phone || '',
+                        pin: pin
                     }
                 }
             });
@@ -1854,7 +2039,6 @@ document.getElementById('userForm').addEventListener('submit', async (e) => {
             var userId = authData.user.id;
         }
 
-        // ✅ Insert user into users table - email_verified is already true
         const username = email.replace(/[^a-zA-Z0-9]/g, '_').toLowerCase();
         const { error: insertError } = await supabaseClient.from('users').insert({
             id: userId,
@@ -1864,6 +2048,8 @@ document.getElementById('userForm').addEventListener('submit', async (e) => {
             phone: phone || null,
             role_id: roleId,
             status: status,
+            pin: pin,
+            two_fa_enabled: twoFA === 1,
             email_verified: true,
             created_at: new Date().toISOString()
         });
@@ -1874,10 +2060,10 @@ document.getElementById('userForm').addEventListener('submit', async (e) => {
             user_id: currentUser.id,
             action: 'User Created',
             entity_type: 'user',
-            new_value: { email, roleId, fullName }
+            new_value: { email, roleId, fullName, pin: '****' }
         });
 
-        showToast(`✅ User "${fullName}" created! They can login immediately.`, 'success');
+        showToast(`✅ User "${fullName}" created with PIN!`, 'success');
         addNotification('User Created', `User "${fullName}" created successfully.`, 'success', 'users');
         closeModal('userModal');
         loadUsers();
@@ -1898,13 +2084,14 @@ async function loadUsers() {
         table.innerHTML = '<div class="empty-state"><i class="fas fa-users"></i><p>No users</p></div>';
         return;
     }
-    let html = '<div class="table-wrapper"><table class="data-table"><thead><tr><th>👤 Name</th><th>📧 Email</th><th>👑 Role</th><th>🔐 2FA</th><th>📊 Status</th><th>⚙️ Actions</th></tr></thead><tbody>';
+    let html = '<div class="table-wrapper"><table class="data-table"><thead><tr><th>👤 Name</th><th>📧 Email</th><th>👑 Role</th><th>🔐 PIN</th><th>🔑 2FA</th><th>📊 Status</th><th>⚙️ Actions</th></tr></thead><tbody>';
     usersData.forEach(u => {
         const roleEmoji = u.roles?.name === 'admin' ? '👑' : u.roles?.name === 'cashier' ? '💰' : u.roles?.name === 'butcher' ? '🥩' : '🍳';
         html += `<tr>
                 <td><strong>${u.full_name}</strong></td>
                 <td>${u.email}</td>
                 <td><span class="badge ${u.roles?.name || 'cashier'}">${roleEmoji} ${u.roles?.name || 'Unknown'}</span></td>
+                <td>${u.pin ? '✅ Set' : '❌ Not set'}</td>
                 <td>${u.two_fa_enabled ? '✅ Enabled' : '❌ Disabled'}</td>
                 <td><span class="status-badge ${u.status}">${u.status}</span></td>
                 <td>
@@ -1935,7 +2122,7 @@ async function deleteUser(id) {
 }
 
 // ============================================================
-//  EDIT USER
+//  EDIT USER - WITH PIN UPDATE
 // ============================================================
 async function editUser(userId) {
     try {
@@ -1957,6 +2144,7 @@ async function editUser(userId) {
         document.getElementById('editUserRole').value = user.role_id || 2;
         document.getElementById('editUser2FA').value = user.two_fa_enabled ? 1 : 0;
         document.getElementById('editUserStatus').value = user.status || 'active';
+        document.getElementById('editUserPin').value = '';
         document.getElementById('editUserModalTitle').textContent = `✏️ Edit User: ${user.full_name}`;
 
         openModal('editUserModal');
@@ -1977,6 +2165,8 @@ document.getElementById('editUserForm')?.addEventListener('submit', async functi
 
     try {
         const userId = document.getElementById('editUserId').value;
+        const pin = document.getElementById('editUserPin').value;
+        
         const data = {
             full_name: document.getElementById('editUserFullName').value.trim(),
             email: document.getElementById('editUserEmail').value.trim(),
@@ -1985,6 +2175,13 @@ document.getElementById('editUserForm')?.addEventListener('submit', async functi
             two_fa_enabled: parseInt(document.getElementById('editUser2FA').value) === 1,
             status: document.getElementById('editUserStatus').value
         };
+        
+        // Update PIN if provided
+        if (pin && pin.length === 4 && /^\d{4}$/.test(pin)) {
+            data.pin = pin;
+        } else if (pin && pin.length > 0) {
+            throw new Error('PIN must be exactly 4 digits');
+        }
 
         const { error: updateError } = await supabaseClient
             .from('users')
@@ -1998,7 +2195,7 @@ document.getElementById('editUserForm')?.addEventListener('submit', async functi
             action: 'User Updated',
             entity_type: 'user',
             entity_id: userId,
-            new_value: data
+            new_value: { ...data, pin: pin ? '****' : 'unchanged' }
         });
 
         showToast('✅ User updated successfully!', 'success');
@@ -2289,102 +2486,12 @@ document.getElementById('mpesaForm').addEventListener('submit', (e) => {
 });
 
 // ============================================================
-//  INIT - SIDEBAR FIXED
+//  INIT
 // ============================================================
 document.addEventListener('DOMContentLoaded', async () => {
     console.log('🚀 Admin dashboard loading...');
     
-    // ============================================================
-    //  SIDEBAR HANDLERS - FIXED (MUST RUN FIRST)
-    // ============================================================
-    
-    // 1. Fix sidebar toggle button
-    const toggleBtn = document.getElementById('sidebarToggle');
-    const sidebar = document.getElementById('sidebar');
-    if (toggleBtn && sidebar) {
-        // Remove any existing listeners by cloning
-        const newBtn = toggleBtn.cloneNode(true);
-        toggleBtn.parentNode.replaceChild(newBtn, toggleBtn);
-        newBtn.addEventListener('click', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            sidebar.classList.toggle('open');
-            console.log('✅ Sidebar toggled:', sidebar.classList.contains('open'));
-        });
-        console.log('✅ Sidebar toggle fixed');
-    }
-
-    // 2. Fix sidebar menu items
-    const menuItems = document.querySelectorAll('.sidebar-menu li[data-section]');
-    menuItems.forEach(function(item) {
-        // Remove existing listeners by cloning
-        const newItem = item.cloneNode(true);
-        item.parentNode.replaceChild(newItem, item);
-        
-        newItem.addEventListener('click', function(e) {
-            e.preventDefault();
-            const section = this.dataset.section;
-            console.log('🔵 Navigated to:', section);
-            
-            // Update active state
-            document.querySelectorAll('.sidebar-menu li').forEach(function(l) {
-                l.classList.remove('active');
-            });
-            this.classList.add('active');
-            
-            // Show section
-            document.querySelectorAll('.section-page').forEach(function(el) {
-                el.classList.remove('active');
-            });
-            const target = document.getElementById(section + 'Section');
-            if (target) target.classList.add('active');
-            
-            // Update title
-            const titles = {
-                dashboard: ['📊 Dashboard', 'Complete business overview'],
-                pos: ['🛒 Point of Sale', 'Process customer orders'],
-                orders: ['📋 Orders', 'Manage all customer orders'],
-                products: ['📦 Products', 'Manage your product catalog'],
-                inventory: ['🏪 Inventory', 'Track stock levels'],
-                users: ['👥 Users', 'Manage system users'],
-                customers: ['👤 Customers', 'Manage customer database'],
-                suppliers: ['🚚 Suppliers', 'Manage suppliers'],
-                kitchen: ['🍳 Kitchen Display', 'Real-time kitchen orders'],
-                reports: ['📊 Reports', 'Sales and performance reports'],
-                profit: ['💰 Profit & Loss', 'Track your profitability'],
-                audit: ['📜 Audit Trail', 'Complete activity log'],
-                settings: ['⚙️ Settings', 'System configuration']
-            };
-            const [title, sub] = titles[section] || ['Dashboard', ''];
-            document.getElementById('pageTitle').textContent = title;
-            document.getElementById('pageSubtitle').textContent = sub;
-            
-            // Close sidebar on mobile
-            const sidebarEl = document.getElementById('sidebar');
-            if (sidebarEl) sidebarEl.classList.remove('open');
-            
-            // Load section data (with small delay to prevent blocking)
-            setTimeout(() => {
-                const loaders = {
-                    pos: () => loadPOSProducts('butchery'),
-                    orders: () => loadOrders(),
-                    inventory: () => loadInventory(),
-                    users: () => loadUsers(),
-                    products: () => loadProducts(),
-                    customers: () => loadCustomers(),
-                    suppliers: () => loadSuppliers(),
-                    kitchen: () => loadKitchenOrders(),
-                    dashboard: () => loadDashboard(),
-                    profit: () => loadProfitData(),
-                    audit: () => loadAuditLogs()
-                };
-                if (loaders[section]) loaders[section]();
-            }, 50);
-        });
-    });
-    console.log('✅ Sidebar menu items fixed');
-
-    // 3. Theme toggle
+    // Theme toggle
     const themeToggle = document.getElementById('themeToggle');
     if (themeToggle) {
         const newThemeToggle = themeToggle.cloneNode(true);
@@ -2393,7 +2500,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
     setTheme(isDark);
 
-    // 4. Check auth
+    // Check auth
     const user = await checkAuth();
     if (!user) {
         console.log('❌ Auth failed, redirecting...');
@@ -2401,12 +2508,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     console.log('✅ User authenticated:', user.email);
-    console.log('🔑 Login method:', 'pin');
 
-    // 5. Start clock
+    // Start clock
     startClock();
 
-    // 6. Set default dates
+    // Set default dates
     const today = new Date().toISOString().split('T')[0];
     const lastWeek = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
     const reportStart = document.getElementById('reportStart');
@@ -2416,7 +2522,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (reportEnd) reportEnd.value = today;
     if (auditDate) auditDate.value = today;
 
-    // 7. Load all data (with delay to prevent UI blocking)
+    // Load all data
     setTimeout(async () => {
         await loadDashboard();
         await loadProducts();
@@ -2428,11 +2534,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         await loadKitchenOrders();
         await loadProfitData();
         await loadAuditLogs();
+        await loadProductDropdown();
 
         isInitialized = true;
         console.log('✅ Admin dashboard loaded successfully!');
         
-        // Welcome notification
         addNotification(
             '👋 Welcome Back!',
             `Welcome ${user.full_name || 'Admin'} to Viewpoint POS Dashboard.`,
@@ -2440,6 +2546,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         );
     }, 100);
 });
+
 // ============================================================
 //  EXPOSE GLOBALS
 // ============================================================
@@ -2474,3 +2581,9 @@ window.processPaymentPOS = processPaymentPOS;
 window.handlePayHeroWebhook = handlePayHeroWebhook;
 window.addNotification = addNotification;
 window.markAllNotificationsRead = markAllNotificationsRead;
+window.selectEmoji = selectEmoji;
+window.toggleEmojiPicker = toggleEmojiPicker;
+window.clearEmoji = clearEmoji;
+window.clearProductImage = clearProductImage;
+window.uploadProductImage = uploadProductImage;
+window.loadProductDropdown = loadProductDropdown;
