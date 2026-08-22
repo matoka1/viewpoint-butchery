@@ -2566,10 +2566,143 @@ async function handlePayHeroWebhook(payload) {
     }
 }
 // ============================================================
-//  INIT
+//  SIDEBAR FUNCTIONS - FIXED
+// ============================================================
+
+function initSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    const toggleBtn = document.getElementById('sidebarToggle');
+    
+    // Sidebar toggle
+    if (toggleBtn && sidebar) {
+        // Remove any existing listeners
+        const newToggleBtn = toggleBtn.cloneNode(true);
+        toggleBtn.parentNode.replaceChild(newToggleBtn, toggleBtn);
+        
+        newToggleBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            sidebar.classList.toggle('open');
+            console.log('Sidebar toggled:', sidebar.classList.contains('open'));
+        });
+    }
+    
+    // Sidebar menu items
+    const menuItems = document.querySelectorAll('.sidebar-menu li[data-section]');
+    menuItems.forEach(function(item) {
+        // Remove existing listeners
+        const newItem = item.cloneNode(true);
+        item.parentNode.replaceChild(newItem, item);
+        
+        newItem.addEventListener('click', function(e) {
+            e.preventDefault();
+            const section = this.dataset.section;
+            console.log('Navigating to:', section);
+            
+            // Update active state
+            document.querySelectorAll('.sidebar-menu li').forEach(function(l) {
+                l.classList.remove('active');
+            });
+            this.classList.add('active');
+            
+            // Show section
+            document.querySelectorAll('.section-page').forEach(function(el) {
+                el.classList.remove('active');
+            });
+            const target = document.getElementById(section + 'Section');
+            if (target) target.classList.add('active');
+            
+            // Update title
+            const titles = {
+                dashboard: ['📊 Dashboard', 'Complete business overview'],
+                pos: ['🛒 Point of Sale', 'Process customer orders'],
+                orders: ['📋 Orders', 'Manage all customer orders'],
+                products: ['📦 Products', 'Manage your product catalog'],
+                inventory: ['🏪 Inventory', 'Track stock levels'],
+                users: ['👥 Users', 'Manage system users'],
+                customers: ['👤 Customers', 'Manage customer database'],
+                suppliers: ['🚚 Suppliers', 'Manage suppliers'],
+                kitchen: ['🍳 Kitchen Display', 'Real-time kitchen orders'],
+                reports: ['📊 Reports', 'Sales and performance reports'],
+                profit: ['💰 Profit & Loss', 'Track your profitability'],
+                audit: ['📜 Audit Trail', 'Complete activity log'],
+                settings: ['⚙️ Settings', 'System configuration']
+            };
+            const [title, sub] = titles[section] || ['Dashboard', ''];
+            const titleEl = document.getElementById('pageTitle');
+            const subEl = document.getElementById('pageSubtitle');
+            if (titleEl) titleEl.textContent = title;
+            if (subEl) subEl.textContent = sub;
+            
+            // Close sidebar on mobile
+            const sidebarEl = document.getElementById('sidebar');
+            if (sidebarEl && window.innerWidth <= 768) {
+                sidebarEl.classList.remove('open');
+            }
+            
+            // Load section data
+            setTimeout(() => {
+                const loaders = {
+                    pos: () => loadPOSProducts('butchery'),
+                    orders: () => loadOrders(),
+                    inventory: () => loadInventory(),
+                    users: () => loadUsers(),
+                    products: () => loadProducts(),
+                    customers: () => loadCustomers(),
+                    suppliers: () => loadSuppliers(),
+                    kitchen: () => loadKitchenOrders(),
+                    dashboard: () => loadDashboard(),
+                    profit: () => loadProfitData(),
+                    audit: () => loadAuditLogs()
+                };
+                if (loaders[section]) loaders[section]();
+            }, 50);
+        });
+    });
+    
+    console.log('✅ Sidebar initialized');
+}
+
+// ============================================================
+//  CLOSE SIDEBAR ON OUTSIDE CLICK (Mobile)
+// ============================================================
+
+function initSidebarOutsideClick() {
+    const sidebar = document.getElementById('sidebar');
+    const mainContent = document.querySelector('.main-content');
+    
+    if (sidebar && mainContent) {
+        mainContent.addEventListener('click', function(e) {
+            if (window.innerWidth <= 768 && sidebar.classList.contains('open')) {
+                sidebar.classList.remove('open');
+            }
+        });
+    }
+}
+
+// ============================================================
+//  SIDEBAR RESPONSIVE - Auto close on resize
+// ============================================================
+
+function initSidebarResponsive() {
+    window.addEventListener('resize', function() {
+        const sidebar = document.getElementById('sidebar');
+        if (window.innerWidth > 768 && sidebar) {
+            sidebar.classList.remove('open');
+        }
+    });
+}
+
+// ============================================================
+//  INIT - UPDATED WITH SIDEBAR
 // ============================================================
 document.addEventListener('DOMContentLoaded', async () => {
     console.log('🚀 Admin dashboard loading...');
+    
+    // ===== INIT SIDEBAR =====
+    initSidebar();
+    initSidebarOutsideClick();
+    initSidebarResponsive();
     
     // Theme toggle
     const themeToggle = document.getElementById('themeToggle');
@@ -2649,7 +2782,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         );
     }, 100);
 });
-
 // ============================================================
 //  EXPOSE GLOBALS
 // ============================================================
