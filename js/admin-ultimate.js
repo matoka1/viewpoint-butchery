@@ -609,6 +609,11 @@ async function initiatePayHeroSTK(phone, amount, orderId, description = 'Viewpoi
 
 async function checkPayHeroStatus(transactionId) {
     try {
+        const { d// ============================================================
+//  CHECK PAYHERO STATUS - FIXED (REAL API)
+// ============================================================
+async function checkPayHeroStatus(transactionId) {
+    try {
         const { data, error } = await supabaseClient.functions.invoke('payhero', {
             body: {
                 action: 'status',
@@ -618,17 +623,36 @@ async function checkPayHeroStatus(transactionId) {
         
         if (error) throw error;
         
-        return {
-            success: data.success,
-            status: data.status || 'pending',
-            message: data.message || 'Status check complete',
-            receipt_number: data.receipt_number || null,
-            amount: data.amount || 0,
-            phone: data.phone || null
-        };
+        console.log('🔍 Status response:', data);
+        
+        // ✅ Check if transaction is completed
+        if (data && data.success === true && data.status === 'completed') {
+            return {
+                success: true,
+                status: 'completed',
+                message: data.message || 'Payment confirmed ✅',
+                receipt_number: data.receipt_number || null,
+                amount: data.amount || 0,
+                phone: data.phone || null
+            };
+        } else if (data && data.status === 'failed') {
+            return {
+                success: false,
+                status: 'failed',
+                message: data.message || 'Payment failed ❌',
+                receipt_number: null
+            };
+        } else {
+            return {
+                success: false,
+                status: 'pending',
+                message: data?.message || 'Waiting for confirmation...',
+                receipt_number: null
+            };
+        }
         
     } catch (error) {
-        console.error('PayHero status check error:', error);
+        console.error('❌ Status check error:', error);
         return {
             success: false,
             status: 'error',
@@ -735,92 +759,105 @@ async function processPaymentPOS(method) {
                 `Viewpoint Order #${order.order_number || order.id.slice(0,8)}`
             );
 
-            if (stkResult.success) {
-                await supabaseClient.from('payments').update({
-                    transaction_reference: stkResult.transaction_id
-                }).eq('id', payment.id);
+            // ============================================================
+//  PROCESS PAYMENT - FIXED POLLING
+// ============================================================
+// In processPaymentPOS, find the polling section and replace:
 
-                let attempts = 0;
-                const maxAttempts = 15;
-                let paymentConfirmed = false;
+if (stkResult.success) {
+    await supabaseClient.from('payments').update({
+        transaction_reference: stkResult.transaction_id
+    }).eq('id', payment.id);
 
-                while (attempts < maxAttempts && !paymentConfirmed) {
-                    await new Promise(resolve => setTimeout(resolve, 2000));
-                    attempts++;
+    // ✅ INCREASE POLLING TIME
+    let attempts = 0;
+    const maxAttempts = 25;  // ← Changed from 15 to 25
+    let paymentConfirmed = false;
 
-                    const statusResult = await checkPayHeroStatus(stkResult.transaction_id);
+    while (attempts < maxAttempts && !paymentConfirmed) {
+        await new Promise(resolve => setTimeout(resolve, 1500)); // ← Changed from 2000ms to 1500ms
+        attempts++;
 
-                    if (statusResult.success && statusResult.status === 'completed') {
-                        paymentConfirmed = true;
+        const statusResult = await checkPayHeroStatus(stkResult.transaction_id);
 
-                        await supabaseClient.from('mpesa_transactions').insert({
-                            payment_id: payment.id,
-                            phone_number: phone,
-                            amount: total,
-                            mpesa_receipt_number: statusResult.receipt_number || stkResult.receipt_number,
-                            result_code: 0,
-                            result_description: 'Success',
-                            status: 'completed'
-                        });
+        if (statusResult.success && statusResult.status === 'completed') {
+            paymentConfirmed = true;
 
-                        await completePayment(order.id, payment.id, total, items, phone);
+            await supabaseClient.from('mpesa_transactions').insert({
+                payment_id: payment.id,
+                phone_number: phone,
+                amount: total,
+                mpesa_receipt_number: statusResult.receipt_number || stkResult.receipt_number,
+                result_code: 0,
+                result_description: 'Success',
+                status: 'completed'
+            });
 
-                        content.innerHTML = `
-                            <div class="status-icon success">✅</div>
-                            <p class="status-text">Payment Successful! 🎉</p>
-                            <p class="status-sub">Order #${order.order_number || order.id.slice(0,8)}</p>
-                            <p class="status-sub">Amount: KES ${total.toFixed(2)}</p>
-                            <p class="status-sub">M-Pesa: ${statusResult.receipt_number || stkResult.receipt_number || 'N/A'}</p>
-                        `;
+            await completePayment(order.id, payment.id, total, items, phone);
 
-                        showToast(`✅ Payment successful!`, 'success');
-                        addNotification('Payment Successful', `Order #${order.order_number || order.id.slice(0,8)} - KES ${total.toFixed(2)}`, 'success', 'orders');
+            content.innerHTML = `
+                <div class="status-icon success">✅</div>
+                <p class="status-text">Payment Successful! 🎉</p>
+                <p class="status-sub">Order #${order.order_number || order.id.slice(0,8)}</p>
+                <p class="status-sub">Amount: KES ${total.toFixed(2)}</p>
+                <p class="status-sub">M-Pesa: ${statusResult.receipt_number || stkResult.receipt_number || 'N/A'}</p>
+            `;
 
-                        setTimeout(() => {
-                            modal.classList.remove('active');
-                            generateAdminReceipt(order.id);
-                            cart = [];
-                            updateCartDisplayPOS();
-                            document.getElementById('posPhone').value = '';
-                            loadPOSProducts(posMode);
-                            loadDashboard();
-                            resetSessionTimer();
-                        }, 2000);
+            showToast(`✅ Payment successful!`, 'success');
+            addNotification('Payment Successful', `Order #${order.order_number || order.id.slice(0,8)} - KES ${total.toFixed(2)}`, 'success', 'orders');
 
-                        break;
+            setTimeout(() => {
+                modal.classList.remove('active');
+                generateAdminReceipt(order.id);
+                cart = [];
+                updateCartDisplayPOS();
+                document.getElementById('posPhone').value = '';
+                loadPOSProducts(posMode);
+                loadDashboard();
+                resetSessionTimer();
+            }, 2000);
 
-                    } else if (statusResult.status === 'failed' || statusResult.status === 'cancelled') {
-                        paymentConfirmed = true;
-                        await supabaseClient.from('orders').update({
-                            status: 'cancelled',
-                            payment_status: 'failed'
-                        }).eq('id', order.id);
-                        await supabaseClient.from('payments').update({
-                            status: 'failed'
-                        }).eq('id', payment.id);
+            break;
 
-                        content.innerHTML = `
-                            <div class="status-icon failed">❌</div>
-                            <p class="status-text">Payment Failed</p>
-                            <p class="status-sub">${statusResult.message || 'Transaction was not completed'}</p>
-                            <p class="status-sub" style="font-size:12px;color:var(--text-muted);margin-top:8px;">Please try again</p>
-                        `;
+        } else if (statusResult.status === 'failed' || statusResult.status === 'cancelled') {
+            paymentConfirmed = true;
+            await supabaseClient.from('orders').update({
+                status: 'cancelled',
+                payment_status: 'failed'
+            }).eq('id', order.id);
+            await supabaseClient.from('payments').update({
+                status: 'failed'
+            }).eq('id', payment.id);
 
-                        showToast('❌ Payment failed. Please try again.', 'error');
-                        addNotification('Payment Failed', `Order #${order.order_number || order.id.slice(0,8)} failed. Please try again.`, 'error');
-                        setTimeout(() => modal.classList.remove('active'), 2000);
-                        break;
-                    }
+            content.innerHTML = `
+                <div class="status-icon failed">❌</div>
+                <p class="status-text">Payment Failed</p>
+                <p class="status-sub">${statusResult.message || 'Transaction was not completed'}</p>
+                <p class="status-sub" style="font-size:12px;color:var(--text-muted);margin-top:8px;">Please try again</p>
+            `;
 
-                    if (!paymentConfirmed) {
-                        content.innerHTML = `
-                            <div class="spinner"></div>
-                            <p class="status-text">⏳ Waiting for payment confirmation... (${attempts}/${maxAttempts})</p>
-                            <p class="status-sub">Please check your phone and enter your PIN</p>
-                            <p class="status-sub" style="font-size:12px;color:var(--text-muted);margin-top:8px;">🔗 ${PAYHERO_CONFIG.lipwaLink}</p>
-                        `;
-                    }
-                }
+            showToast('❌ Payment failed. Please try again.', 'error');
+            addNotification('Payment Failed', `Order #${order.order_number || order.id.slice(0,8)} failed. Please try again.`, 'error');
+            setTimeout(() => modal.classList.remove('active'), 2000);
+            break;
+        }
+
+        // ✅ Update progress with remaining time
+        if (!paymentConfirmed) {
+            const remaining = Math.round((maxAttempts - attempts) * 1.5);
+            content.innerHTML = `
+                <div class="spinner"></div>
+                <p class="status-text">⏳ Waiting for payment confirmation... (${attempts}/${maxAttempts})</p>
+                <p class="status-sub">Please check your phone and enter your PIN</p>
+                <p class="status-sub" style="font-size:12px;color:var(--text-muted);margin-top:8px;">
+                    ⏱️ ${remaining} seconds remaining
+                </p>
+                <p class="status-sub" style="font-size:12px;color:var(--text-muted);margin-top:4px;">
+                    🔗 <a href="${PAYHERO_CONFIG.lipwaLink}" target="_blank" style="color:var(--primary);">Click here if you didn't receive the STK Push</a>
+                </p>
+            `;
+        }
+    }
 
                 if (!paymentConfirmed) {
                     content.innerHTML = `
