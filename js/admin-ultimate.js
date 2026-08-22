@@ -31,25 +31,245 @@ let currentProductImageFile = null;
 let currentProductEmoji = '📦';
 
 // ============================================================
-//  EMOJIS
+//  EMOJIS - COMPLETE WITH ALL KENYAN FOODS
 // ============================================================
+
 const AVAILABLE_EMOJIS = [
-    '🥩', '🍗', '🐄', '🐖', '🐑', '🐐', '🐓', '🦃', '🐟', '🦐', '🦞', '🦀',
-    '🍖', '🍔', '🌭', '🍕', '🧆', '🌮', '🌯', '🥙', '🍲', '🍛', '🍣', '🍱', '🥘',
+    // 🥩 MEAT & PROTEIN
+    '🥩', '🍗', '🥓', '🍖', '🐄', '🐖', '🐑', '🐐', '🐓', '🦃', 
+    '🐟', '🦐', '🦞', '🦀', '🐙', '🦑', '🐚', '🦪', '🐠', '🐡',
+    
+    // 🍔 FAST FOOD & MEALS
+    '🍔', '🌭', '🍕', '🧆', '🌮', '🌯', '🥙', '🧇', '🥞', '🥪',
+    '🍟', '🍝', '🍜', '🍲', '🍛', '🍣', '🍱', '🥘', '🍳', '🥚',
+    
+    // 🥗 VEGETABLES & SALADS
     '🥬', '🥒', '🥑', '🍅', '🌽', '🥕', '🧅', '🧄', '🫑', '🌶️',
+    '🥦', '🥗', '🥔', '🍠', '🥜', '🌰', '🫘', '🍆',
+    
+    // 🍎 FRUITS
     '🍎', '🍊', '🍋', '🍌', '🍉', '🍇', '🍓', '🫐', '🍑', '🍒',
-    '🥤', '🧃', '🧉', '🍵', '☕', '🍺', '🍷', '🥂', '🥛',
-    '🍞', '🧇', '🥞', '🧈', '🧀', '🍳', '🥓', '🥩', '🍝', '🍜',
-    '🍦', '🍧', '🍨', '🍩', '🍪', '🧁', '🎂', '🍰',
-    '📦', '🏷️', '⭐', '💎', '🎯', '🔥', '👍', '👌'
+    '🍍', '🥭', '🍑', '🍐', '🍏', '🍈', '🥥', '🥝',
+    
+    // 🥤 DRINKS
+    '🥤', '🧃', '🧉', '🍵', '☕', '🍺', '🍷', '🥂', '🥛', '🧋',
+    '🍶', '🍾', '🧊', '🍹', '🍸', '🥃', '🍻',
+    
+    // 🍞 BREADS & BAKED
+    '🍞', '🥐', '🥖', '🫓', '🥨', '🥯', '🧇', '🥞', '🧁', '🍰',
+    '🎂', '🍩', '🍪', '🥮', '🍥', '🥠', '🥟', '🍘', '🍙', '🍚',
+    
+    // 🍦 DESSERTS
+    '🍦', '🍧', '🍨', '🍩', '🍪', '🧁', '🎂', '🍰', '🍫', '🍬',
+    '🍭', '🍮', '🍯', '🥮', '🍡',
+    
+    // 🥘 TRADITIONAL/AFRICAN
+    '🥘', '🍲', '🍛', '🍣', '🍱', '🥡', '🍜', '🍝', '🍤', '🍥',
+    '🥠', '🥟', '🍘', '🍙', '🍚', '🫓', '🌽', '🥔',
+    
+    // 🧂 SPICES
+    '🧂', '🧈', '🧀', '🧅', '🧄', '🫑', '🌶️', '🥫', '🫙', '🌿',
+    
+    // 🍽️ UTENSILS
+    '🍽️', '🥄', '🍴', '🥢', '🔪', '🍶', '🧂', '🥫', '🫙', '🍾',
+    
+    // 📦 GENERAL
+    '📦', '🏷️', '⭐', '💎', '🎯', '🔥', '👍', '👌', '✨', '🌟'
 ];
 
 function getEmoji(name) {
     const emojis = {
-        'Beef': '🥩', 'Goat Meat': '🐐', 'Chicken': '🍗', 'Liver': '❤️',
-        'Minced Meat': '🥩', 'Sausages': '🌭', 'Ugali': '🌽', 'Beef Stew': '🍲',
-        'Chapati': '🫓', 'Rice': '🍚', 'Chips': '🍟', 'Soda': '🥤',
-        'Water': '💧', 'default': '📦'
+        // 🥩 MEATS
+        'Beef': '🥩',
+        'Goat Meat': '🐐',
+        'Chicken': '🍗',
+        'Liver': '❤️',
+        'Minced Meat': '🥩',
+        'Sausages': '🌭',
+        'Pork': '🐖',
+        'Mutton': '🐑',
+        'Turkey': '🦃',
+        'Duck': '🦆',
+        'Rabbit': '🐇',
+        'Bacon': '🥓',
+        'Ham': '🥩',
+        'Meat': '🥩',
+        'Steak': '🥩',
+        'Ribs': '🍖',
+        'Wings': '🍗',
+        'Kuku': '🍗',
+        'Nyama': '🥩',
+        'Mbuzi': '🐐',
+        'Ng\'ombe': '🐄',
+        
+        // 🐟 SEAFOOD
+        'Fish': '🐟',
+        'Tilapia': '🐟',
+        'Salmon': '🐟',
+        'Shrimp': '🦐',
+        'Lobster': '🦞',
+        'Crab': '🦀',
+        'Octopus': '🐙',
+        'Squid': '🦑',
+        'Samaki': '🐟',
+        'Kamba': '🦐',
+        'Omena': '🐟',
+        
+        // 🍲 KENYAN DISHES
+        'Beef Stew': '🍲',
+        'Stew': '🍲',
+        'Ugali': '🌽',
+        'Chapati': '🫓',
+        'Rice': '🍚',
+        'Pilau': '🍛',
+        'Matoke': '🍌',
+        'Githeri': '🥘',
+        'Sukuma Wiki': '🥬',
+        'Mukimo': '🥔',
+        'Kachumbari': '🥗',
+        'Mandazi': '🥨',
+        'Samosas': '🥟',
+        'Bhajias': '🍤',
+        'Nyama Choma': '🍖',
+        'Irio': '🥔',
+        'Matumbo': '🍲',
+        'Kienyeji': '🍗',
+        'Mshikaki': '🍖',
+        'Biryani': '🍛',
+        'Curry': '🍛',
+        'Soup': '🍜',
+        'Porridge': '🥣',
+        'Uji': '🥣',
+        'Chips': '🍟',
+        'Fries': '🍟',
+        'Mashed Potatoes': '🥔',
+        'Cabbage': '🥬',
+        'Spinach': '🥬',
+        'Kale': '🥬',
+        
+        // 🍔 FAST FOOD
+        'Burger': '🍔',
+        'Pizza': '🍕',
+        'Hot Dog': '🌭',
+        'Taco': '🌮',
+        'Burrito': '🌯',
+        'Sandwich': '🥪',
+        'Wrap': '🌯',
+        'Pancakes': '🥞',
+        'Waffles': '🧇',
+        'Noodles': '🍜',
+        'Pasta': '🍝',
+        'Spaghetti': '🍝',
+        'Lasagna': '🍝',
+        'Salad': '🥗',
+        'Omelette': '🍳',
+        'Eggs': '🥚',
+        'Fried Rice': '🍚',
+        
+        // 🥗 VEGETABLES
+        'Onions': '🧅',
+        'Garlic': '🧄',
+        'Pepper': '🫑',
+        'Chili': '🌶️',
+        'Carrots': '🥕',
+        'Potatoes': '🥔',
+        'Tomatoes': '🍅',
+        'Avocado': '🥑',
+        'Lettuce': '🥬',
+        'Cucumber': '🥒',
+        'Corn': '🌽',
+        'Beans': '🫘',
+        'Peas': '🫘',
+        'Broccoli': '🥦',
+        'Eggplant': '🍆',
+        'Pumpkin': '🎃',
+        
+        // 🍎 FRUITS
+        'Apple': '🍎',
+        'Orange': '🍊',
+        'Lemon': '🍋',
+        'Banana': '🍌',
+        'Watermelon': '🍉',
+        'Grapes': '🍇',
+        'Strawberry': '🍓',
+        'Blueberry': '🫐',
+        'Peach': '🍑',
+        'Cherry': '🍒',
+        'Pineapple': '🍍',
+        'Mango': '🥭',
+        'Pear': '🍐',
+        'Kiwi': '🥝',
+        'Passion Fruit': '🍊',
+        'Pawpaw': '🍊',
+        'Coconut': '🥥',
+        'Papaya': '🍈',
+        'Guava': '🍐',
+        'Lime': '🍋',
+        
+        // 🥤 DRINKS
+        'Soda': '🥤',
+        'Water': '💧',
+        'Juice': '🧃',
+        'Tea': '🍵',
+        'Coffee': '☕',
+        'Beer': '🍺',
+        'Wine': '🍷',
+        'Smoothie': '🥤',
+        'Milkshake': '🥛',
+        'Cocktail': '🍹',
+        'Milk': '🥛',
+        'Fruit Juice': '🧃',
+        'Lemonade': '🍋',
+        'Chai': '🍵',
+        'Maziwa': '🥛',
+        
+        // 🍞 CARBS
+        'Bread': '🍞',
+        'Chapati': '🫓',
+        'Rice': '🍚',
+        'Pasta': '🍝',
+        'Noodles': '🍜',
+        'Porridge': '🥣',
+        'Chips': '🍟',
+        'Ugali': '🌽',
+        'Buns': '🍞',
+        'Doughnuts': '🍩',
+        'Cake': '🍰',
+        'Pastry': '🥐',
+        'Croissant': '🥐',
+        'Bagel': '🥯',
+        'Toast': '🍞',
+        
+        // 🍦 DESSERTS
+        'Ice Cream': '🍦',
+        'Cake': '🍰',
+        'Pancakes': '🥞',
+        'Waffles': '🧇',
+        'Donuts': '🍩',
+        'Cookies': '🍪',
+        'Pudding': '🍮',
+        'Honey': '🍯',
+        'Chocolate': '🍫',
+        'Candy': '🍬',
+        'Lollipop': '🍭',
+        'Pie': '🥧',
+        'Muffin': '🧁',
+        'Cupcake': '🧁',
+        'Brownie': '🍫',
+        
+        // 🌿 SPICES
+        'Coriander': '🌿',
+        'Basil': '🌿',
+        'Mint': '🌿',
+        'Rosemary': '🌿',
+        'Thyme': '🌿',
+        'Salt': '🧂',
+        'Pepper': '🧂',
+        'Cinnamon': '🧂',
+        'Ginger': '🧄',
+        
+        // GENERAL
+        'default': '📦'
     };
     return emojis[name] || emojis['default'];
 }
