@@ -397,7 +397,26 @@
     </div>
     <div class="card"><div class="card-header"><h3>📋 Recent Orders</h3><button class="card-action" onclick="navigateTo('orders')">View All →</button></div><div id="recentOrdersTable"><div class="empty-state"><p>Loading orders...</p></div></div></div>
 </section>
+ <!-- ===== POS ===== -->
+        <section id="posSection" class="section-page">
+            <div class="card"><div class="card-header"><h3>🛒 Point of Sale</h3><div style="display:flex;gap:8px;"><button class="btn btn-sm btn-primary" onclick="switchPOS('butchery')"><i class="fas fa-drumstick-bite"></i> Butchery</button><button class="btn btn-sm btn-success" onclick="switchPOS('restaurant')"><i class="fas fa-utensils"></i> Restaurant</button></div></div><div id="posContainer"><div class="empty-state"><i class="fas fa-store"></i><p>Select a category to start</p></div></div></div>
+        </section>
 
+        <!-- ===== ORDERS ===== -->
+        <section id="ordersSection" class="section-page">
+            <div class="card"><div class="card-header"><h3>📋 All Orders</h3><span class="badge primary" id="orderCount">0</span></div>
+                <div class="filter-tabs" id="orderFilters">
+                    <button class="filter-btn active" data-filter="all">All <span class="count" id="countAll">0</span></button>
+                    <button class="filter-btn" data-filter="butchery">🥩 Butchery <span class="count" id="countButchery">0</span></button>
+                    <button class="filter-btn" data-filter="restaurant">🍽️ Restaurant <span class="count" id="countRestaurant">0</span></button>
+                    <button class="filter-btn" data-filter="paid">💰 Paid <span class="count" id="countPaid">0</span></button>
+                    <button class="filter-btn" data-filter="preparing">🔪 Preparing <span class="count" id="countPreparing">0</span></button>
+                    <button class="filter-btn" data-filter="ready">✅ Ready <span class="count" id="countReady">0</span></button>
+                    <button class="filter-btn" data-filter="completed">🏁 Completed <span class="count" id="countCompleted">0</span></button>
+                </div>
+                <div id="ordersContainer"><div class="empty-state"><i class="fas fa-inbox"></i><p>No orders found</p></div></div>
+            </div>
+        </section>
         <!-- ===== PRODUCTS ===== -->
         <section id="productsSection" class="section-page">
             <div class="card"><div class="card-header"><h3>📦 Products</h3><button class="btn btn-primary" onclick="openModal('productModal')"><i class="fas fa-plus"></i> Add Product</button></div><div id="productsTable"><div class="empty-state"><p>Loading products...</p></div></div></div>
