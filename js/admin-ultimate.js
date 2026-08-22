@@ -607,9 +607,7 @@ async function initiatePayHeroSTK(phone, amount, orderId, description = 'Viewpoi
     }
 }
 
-async function checkPayHeroStatus(transactionId) {
-    try {
-        const { d// ============================================================
+// ============================================================
 //  CHECK PAYHERO STATUS - FIXED (REAL API)
 // ============================================================
 async function checkPayHeroStatus(transactionId) {
