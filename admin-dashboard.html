@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Viewpoint POS - Ultimate Admin Dashboard</title>
-    <!-- REMOVED: manifest.json, icon-192.png, theme-color -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -495,8 +494,8 @@
     <!-- Product Modal -->
     <div class="modal-overlay" id="productModal"><div class="modal"><div class="modal-header"><h3>📦 <span id="productModalTitle">Add Product</span></h3><button class="close" onclick="closeModal('productModal')">&times;</button></div><form id="productForm"><input type="hidden" id="productId"><div class="form-group"><label>Name *</label><input type="text" id="productName" required></div><div class="form-group"><label>Type *</label><select id="productType" required><option value="butchery">🥩 Butchery</option><option value="restaurant">🍽️ Restaurant</option></select></div><div class="form-group"><label>Selling Price (KES) *</label><input type="number" id="productPrice" step="0.01" required></div><div class="form-group"><label>Cost Price (KES)</label><input type="number" id="productCost" step="0.01"></div><div class="form-group"><label>Unit *</label><input type="text" id="productUnit" value="KG" required></div><div class="form-group"><label>Stock Quantity</label><input type="number" id="productStock" step="0.001"></div><div class="form-group"><label>Reorder Level</label><input type="number" id="productReorder" step="0.001"></div><div class="form-group"><label>Status</label><select id="productStatus"><option value="active">✅ Active</option><option value="inactive">❌ Inactive</option></select></div><button type="submit" class="btn btn-primary btn-block">💾 Save Product</button></form></div></div>
 
-    <!-- User Modal -->
-    <div class="modal-overlay" id="userModal"><div class="modal"><div class="modal-header"><h3>👤 <span id="userModalTitle">Add New User</span></h3><button class="close" onclick="closeModal('userModal')">&times;</button></div><form id="userForm"><div class="form-group"><label>Full Name *</label><input type="text" id="userFullName" required></div><div class="form-group"><label>Email *</label><input type="email" id="userEmail" required></div><div class="form-group"><label>Password *</label><input type="password" id="userPassword" minlength="6" required></div><div class="form-group"><label>Phone</label><input type="text" id="userPhone"></div><div class="form-group"><label>Role *</label><select id="userRole" required><option value="">Select role...</option><option value="1">👑 Admin</option><option value="2">💰 Cashier</option><option value="3">🥩 Butcher</option><option value="4">🍳 Kitchen</option></select></div><div class="form-group"><label>2FA Enabled</label><select id="user2FA"><option value="0">❌ Disabled</option><option value="1">✅ Enabled</option></select></div><div class="form-group"><label>Status</label><select id="userStatus"><option value="active">✅ Active</option><option value="inactive">❌ Inactive</option></select></div><button type="submit" class="btn btn-primary btn-block" id="userSubmitBtn"><i class="fas fa-save"></i> Create User</button></form></div></div>
+    <!-- User Modal with PIN -->
+    <div class="modal-overlay" id="userModal"><div class="modal"><div class="modal-header"><h3>👤 <span id="userModalTitle">Add New User</span></h3><button class="close" onclick="closeModal('userModal')">&times;</button></div><form id="userForm"><div class="form-group"><label>Full Name *</label><input type="text" id="userFullName" required></div><div class="form-group"><label>Email *</label><input type="email" id="userEmail" required></div><div class="form-group"><label>Password *</label><input type="password" id="userPassword" minlength="6" required></div><div class="form-group"><label>Phone</label><input type="text" id="userPhone"></div><div class="form-group"><label>Role *</label><select id="userRole" required><option value="">Select role...</option><option value="1">👑 Admin</option><option value="2">💰 Cashier</option><option value="3">🥩 Butcher</option><option value="4">🍳 Kitchen</option></select></div><div class="form-group"><label>Login PIN (4 digits) *</label><input type="password" id="userPin" maxlength="4" pattern="[0-9]{4}" placeholder="Enter 4-digit PIN" required><small style="color:var(--text-muted);font-size:12px;">Must be exactly 4 digits</small></div><div class="form-group"><label>2FA Enabled</label><select id="user2FA"><option value="0">❌ Disabled</option><option value="1">✅ Enabled</option></select></div><div class="form-group"><label>Status</label><select id="userStatus"><option value="active">✅ Active</option><option value="inactive">❌ Inactive</option></select></div><button type="submit" class="btn btn-primary btn-block" id="userSubmitBtn"><i class="fas fa-save"></i> Create User</button></form></div></div>
 
     <!-- Customer Modal -->
     <div class="modal-overlay" id="customerModal"><div class="modal"><div class="modal-header"><h3>👤 <span id="customerModalTitle">Add Customer</span></h3><button class="close" onclick="closeModal('customerModal')">&times;</button></div><form id="customerForm"><div class="form-group"><label>Full Name *</label><input type="text" id="customerName" required></div><div class="form-group"><label>Phone *</label><input type="tel" id="customerPhone" required></div><div class="form-group"><label>Email</label><input type="email" id="customerEmail"></div><div class="form-group"><label>Loyalty Points</label><input type="number" id="customerPoints" value="0"></div><button type="submit" class="btn btn-primary btn-block">💾 Save Customer</button></form></div></div>
@@ -504,13 +503,13 @@
     <!-- Supplier Modal -->
     <div class="modal-overlay" id="supplierModal"><div class="modal"><div class="modal-header"><h3>🚚 <span id="supplierModalTitle">Add Supplier</span></h3><button class="close" onclick="closeModal('supplierModal')">&times;</button></div><form id="supplierForm"><div class="form-group"><label>Company Name *</label><input type="text" id="supplierCompany" required></div><div class="form-group"><label>Contact Person</label><input type="text" id="supplierContact"></div><div class="form-group"><label>Phone *</label><input type="tel" id="supplierPhone" required></div><div class="form-group"><label>Email</label><input type="email" id="supplierEmail"></div><div class="form-group"><label>Products Supplied</label><input type="text" id="supplierProducts" placeholder="e.g., Beef, Chicken"></div><button type="submit" class="btn btn-primary btn-block">💾 Save Supplier</button></form></div></div>
 
-    <!-- Stock Modal -->
-    <div class="modal-overlay" id="stockModal"><div class="modal"><div class="modal-header"><h3>📦 Adjust Stock</h3><button class="close" onclick="closeModal('stockModal')">&times;</button></div><form id="stockForm"><div class="form-group"><label>Product *</label><select id="stockProduct" required></select></div><div class="form-group"><label>Adjustment Type *</label><select id="adjustmentType" required><option value="add">➕ Add Stock</option><option value="remove">➖ Remove Stock</option></select></div><div class="form-group"><label>Quantity *</label><input type="number" id="adjustmentQty" step="0.001" required></div><div class="form-group"><label>Reason</label><input type="text" id="adjustmentReason" placeholder="e.g., Restock, Spoilage"></div><button type="submit" class="btn btn-primary btn-block">✅ Apply Adjustment</button></form></div></div>
+    <!-- Stock Modal - Fixed dropdown -->
+    <div class="modal-overlay" id="stockModal"><div class="modal"><div class="modal-header"><h3>📦 Adjust Stock</h3><button class="close" onclick="closeModal('stockModal')">&times;</button></div><form id="stockForm"><div class="form-group"><label>Product *</label><select id="stockProduct" required><option value="">Loading products...</option></select></div><div class="form-group"><label>Adjustment Type *</label><select id="adjustmentType" required><option value="add">➕ Add Stock</option><option value="remove">➖ Remove Stock</option></select></div><div class="form-group"><label>Quantity *</label><input type="number" id="adjustmentQty" step="0.001" required></div><div class="form-group"><label>Reason</label><input type="text" id="adjustmentReason" placeholder="e.g., Restock, Spoilage"></div><button type="submit" class="btn btn-primary btn-block">✅ Apply Adjustment</button></form></div></div>
 
     <!-- Order Detail Modal -->
     <div class="modal-overlay" id="orderDetailModal"><div class="modal"><div class="modal-header"><h3 id="orderDetailTitle">📋 Order Details</h3><button class="close" onclick="closeModal('orderDetailModal')">&times;</button></div><div id="orderDetailContent"></div></div></div>
 
-    <!-- ===== EDIT USER MODAL ===== -->
+    <!-- Edit User Modal with PIN -->
     <div class="modal-overlay" id="editUserModal">
         <div class="modal">
             <div class="modal-header">
@@ -541,6 +540,11 @@
                     </select>
                 </div>
                 <div class="form-group">
+                    <label>Login PIN (4 digits)</label>
+                    <input type="password" id="editUserPin" maxlength="4" pattern="[0-9]{4}" placeholder="Enter 4-digit PIN">
+                    <small style="color:var(--text-muted);font-size:12px;">Leave blank to keep current PIN</small>
+                </div>
+                <div class="form-group">
                     <label>2FA Enabled</label>
                     <select id="editUser2FA">
                         <option value="0">❌ Disabled</option>
@@ -561,7 +565,7 @@
         </div>
     </div>
 
-    <!-- ===== RECEIPT MODAL ===== -->
+    <!-- Receipt Modal -->
     <div class="modal-overlay" id="receiptModal">
         <div class="modal">
             <div class="modal-header">
@@ -580,125 +584,126 @@
         </div>
     </div>
 
-   <!-- ===== STK PUSH PAYMENT MODAL ===== -->
-<div class="modal-overlay" id="paymentModal">
-    <div class="modal">
-        <div class="modal-header">
-            <h3 id="paymentModalTitle">⏳ Processing Payment</h3>
-            <button class="close" onclick="closeModal('paymentModal')">&times;</button>
-        </div>
-        <div id="paymentContent" class="payment-status">
-            <div class="spinner"></div>
-            <p class="status-text">Sending STK Push...</p>
-            <p class="status-sub" id="paymentDetails">Please wait</p>
-        </div>
-        <div style="display:flex;gap:10px;margin-top:16px;">
-            <button class="btn btn-danger" style="flex:1;" onclick="cancelPayment()">
-                <i class="fas fa-times"></i> Cancel Payment
-            </button>
-            <button class="btn btn-outline" style="flex:1;" onclick="closeModal('paymentModal')">
-                <i class="fas fa-times"></i> Close
-            </button>
+    <!-- STK PUSH PAYMENT MODAL -->
+    <div class="modal-overlay" id="paymentModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 id="paymentModalTitle">⏳ Processing Payment</h3>
+                <button class="close" onclick="closeModal('paymentModal')">&times;</button>
+            </div>
+            <div id="paymentContent" class="payment-status">
+                <div class="spinner"></div>
+                <p class="status-text">Sending STK Push...</p>
+                <p class="status-sub" id="paymentDetails">Please wait</p>
+            </div>
+            <div style="display:flex;gap:10px;margin-top:16px;">
+                <button class="btn btn-danger" style="flex:1;" onclick="cancelPayment()">
+                    <i class="fas fa-times"></i> Cancel Payment
+                </button>
+                <button class="btn btn-outline" style="flex:1;" onclick="closeModal('paymentModal')">
+                    <i class="fas fa-times"></i> Close
+                </button>
+            </div>
         </div>
     </div>
-</div>
 
     <!-- Toast Container -->
     <div class="toast-container" id="toastContainer"></div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/admin-ultimate.js"></script>
-   <!-- Auth Check - Fixes PIN Login Issue -->
-<script>
-    (function() {
-        'use strict';
-        
-        const SESSION_KEY = 'viewpoint_session';
-        const LOGIN_URL = 'login.html';
-        
-        function checkAuth() {
-            try {
-                const stored = localStorage.getItem(SESSION_KEY);
-                if (!stored) {
-                    console.log('No session found, redirecting to login...');
-                    window.location.href = LOGIN_URL;
-                    return;
-                }
-                
-                const session = JSON.parse(stored);
-                if (!session || !session.user) {
-                    localStorage.removeItem(SESSION_KEY);
-                    window.location.href = LOGIN_URL;
-                    return;
-                }
-                
-                // Check if session expired (24 hours)
-                const maxAge = 24 * 60 * 60 * 1000;
-                if (Date.now() - session.loginTime > maxAge) {
-                    localStorage.removeItem(SESSION_KEY);
-                    window.location.href = LOGIN_URL;
-                    return;
-                }
-                
-                // User is authenticated
-                console.log('✅ Authenticated as:', session.user.email);
-                console.log('Login method:', session.loginMethod);
-                
-                // Update UI with user info
-                const userNameEl = document.getElementById('userName');
-                const userRoleEl = document.querySelector('.user-role');
-                const userAvatar = document.getElementById('userAvatar');
-                
-                if (userNameEl) {
-                    userNameEl.textContent = session.user.full_name || session.user.email.split('@')[0];
-                }
-                
-                if (userRoleEl) {
-                    userRoleEl.textContent = session.user.roles?.name || 'Cashier';
-                }
-                
-                if (userAvatar) {
-                    const name = session.user.full_name || session.user.email || 'User';
-                    userAvatar.textContent = name.charAt(0).toUpperCase();
-                }
-                
-            } catch (e) {
-                console.error('Auth check error:', e);
-                localStorage.removeItem(SESSION_KEY);
-                window.location.href = LOGIN_URL;
-            }
-        }
-        
-        // Logout function
-        window.logout = function() {
-            localStorage.removeItem(SESSION_KEY);
-            if (typeof supabase !== 'undefined' && supabase.auth) {
-                supabase.auth.signOut().catch(() => {});
-            }
-            window.location.href = LOGIN_URL;
-        };
-        
-        // Run auth check
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', checkAuth);
-        } else {
-            checkAuth();
-        }
-        
-        // Handle logout button click
-        document.addEventListener('DOMContentLoaded', function() {
-            const logoutBtn = document.getElementById('logoutBtn');
-            if (logoutBtn) {
-                logoutBtn.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    if (confirm('Are you sure you want to logout?')) {
-                        window.logout();
+    
+    <!-- Auth Check - Fixes PIN Login Issue -->
+    <script>
+        (function() {
+            'use strict';
+            
+            const SESSION_KEY = 'viewpoint_session';
+            const LOGIN_URL = 'login.html';
+            
+            function checkAuth() {
+                try {
+                    const stored = localStorage.getItem(SESSION_KEY);
+                    if (!stored) {
+                        console.log('No session found, redirecting to login...');
+                        window.location.href = LOGIN_URL;
+                        return;
                     }
-                });
+                    
+                    const session = JSON.parse(stored);
+                    if (!session || !session.user) {
+                        localStorage.removeItem(SESSION_KEY);
+                        window.location.href = LOGIN_URL;
+                        return;
+                    }
+                    
+                    // Check if session expired (24 hours)
+                    const maxAge = 24 * 60 * 60 * 1000;
+                    if (Date.now() - session.loginTime > maxAge) {
+                        localStorage.removeItem(SESSION_KEY);
+                        window.location.href = LOGIN_URL;
+                        return;
+                    }
+                    
+                    // User is authenticated
+                    console.log('✅ Authenticated as:', session.user.email);
+                    console.log('Login method:', session.loginMethod);
+                    
+                    // Update UI with user info
+                    const userNameEl = document.getElementById('userName');
+                    const userRoleEl = document.querySelector('.user-role');
+                    const userAvatar = document.getElementById('userAvatar');
+                    
+                    if (userNameEl) {
+                        userNameEl.textContent = session.user.full_name || session.user.email.split('@')[0];
+                    }
+                    
+                    if (userRoleEl) {
+                        userRoleEl.textContent = session.user.roles?.name || 'Cashier';
+                    }
+                    
+                    if (userAvatar) {
+                        const name = session.user.full_name || session.user.email || 'User';
+                        userAvatar.textContent = name.charAt(0).toUpperCase();
+                    }
+                    
+                } catch (e) {
+                    console.error('Auth check error:', e);
+                    localStorage.removeItem(SESSION_KEY);
+                    window.location.href = LOGIN_URL;
+                }
             }
-        });
-        
-    })();
-</script>
+            
+            // Logout function
+            window.logout = function() {
+                localStorage.removeItem(SESSION_KEY);
+                if (typeof supabase !== 'undefined' && supabase.auth) {
+                    supabase.auth.signOut().catch(() => {});
+                }
+                window.location.href = LOGIN_URL;
+            };
+            
+            // Run auth check
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', checkAuth);
+            } else {
+                checkAuth();
+            }
+            
+            // Handle logout button click
+            document.addEventListener('DOMContentLoaded', function() {
+                const logoutBtn = document.getElementById('logoutBtn');
+                if (logoutBtn) {
+                    logoutBtn.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        if (confirm('Are you sure you want to logout?')) {
+                            window.logout();
+                        }
+                    });
+                }
+            });
+            
+        })();
+    </script>
 </body>
 </html>
