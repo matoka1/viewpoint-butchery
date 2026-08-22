@@ -580,25 +580,28 @@
         </div>
     </div>
 
-    <!-- ===== STK PUSH PAYMENT MODAL ===== -->
-    <div class="modal-overlay" id="paymentModal">
-        <div class="modal">
-            <div class="modal-header">
-                <h3 id="paymentModalTitle">⏳ Processing Payment</h3>
-                <button class="close" onclick="closeModal('paymentModal')">&times;</button>
-            </div>
-            <div id="paymentContent" class="payment-status">
-                <div class="spinner"></div>
-                <p class="status-text">Sending STK Push...</p>
-                <p class="status-sub" id="paymentDetails">Please wait</p>
-            </div>
-            <div style="display:flex;gap:10px;margin-top:16px;">
-                <button class="btn btn-outline" style="flex:1;" onclick="closeModal('paymentModal')">
-                    <i class="fas fa-times"></i> Close
-                </button>
-            </div>
+   <!-- ===== STK PUSH PAYMENT MODAL ===== -->
+<div class="modal-overlay" id="paymentModal">
+    <div class="modal">
+        <div class="modal-header">
+            <h3 id="paymentModalTitle">⏳ Processing Payment</h3>
+            <button class="close" onclick="closeModal('paymentModal')">&times;</button>
+        </div>
+        <div id="paymentContent" class="payment-status">
+            <div class="spinner"></div>
+            <p class="status-text">Sending STK Push...</p>
+            <p class="status-sub" id="paymentDetails">Please wait</p>
+        </div>
+        <div style="display:flex;gap:10px;margin-top:16px;">
+            <button class="btn btn-danger" style="flex:1;" onclick="cancelPayment()">
+                <i class="fas fa-times"></i> Cancel Payment
+            </button>
+            <button class="btn btn-outline" style="flex:1;" onclick="closeModal('paymentModal')">
+                <i class="fas fa-times"></i> Close
+            </button>
         </div>
     </div>
+</div>
 
     <!-- Toast Container -->
     <div class="toast-container" id="toastContainer"></div>
