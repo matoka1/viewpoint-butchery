@@ -1046,253 +1046,257 @@
             }
         }
 
-        // ============================================================
-        // SECURE PIN LOGIN - FAST WITH FALLBACK
-        // ============================================================
-        async function securePinLogin(email, pin) {
-            try {
-                // ✅ Try edge function with timeout
-                const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 3000);
+      // ============================================================
+//  SECURE PIN LOGIN - DIRECT DATABASE CHECK (NO EDGE FUNCTION)
+// ============================================================
+async function securePinLogin(email, pin) {
+    try {
+        console.log('🔐 Verifying PIN directly from database for:', email);
+        
+        // Direct database check - NO EDGE FUNCTION
+        const { data: user, error } = await state.supabaseClient
+            .from('users')
+            .select('id, email, full_name, role_id, status, pin, pin_enabled')
+            .eq('email', email)
+            .single();
 
-                try {
-                    const { data, error } = await state.supabaseClient.functions
-                        .invoke('pin-auth', {
-                            body: {
-                                action: 'verify',
-                                email: email,
-                                pin: pin
-                            }
-                        });
-
-                    clearTimeout(timeoutId);
-
-                    if (error) throw error;
-                    if (!data.success) throw new Error(data.error);
-                    return data.user;
-
-                } catch (edgeError) {
-                    clearTimeout(timeoutId);
-                    secureLog('Edge function failed, using fallback:', edgeError.message);
-
-                    // ✅ Fallback - direct DB check
-                    const { data: user, error } = await state.supabaseClient
-                        .from('users')
-                        .select('id, email, full_name, role_id, status, pin, pin_enabled')
-                        .eq('email', email)
-                        .single();
-
-                    if (error || !user) throw new Error('User not found');
-                    if (user.status !== 'active') throw new Error('Account inactive');
-                    if (!user.pin_enabled || user.pin !== pin) throw new Error('Invalid PIN');
-
-                    return user;
-                }
-
-            } catch (error) {
-                secureLog('PIN verification error:', error);
-                throw error;
-            }
+        if (error) {
+            console.error('Database error:', error);
+            throw new Error('User not found');
         }
 
-        // ============================================================
-        // LOGIN HANDLER - FAST
-        // ============================================================
-        async function handleLogin(e) {
-            e.preventDefault();
-
-            if (state.isSubmitting) return;
-
-            hideAlert();
-
-            state.isSubmitting = true;
-            DOM.loginBtn.disabled = true;
-            DOM.btnText.style.display = 'none';
-            DOM.btnSpinner.style.display = 'inline-block';
-
-            try {
-                let email = '';
-
-                if (state.currentMethod === 'pin') {
-                    email = DOM.pinEmail?.value?.trim();
-
-                    if (!email) {
-                        throw new Error('Please enter your email address.');
-                    }
-
-                    if (!email.includes('@') || !email.includes('.')) {
-                        throw new Error('Please enter a valid email address.');
-                    }
-
-                    if (state.pinValue.length < CONFIG.PIN_MIN || state.pinValue.length > CONFIG.PIN_MAX) {
-                        throw new Error('PIN must be ' + CONFIG.PIN_MIN + '-' + CONFIG.PIN_MAX + ' digits.');
-                    }
-
-                    // ✅ FAST: Verify PIN
-                    const user = await securePinLogin(email, state.pinValue);
-
-                    if (!user || user.status !== 'active') {
-                        throw new Error('Invalid credentials or inactive account.');
-                    }
-
-                    // ✅ FAST: Get user with role in one query
-                    const { data: userData, error: userError } = await state.supabaseClient
-                        .from('users')
-                        .select(`
-                            id,
-                            email,
-                            full_name,
-                            role_id,
-                            status,
-                            phone,
-                            pin_enabled,
-                            roles:role_id (
-                                id,
-                                name,
-                                description,
-                                permissions
-                            )
-                        `)
-                        .eq('email', email)
-                        .single();
-
-                    if (userError || !userData) {
-                        throw new Error('User profile not found. Please contact support.');
-                    }
-
-                    if (userData.status !== 'active') {
-                        throw new Error('Account is inactive. Contact support.');
-                    }
-
-                    // ✅ Update last login (fire and forget - don't wait)
-                    state.supabaseClient
-                        .from('users')
-                        .update({
-                            last_login: new Date().toISOString(),
-                            updated_at: new Date().toISOString()
-                        })
-                        .eq('id', userData.id)
-                        .then(() => secureLog('Last login updated'))
-                        .catch(() => {});
-
-                    const roleId = userData.role_id;
-                    const roleName = userData.roles?.name || 'cashier';
-                    const permissions = userData.roles?.permissions || {};
-                    const redirectPath = CONFIG.REDIRECT_MAP[roleId] || CONFIG.DEFAULT_REDIRECT;
-
-                    // ✅ Store session
-                    const sessionData = {
-                        user: {
-                            ...userData,
-                            role_name: roleName,
-                            permissions: permissions
-                        },
-                        loginMethod: 'pin',
-                        loginTime: Date.now(),
-                        rememberMe: DOM.remember ? DOM.remember.checked : false
-                    };
-
-                    localStorage.setItem(CONFIG.SESSION_KEY, JSON.stringify(sessionData));
-                    secureLog('PIN session stored for: ' + email);
-
-                    // ✅ Fast redirect
-                    window.location.replace(redirectPath);
-                    return;
-
-                } else {
-                    // ============================================================
-                    // EMAIL LOGIN
-                    // ============================================================
-                    email = DOM.emailInput.value.trim();
-                    const password = DOM.passwordInput.value;
-
-                    if (!email || !password) {
-                        throw new Error('Please enter both email and password.');
-                    }
-
-                    if (!email.includes('@') || !email.includes('.')) {
-                        throw new Error('Please enter a valid email address.');
-                    }
-
-                    const { data: authData, error: authError } = await state.supabaseClient.auth
-                        .signInWithPassword({
-                            email: email,
-                            password: password
-                        });
-
-                    if (authError) {
-                        throw new Error(authError.message || 'Authentication failed.');
-                    }
-
-                    const { data: userData, error: userError } = await state.supabaseClient
-                        .from('users')
-                        .select(`
-                            id,
-                            email,
-                            full_name,
-                            role_id,
-                            status,
-                            phone,
-                            roles:role_id (
-                                id,
-                                name,
-                                description,
-                                permissions
-                            )
-                        `)
-                        .eq('email', email)
-                        .single();
-
-                    if (userError || !userData) {
-                        throw new Error('User profile not found. Please contact support.');
-                    }
-
-                    if (userData.status !== 'active') {
-                        throw new Error('Account is inactive. Contact support.');
-                    }
-
-                    const roleId = userData.role_id;
-                    const roleName = userData.roles?.name || 'cashier';
-                    const permissions = userData.roles?.permissions || {};
-                    const redirectPath = CONFIG.REDIRECT_MAP[roleId] || CONFIG.DEFAULT_REDIRECT;
-
-                    const sessionData = {
-                        user: {
-                            ...userData,
-                            role_name: roleName,
-                            permissions: permissions
-                        },
-                        session: authData.session,
-                        loginMethod: 'email',
-                        loginTime: Date.now(),
-                        rememberMe: DOM.remember ? DOM.remember.checked : false
-                    };
-
-                    localStorage.setItem(CONFIG.SESSION_KEY, JSON.stringify(sessionData));
-                    secureLog('Email session stored for: ' + email);
-
-                    window.location.replace(redirectPath);
-                }
-
-            } catch (error) {
-                const message = getErrorMessage(error);
-                showAlert(message, 'error');
-                secureLog('Login error:', error.message);
-
-                // ✅ Reset PIN on error
-                if (state.currentMethod === 'pin') {
-                    state.pinValue = '';
-                    DOM.pinInput.value = '';
-                    renderDots();
-                    shakePinDots();
-                }
-
-                DOM.loginBtn.disabled = false;
-                DOM.btnText.style.display = 'inline';
-                DOM.btnSpinner.style.display = 'none';
-                state.isSubmitting = false;
-            }
+        if (!user) {
+            throw new Error('User not found');
         }
+
+        console.log('👤 User found:', user.email);
+        console.log('🔐 PIN enabled:', user.pin_enabled);
+        console.log('📝 PIN in DB:', user.pin);
+
+        // Check if user is active
+        if (user.status !== 'active') {
+            throw new Error('Account is inactive. Please contact admin.');
+        }
+
+        // Check if PIN is enabled
+        if (!user.pin_enabled) {
+            throw new Error('PIN is not enabled for this account. Please use email login.');
+        }
+
+        // Check if PIN exists
+        if (!user.pin) {
+            throw new Error('PIN is not set for this account. Please use email login.');
+        }
+
+        // Check if PIN matches
+        if (user.pin !== pin) {
+            throw new Error('Invalid PIN. Please try again.');
+        }
+
+        console.log('✅ PIN verified successfully!');
+        return user;
+
+    } catch (error) {
+        console.error('❌ PIN verification error:', error.message);
+        throw error;
+    }
+}
+
+        
+             // ============================================================
+//  LOGIN HANDLER - UPDATED
+// ============================================================
+async function handleLogin(e) {
+    e.preventDefault();
+
+    if (state.isSubmitting) return;
+
+    hideAlert();
+
+    state.isSubmitting = true;
+    DOM.loginBtn.disabled = true;
+    DOM.btnText.style.display = 'none';
+    DOM.btnSpinner.style.display = 'inline-block';
+
+    try {
+        let email = '';
+
+        if (state.currentMethod === 'pin') {
+            email = DOM.pinEmail?.value?.trim();
+
+            if (!email) {
+                throw new Error('Please enter your email address.');
+            }
+
+            if (!email.includes('@') || !email.includes('.')) {
+                throw new Error('Please enter a valid email address.');
+            }
+
+            if (state.pinValue.length < CONFIG.PIN_MIN || state.pinValue.length > CONFIG.PIN_MAX) {
+                throw new Error('PIN must be ' + CONFIG.PIN_MIN + '-' + CONFIG.PIN_MAX + ' digits.');
+            }
+
+            // ✅ DIRECT DATABASE CHECK - NO EDGE FUNCTION
+            const user = await securePinLogin(email, state.pinValue);
+
+            if (!user || user.status !== 'active') {
+                throw new Error('Invalid credentials or inactive account.');
+            }
+
+            // Get user with role
+            const { data: userData, error: userError } = await state.supabaseClient
+                .from('users')
+                .select(`
+                    id,
+                    email,
+                    full_name,
+                    role_id,
+                    status,
+                    phone,
+                    pin_enabled,
+                    roles:role_id (
+                        id,
+                        name,
+                        description,
+                        permissions
+                    )
+                `)
+                .eq('email', email)
+                .single();
+
+            if (userError || !userData) {
+                throw new Error('User profile not found. Please contact support.');
+            }
+
+            if (userData.status !== 'active') {
+                throw new Error('Account is inactive. Contact support.');
+            }
+
+            // Update last login
+            await state.supabaseClient
+                .from('users')
+                .update({
+                    last_login: new Date().toISOString(),
+                    updated_at: new Date().toISOString()
+                })
+                .eq('id', userData.id);
+
+            const roleId = userData.role_id;
+            const roleName = userData.roles?.name || 'cashier';
+            const permissions = userData.roles?.permissions || {};
+            const redirectPath = CONFIG.REDIRECT_MAP[roleId] || CONFIG.DEFAULT_REDIRECT;
+
+            // Store session
+            const sessionData = {
+                user: {
+                    ...userData,
+                    role_name: roleName,
+                    permissions: permissions
+                },
+                loginMethod: 'pin',
+                loginTime: Date.now(),
+                rememberMe: DOM.remember ? DOM.remember.checked : false
+            };
+
+            localStorage.setItem(CONFIG.SESSION_KEY, JSON.stringify(sessionData));
+            console.log('✅ PIN session stored for:', email);
+
+            // Redirect
+            window.location.replace(redirectPath);
+            return;
+
+        } else {
+            // EMAIL LOGIN (same as before)
+            email = DOM.emailInput.value.trim();
+            const password = DOM.passwordInput.value;
+
+            if (!email || !password) {
+                throw new Error('Please enter both email and password.');
+            }
+
+            if (!email.includes('@') || !email.includes('.')) {
+                throw new Error('Please enter a valid email address.');
+            }
+
+            const { data: authData, error: authError } = await state.supabaseClient.auth
+                .signInWithPassword({
+                    email: email,
+                    password: password
+                });
+
+            if (authError) {
+                throw new Error(authError.message || 'Authentication failed.');
+            }
+
+            const { data: userData, error: userError } = await state.supabaseClient
+                .from('users')
+                .select(`
+                    id,
+                    email,
+                    full_name,
+                    role_id,
+                    status,
+                    phone,
+                    roles:role_id (
+                        id,
+                        name,
+                        description,
+                        permissions
+                    )
+                `)
+                .eq('email', email)
+                .single();
+
+            if (userError || !userData) {
+                throw new Error('User profile not found. Please contact support.');
+            }
+
+            if (userData.status !== 'active') {
+                throw new Error('Account is inactive. Contact support.');
+            }
+
+            const roleId = userData.role_id;
+            const roleName = userData.roles?.name || 'cashier';
+            const permissions = userData.roles?.permissions || {};
+            const redirectPath = CONFIG.REDIRECT_MAP[roleId] || CONFIG.DEFAULT_REDIRECT;
+
+            const sessionData = {
+                user: {
+                    ...userData,
+                    role_name: roleName,
+                    permissions: permissions
+                },
+                session: authData.session,
+                loginMethod: 'email',
+                loginTime: Date.now(),
+                rememberMe: DOM.remember ? DOM.remember.checked : false
+            };
+
+            localStorage.setItem(CONFIG.SESSION_KEY, JSON.stringify(sessionData));
+            console.log('✅ Email session stored for:', email);
+
+            window.location.replace(redirectPath);
+        }
+
+    } catch (error) {
+        const message = getErrorMessage(error);
+        showAlert(message, 'error');
+        console.error('Login error:', error.message);
+
+        // Reset PIN on error
+        if (state.currentMethod === 'pin') {
+            state.pinValue = '';
+            DOM.pinInput.value = '';
+            renderDots();
+            shakePinDots();
+        }
+
+        DOM.loginBtn.disabled = false;
+        DOM.btnText.style.display = 'inline';
+        DOM.btnSpinner.style.display = 'none';
+        state.isSubmitting = false;
+    }
+}
 
         // ============================================================
         // SESSION CHECK - FAST
