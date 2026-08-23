@@ -1045,7 +1045,7 @@ function clearProductImage() {
 }
 
 // ============================================================
-//  DASHBOARD
+//  DASHBOARD - UPDATED WITH PROFIT & LOSS
 // ============================================================
 async function loadDashboard() {
     try {
@@ -1080,6 +1080,10 @@ async function loadDashboard() {
         await loadRecentOrders();
         await loadTopProducts();
         await createSalesChart(orders || []);
+        
+        // ✅ Load Profit & Loss data for dashboard
+        await loadProfitData();
+        await loadProfitBreakdown();
 
         if (low.length > 0) {
             showToast(`⚠️ ${low.length} items are low on stock!`, 'warning');
@@ -1089,7 +1093,6 @@ async function loadDashboard() {
         console.error('Dashboard error:', e);
     }
 }
-
 async function loadRecentOrders() {
     try {
         const { data: orders } = await supabaseClient.from('orders').select('*').order('created_at', { ascending: false }).limit(8);
@@ -1219,13 +1222,13 @@ function refreshAll() {
     loadCustomers();
     loadSuppliers();
     loadKitchenOrders();
-    loadProfitData();
+    loadProfitData();       // ✅ Already there
+    loadProfitBreakdown();  // ✅ ADD THIS
     loadAuditLogs();
     showToast('🔄 All data refreshed!', 'info');
     addNotification('Data Refreshed', 'All dashboard data has been refreshed.', 'info');
     resetSessionTimer();
 }
-
 // ============================================================
 //  POS
 // ============================================================
@@ -2229,51 +2232,301 @@ async function loadKitchenOrders() {
 }
 
 // ============================================================
-//  PROFIT & LOSS
+//  PROFIT & LOSS - LOAD DATA
 // ============================================================
+
 async function loadProfitData() {
     try {
-        const { data: orders } = await supabaseClient
+        console.log('💰 Loading profit & loss data...');
+        
+        // Get all PAID orders with their items and products
+        const { data: orders, error: ordersError } = await supabaseClient
             .from('orders')
             .select('*, order_items(*, products(*))')
             .eq('status', 'paid');
-        let revenue = 0, cost = 0;
-        orders?.forEach(order => {
-            revenue += order.total || 0;
-            order.order_items?.forEach(item => {
-                cost += ((item.products?.cost_price || 0) * (item.quantity || 0));
+            
+        if (ordersError) {
+            console.error('Orders error:', ordersError);
+            showToast('❌ Could not load profit data', 'error');
+            return;
+        }
+
+        console.log(`📊 Found ${orders?.length || 0} paid orders`);
+
+        let revenue = 0;
+        let cost = 0;
+        
+        // Calculate totals
+        if (orders && orders.length > 0) {
+            orders.forEach(order => {
+                // Add order total to revenue
+                revenue += order.total || 0;
+                
+                // Calculate cost from order items
+                if (order.order_items && order.order_items.length > 0) {
+                    order.order_items.forEach(item => {
+                        const productCost = item.products?.cost_price || 0;
+                        const quantity = item.quantity || 0;
+                        cost += productCost * quantity;
+                    });
+                }
             });
-        });
+        }
+        
         const profit = revenue - cost;
+        const profitMargin = revenue > 0 ? (profit / revenue * 100) : 0;
+
+        // Update DOM elements
         const revenueEl = document.getElementById('totalRevenue');
         const costEl = document.getElementById('totalCost');
         const profitEl = document.getElementById('netProfit');
-        if (revenueEl) revenueEl.textContent = `KES ${revenue.toFixed(2)}`;
-        if (costEl) costEl.textContent = `KES ${cost.toFixed(2)}`;
-        if (profitEl) profitEl.textContent = `KES ${profit.toFixed(2)}`;
+        const marginEl = document.getElementById('profitMargin');
+        
+        if (revenueEl) {
+            revenueEl.textContent = `KES ${revenue.toFixed(2)}`;
+        }
+        if (costEl) {
+            costEl.textContent = `KES ${cost.toFixed(2)}`;
+        }
+        if (profitEl) {
+            profitEl.textContent = `KES ${profit.toFixed(2)}`;
+            profitEl.style.color = profit >= 0 ? 'var(--success)' : 'var(--danger)';
+        }
+        if (marginEl) {
+            marginEl.textContent = `Margin: ${profitMargin.toFixed(1)}%`;
+            marginEl.style.color = profitMargin > 20 ? 'var(--success)' : profitMargin > 10 ? 'var(--warning)' : 'var(--danger)';
+        }
 
+        // Create/Update Profit Chart
+        await createProfitChart(revenue, cost, profit);
+
+        console.log(`✅ Revenue: KES ${revenue.toFixed(2)}, Cost: KES ${cost.toFixed(2)}, Profit: KES ${profit.toFixed(2)}`);
+        
+        return { revenue, cost, profit, profitMargin };
+
+    } catch (error) {
+        console.error('Profit & Loss error:', error);
+        showToast('❌ Error loading profit data: ' + error.message, 'error');
+    }
+}
+// ============================================================
+//  CREATE PROFIT CHART
+// ============================================================
+
+async function createProfitChart(revenue, cost, profit) {
+    try {
         const ctx = document.getElementById('profitChart');
-        if (!ctx) return;
-        if (profitChart) profitChart.destroy();
+        if (!ctx) {
+            console.warn('Profit chart canvas not found');
+            return;
+        }
+
+        if (profitChart) {
+            profitChart.destroy();
+            profitChart = null;
+        }
+
+        // Get theme colors
+        const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+        const textColor = isDark ? '#94A3B8' : '#475569';
+        
         profitChart = new Chart(ctx, {
             type: 'doughnut',
             data: {
                 labels: ['Revenue', 'Cost', 'Profit'],
                 datasets: [{
                     data: [revenue, cost, profit > 0 ? profit : 0],
-                    backgroundColor: ['#10B981', '#EF4444', '#6C3CE1'],
-                    borderWidth: 0
+                    backgroundColor: [
+                        '#10B981',  // Green - Revenue
+                        '#EF4444',  // Red - Cost
+                        '#6C3CE1'   // Purple - Profit
+                    ],
+                    borderColor: [
+                        '#059669',
+                        '#DC2626',
+                        '#5B21B6'
+                    ],
+                    borderWidth: 2,
+                    hoverOffset: 8
                 }]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: true,
-                plugins: { legend: { position: 'bottom' } }
+                cutout: '65%',
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            color: textColor,
+                            padding: 16,
+                            usePointStyle: true,
+                            pointStyle: 'circle',
+                            font: {
+                                size: 13,
+                                weight: '600'
+                            }
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                let label = context.label || '';
+                                let value = context.parsed || 0;
+                                let total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                let percentage = total > 0 ? (value / total * 100).toFixed(1) : 0;
+                                return `${label}: KES ${value.toFixed(2)} (${percentage}%)`;
+                            }
+                        }
+                    }
+                },
+                animation: {
+                    animateRotate: true,
+                    duration: 800
+                }
             }
         });
-    } catch (e) { console.error('Profit error:', e); }
+    } catch (error) {
+        console.error('Profit chart error:', error);
+    }
 }
+// ============================================================
+//  PROFIT BREAKDOWN - DETAILED VIEW
+// ============================================================
 
+async function loadProfitBreakdown() {
+    try {
+        const { data: orders, error } = await supabaseClient
+            .from('orders')
+            .select('*, order_items(*, products(*))')
+            .eq('status', 'paid')
+            .order('created_at', { ascending: false });
+            
+        if (error || !orders || orders.length === 0) {
+            const breakdownEl = document.getElementById('profitBreakdown');
+            if (breakdownEl) {
+                breakdownEl.innerHTML = `
+                    <div class="empty-state" style="padding:20px;">
+                        <i class="fas fa-inbox"></i>
+                        <p>No paid orders yet</p>
+                    </div>
+                `;
+            }
+            return;
+        }
+
+        let totalRevenue = 0;
+        let totalCost = 0;
+        const items = [];
+
+        orders.forEach(order => {
+            const orderTotal = order.total || 0;
+            totalRevenue += orderTotal;
+            
+            if (order.order_items) {
+                order.order_items.forEach(item => {
+                    const costPrice = item.products?.cost_price || 0;
+                    const quantity = item.quantity || 0;
+                    const itemCost = costPrice * quantity;
+                    totalCost += itemCost;
+                    
+                    items.push({
+                        name: item.products?.name || 'Unknown',
+                        emoji: item.products?.emoji || '📦',
+                        quantity: quantity,
+                        unitPrice: item.unit_price || 0,
+                        totalPrice: item.total || 0,
+                        costPrice: costPrice,
+                        totalCost: itemCost,
+                        profit: (item.total || 0) - itemCost
+                    });
+                });
+            }
+        });
+
+        const profit = totalRevenue - totalCost;
+        const margin = totalRevenue > 0 ? (profit / totalRevenue * 100) : 0;
+
+        // Update profit margin
+        const marginEl = document.getElementById('profitMargin');
+        if (marginEl) {
+            marginEl.textContent = `Margin: ${margin.toFixed(1)}%`;
+            marginEl.style.color = margin > 20 ? 'var(--success)' : margin > 10 ? 'var(--warning)' : 'var(--danger)';
+        }
+
+        // Show breakdown table
+        let html = `
+            <div class="table-wrapper">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>📦 Product</th>
+                            <th>Qty</th>
+                            <th>Revenue</th>
+                            <th>Cost</th>
+                            <th>Profit</th>
+                            <th>Margin</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+        `;
+
+        // Show top items by profit
+        const sortedItems = items.sort((a, b) => b.profit - a.profit).slice(0, 15);
+        
+        sortedItems.forEach(item => {
+            const margin = item.totalPrice > 0 ? (item.profit / item.totalPrice * 100) : 0;
+            html += `
+                <tr>
+                    <td><strong>${item.emoji} ${item.name}</strong></td>
+                    <td>${item.quantity.toFixed(3)}</td>
+                    <td>KES ${item.totalPrice.toFixed(2)}</td>
+                    <td>KES ${item.totalCost.toFixed(2)}</td>
+                    <td style="color: ${item.profit > 0 ? 'var(--success)' : 'var(--danger)'};">
+                        KES ${item.profit.toFixed(2)}
+                    </td>
+                    <td>
+                        <span style="color: ${margin > 30 ? 'var(--success)' : margin > 15 ? 'var(--warning)' : 'var(--danger)'};">
+                            ${margin.toFixed(1)}%
+                        </span>
+                    </td>
+                </tr>
+            `;
+        });
+
+        html += `
+                    </tbody>
+                </table>
+            </div>
+        `;
+
+        const breakdownEl = document.getElementById('profitBreakdown');
+        if (breakdownEl) {
+            breakdownEl.innerHTML = html;
+        }
+
+    } catch (error) {
+        console.error('Profit breakdown error:', error);
+        const breakdownEl = document.getElementById('profitBreakdown');
+        if (breakdownEl) {
+            breakdownEl.innerHTML = `
+                <div class="empty-state" style="padding:20px;">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <p>Could not load profit breakdown</p>
+                </div>
+            `;
+        }
+    }
+}
+// ============================================================
+//  REFRESH PROFIT DATA
+// ============================================================
+
+function refreshProfitData() {
+    showToast('🔄 Refreshing profit data...', 'info');
+    loadProfitData();
+    loadProfitBreakdown();
+}
 // ============================================================
 //  AUDIT TRAIL
 // ============================================================
@@ -3205,6 +3458,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         await loadSuppliers();
         await loadKitchenOrders();
         await loadProfitData();
+        await loadProfitBreakdown(); 
         await loadAuditLogs();
         await loadProductDropdown();
 
@@ -3261,3 +3515,7 @@ window.loadProductDropdown = loadProductDropdown;
 window.initGreeting = initGreeting;
 window.renderGreeting = renderGreeting;
 window.updateGreeting = updateGreeting;
+window.loadProfitData = loadProfitData;
+window.loadProfitBreakdown = loadProfitBreakdown;
+window.createProfitChart = createProfitChart;
+window.refreshProfitData = refreshProfitData;
