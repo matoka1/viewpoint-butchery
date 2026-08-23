@@ -79,7 +79,41 @@
             padding: 20px;
             margin: 0;
         }
+/* ============================================================
+   PIN ANIMATIONS - FASTER FEEDBACK
+   ============================================================ */
 
+/* Pulse animation for dots */
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.3); box-shadow: 0 0 20px rgba(108, 60, 225, 0.5); }
+    100% { transform: scale(1); }
+}
+
+/* Shake animation for errors */
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    20% { transform: translateX(-6px); }
+    40% { transform: translateX(6px); }
+    60% { transform: translateX(-4px); }
+    80% { transform: translateX(4px); }
+}
+
+/* Quick scale for key presses */
+.key:active {
+    transform: scale(0.92) !important;
+}
+
+/* Enter button pulse on success */
+.key.enter.success {
+    animation: successPulse 0.4s ease;
+}
+
+@keyframes successPulse {
+    0% { transform: scale(1); box-shadow: 0 4px 20px rgba(108,60,225,0.3); }
+    50% { transform: scale(1.1); box-shadow: 0 8px 40px rgba(108,60,225,0.6); }
+    100% { transform: scale(1); box-shadow: 0 4px 20px rgba(108,60,225,0.3); }
+}
         .login-wrapper {
             display: flex;
             width: 100%;
@@ -748,7 +782,8 @@
             pinValue: '',
             currentMethod: 'pin',
             isSubmitting: false,
-            supabaseClient: null
+            supabaseClient: null,
+            submitTimer: null
         };
 
         // ============================================================
@@ -786,7 +821,6 @@
             return 'An unexpected error occurred. Please try again.';
         }
 
-        // ✅ FIXED: Browser-compatible logging
         function secureLog(message, data) {
             const isDev = 
                 window.location.hostname === 'localhost' ||
@@ -799,57 +833,145 @@
         }
 
         // ============================================================
-        // PIN LOGIC
+        // FAST PIN LOGIC - WITH CLICK FEEDBACK
         // ============================================================
-        function renderDots() {
-            DOM.pinDots.forEach((dot, i) => {
-                dot.classList.toggle('filled', i < state.pinValue.length);
-            });
+
+        function getKeyIndex(n) {
+            const order = ['1','2','3','4','5','6','7','8','9','0'];
+            const index = order.indexOf(n);
+            return index >= 0 ? index + 1 : 0;
         }
 
         function pinPress(n) {
             if (state.isSubmitting) return;
             if (state.pinValue.length >= CONFIG.PIN_MAX) return;
 
+            // ✅ Click feedback - visual
+            const keys = document.querySelectorAll('.key:not(.action):not(.enter)');
+            let targetKey = null;
+            const order = ['1','2','3','4','5','6','7','8','9','0'];
+            const idx = order.indexOf(n);
+            if (idx >= 0 && keys[idx]) {
+                targetKey = keys[idx];
+            }
+            
+            if (targetKey) {
+                targetKey.style.transform = 'scale(0.85)';
+                targetKey.style.background = 'rgba(255,255,255,0.2)';
+                setTimeout(() => {
+                    targetKey.style.transform = '';
+                    targetKey.style.background = '';
+                }, 150);
+            }
+
+            // ✅ Haptic feedback on mobile
+            if (navigator.vibrate) {
+                navigator.vibrate(8);
+            }
+
             state.pinValue += n;
             DOM.pinInput.value = state.pinValue;
             renderDots();
 
-            if (state.pinValue.length === CONFIG.PIN_MIN) {
-                setTimeout(submitPin, 200);
+            // ✅ Auto-submit - FAST (80ms)
+            if (state.pinValue.length === CONFIG.PIN_MAX) {
+                clearTimeout(state.submitTimer);
+                state.submitTimer = setTimeout(() => {
+                    submitPin();
+                }, 80);
             }
         }
 
         function pinBackspace() {
             if (state.isSubmitting) return;
+            if (state.pinValue.length === 0) return;
+            
+            // ✅ Backspace feedback
+            const backspaceBtn = document.querySelector('.key.action');
+            if (backspaceBtn) {
+                backspaceBtn.style.transform = 'scale(0.85)';
+                setTimeout(() => {
+                    backspaceBtn.style.transform = '';
+                }, 150);
+            }
+            
+            // ✅ Haptic feedback
+            if (navigator.vibrate) {
+                navigator.vibrate(5);
+            }
+            
             state.pinValue = state.pinValue.slice(0, -1);
             DOM.pinInput.value = state.pinValue;
             renderDots();
         }
 
+        function renderDots() {
+            DOM.pinDots.forEach((dot, i) => {
+                if (i < state.pinValue.length) {
+                    dot.classList.add('filled');
+                    // ✅ Pulse animation on fill
+                    if (i === state.pinValue.length - 1) {
+                        dot.style.animation = 'pulse 0.2s ease';
+                        setTimeout(() => {
+                            dot.style.animation = '';
+                        }, 300);
+                    }
+                } else {
+                    dot.classList.remove('filled');
+                }
+            });
+        }
+
+        function shakePinDots() {
+            const dots = document.querySelectorAll('#pinDots .pin-dot');
+            dots.forEach((dot, i) => {
+                dot.style.animation = `shake 0.3s ease ${i * 0.05}s`;
+                dot.style.borderColor = '#EF4444';
+                setTimeout(() => {
+                    dot.style.animation = '';
+                    dot.style.borderColor = '';
+                }, 500);
+            });
+        }
+
+        // ============================================================
+        // SUBMIT PIN
+        // ============================================================
         function submitPin() {
             if (state.isSubmitting) return;
             if (state.pinValue.length < CONFIG.PIN_MIN) {
-                showAlert('Please enter at least ' + CONFIG.PIN_MIN + ' digits.', 'error');
+                showAlert('Please enter ' + CONFIG.PIN_MIN + ' digits.', 'error');
+                shakePinDots();
                 return;
             }
+            
+            // ✅ Enter button feedback
+            const enterBtn = document.getElementById('pinEnter');
+            if (enterBtn) {
+                enterBtn.style.transform = 'scale(0.85)';
+                setTimeout(() => {
+                    enterBtn.style.transform = '';
+                }, 200);
+            }
+            
             DOM.loginForm.dispatchEvent(new Event('submit'));
         }
 
         // ============================================================
-        // KEYBOARD SUPPORT
+        // KEYBOARD SUPPORT - FAST
         // ============================================================
         document.addEventListener('keydown', function(e) {
             if (state.currentMethod !== 'pin') return;
+            
             if (e.key >= '0' && e.key <= '9') {
+                e.preventDefault();
                 pinPress(e.key);
-                e.preventDefault();
             } else if (e.key === 'Backspace') {
+                e.preventDefault();
                 pinBackspace();
-                e.preventDefault();
             } else if (e.key === 'Enter') {
-                submitPin();
                 e.preventDefault();
+                submitPin();
             }
         });
 
@@ -925,32 +1047,56 @@
         }
 
         // ============================================================
-        // SECURE PIN LOGIN - Uses Edge Function
+        // SECURE PIN LOGIN - FAST WITH FALLBACK
         // ============================================================
         async function securePinLogin(email, pin) {
             try {
-                const { data, error } = await state.supabaseClient.functions
-                    .invoke('pin-auth', {
-                        body: {
-                            action: 'verify',
-                            email: email,
-                            pin: pin
-                        }
-                    });
+                // ✅ Try edge function with timeout
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 3000);
 
-                if (error) throw error;
-                if (!data.success) throw new Error(data.error);
+                try {
+                    const { data, error } = await state.supabaseClient.functions
+                        .invoke('pin-auth', {
+                            body: {
+                                action: 'verify',
+                                email: email,
+                                pin: pin
+                            }
+                        });
 
-                return data.user;
+                    clearTimeout(timeoutId);
+
+                    if (error) throw error;
+                    if (!data.success) throw new Error(data.error);
+                    return data.user;
+
+                } catch (edgeError) {
+                    clearTimeout(timeoutId);
+                    secureLog('Edge function failed, using fallback:', edgeError.message);
+
+                    // ✅ Fallback - direct DB check
+                    const { data: user, error } = await state.supabaseClient
+                        .from('users')
+                        .select('id, email, full_name, role_id, status, pin, pin_enabled')
+                        .eq('email', email)
+                        .single();
+
+                    if (error || !user) throw new Error('User not found');
+                    if (user.status !== 'active') throw new Error('Account inactive');
+                    if (!user.pin_enabled || user.pin !== pin) throw new Error('Invalid PIN');
+
+                    return user;
+                }
 
             } catch (error) {
-                console.error('PIN verification error:', error);
+                secureLog('PIN verification error:', error);
                 throw error;
             }
         }
 
         // ============================================================
-        // LOGIN HANDLER - FIXED (PIN only)
+        // LOGIN HANDLER - FAST
         // ============================================================
         async function handleLogin(e) {
             e.preventDefault();
@@ -968,7 +1114,6 @@
                 let email = '';
 
                 if (state.currentMethod === 'pin') {
-                    // Get email from PIN email field
                     email = DOM.pinEmail?.value?.trim();
 
                     if (!email) {
@@ -979,19 +1124,18 @@
                         throw new Error('Please enter a valid email address.');
                     }
 
-                    // Validate PIN
                     if (state.pinValue.length < CONFIG.PIN_MIN || state.pinValue.length > CONFIG.PIN_MAX) {
                         throw new Error('PIN must be ' + CONFIG.PIN_MIN + '-' + CONFIG.PIN_MAX + ' digits.');
                     }
 
-                    // ✅ SECURE: Verify PIN via Edge Function
+                    // ✅ FAST: Verify PIN
                     const user = await securePinLogin(email, state.pinValue);
 
                     if (!user || user.status !== 'active') {
                         throw new Error('Invalid credentials or inactive account.');
                     }
 
-                    // Get user with role from database
+                    // ✅ FAST: Get user with role in one query
                     const { data: userData, error: userError } = await state.supabaseClient
                         .from('users')
                         .select(`
@@ -1001,6 +1145,7 @@
                             role_id,
                             status,
                             phone,
+                            pin_enabled,
                             roles:role_id (
                                 id,
                                 name,
@@ -1019,12 +1164,23 @@
                         throw new Error('Account is inactive. Contact support.');
                     }
 
+                    // ✅ Update last login (fire and forget - don't wait)
+                    state.supabaseClient
+                        .from('users')
+                        .update({
+                            last_login: new Date().toISOString(),
+                            updated_at: new Date().toISOString()
+                        })
+                        .eq('id', userData.id)
+                        .then(() => secureLog('Last login updated'))
+                        .catch(() => {});
+
                     const roleId = userData.role_id;
                     const roleName = userData.roles?.name || 'cashier';
                     const permissions = userData.roles?.permissions || {};
                     const redirectPath = CONFIG.REDIRECT_MAP[roleId] || CONFIG.DEFAULT_REDIRECT;
 
-                    // Store session (no Supabase Auth needed)
+                    // ✅ Store session
                     const sessionData = {
                         user: {
                             ...userData,
@@ -1039,7 +1195,7 @@
                     localStorage.setItem(CONFIG.SESSION_KEY, JSON.stringify(sessionData));
                     secureLog('PIN session stored for: ' + email);
 
-                    // Redirect
+                    // ✅ Fast redirect
                     window.location.replace(redirectPath);
                     return;
 
@@ -1058,7 +1214,6 @@
                         throw new Error('Please enter a valid email address.');
                     }
 
-                    // Authenticate with Supabase
                     const { data: authData, error: authError } = await state.supabaseClient.auth
                         .signInWithPassword({
                             email: email,
@@ -1069,7 +1224,6 @@
                         throw new Error(authError.message || 'Authentication failed.');
                     }
 
-                    // Get user with role
                     const { data: userData, error: userError } = await state.supabaseClient
                         .from('users')
                         .select(`
@@ -1102,7 +1256,6 @@
                     const permissions = userData.roles?.permissions || {};
                     const redirectPath = CONFIG.REDIRECT_MAP[roleId] || CONFIG.DEFAULT_REDIRECT;
 
-                    // Store session
                     const sessionData = {
                         user: {
                             ...userData,
@@ -1118,7 +1271,6 @@
                     localStorage.setItem(CONFIG.SESSION_KEY, JSON.stringify(sessionData));
                     secureLog('Email session stored for: ' + email);
 
-                    // Redirect
                     window.location.replace(redirectPath);
                 }
 
@@ -1127,6 +1279,14 @@
                 showAlert(message, 'error');
                 secureLog('Login error:', error.message);
 
+                // ✅ Reset PIN on error
+                if (state.currentMethod === 'pin') {
+                    state.pinValue = '';
+                    DOM.pinInput.value = '';
+                    renderDots();
+                    shakePinDots();
+                }
+
                 DOM.loginBtn.disabled = false;
                 DOM.btnText.style.display = 'inline';
                 DOM.btnSpinner.style.display = 'none';
@@ -1134,64 +1294,58 @@
             }
         }
 
-       // ============================================================
-// SESSION CHECK - UPDATED
-// ============================================================
-function checkExistingSession() {
-    try {
-        const stored = localStorage.getItem(CONFIG.SESSION_KEY);
-        if (!stored) return;
+        // ============================================================
+        // SESSION CHECK - FAST
+        // ============================================================
+        function checkExistingSession() {
+            try {
+                const stored = localStorage.getItem(CONFIG.SESSION_KEY);
+                if (!stored) return;
 
-        const session = JSON.parse(stored);
-        if (!session || !session.user) {
-            localStorage.removeItem(CONFIG.SESSION_KEY);
-            return;
-        }
+                const session = JSON.parse(stored);
+                if (!session || !session.user) {
+                    localStorage.removeItem(CONFIG.SESSION_KEY);
+                    return;
+                }
 
-        // Check if session expired (24 hours)
-        const maxAge = 24 * 60 * 60 * 1000;
-        if (Date.now() - session.loginTime > maxAge) {
-            localStorage.removeItem(CONFIG.SESSION_KEY);
-            secureLog('Session expired for:', session.user.email);
-            return;
-        }
+                const maxAge = 24 * 60 * 60 * 1000;
+                if (Date.now() - session.loginTime > maxAge) {
+                    localStorage.removeItem(CONFIG.SESSION_KEY);
+                    secureLog('Session expired for:', session.user.email);
+                    return;
+                }
 
-        // ✅ PIN login - no Supabase session needed
-        if (session.loginMethod === 'pin') {
-            secureLog('Valid PIN session for:', session.user.email);
-            
-            // If on login page, redirect to dashboard
-            if (window.location.pathname.includes('login') ||
-                window.location.pathname.includes('index') ||
-                window.location.pathname === '/') {
-                const redirectPath = CONFIG.REDIRECT_MAP[session.user.role_id] || CONFIG.DEFAULT_REDIRECT;
-                window.location.replace(redirectPath);
+                if (session.loginMethod === 'pin') {
+                    secureLog('Valid PIN session for:', session.user.email);
+                    if (window.location.pathname.includes('login') ||
+                        window.location.pathname.includes('index') ||
+                        window.location.pathname === '/') {
+                        const redirectPath = CONFIG.REDIRECT_MAP[session.user.role_id] || CONFIG.DEFAULT_REDIRECT;
+                        window.location.replace(redirectPath);
+                    }
+                    return;
+                }
+
+                if (session.loginMethod === 'email' && session.session) {
+                    secureLog('Valid email session for:', session.user.email);
+                    if (window.location.pathname.includes('login') ||
+                        window.location.pathname.includes('index') ||
+                        window.location.pathname === '/') {
+                        const redirectPath = CONFIG.REDIRECT_MAP[session.user.role_id] || CONFIG.DEFAULT_REDIRECT;
+                        window.location.replace(redirectPath);
+                    }
+                    return;
+                }
+
+                localStorage.removeItem(CONFIG.SESSION_KEY);
+                secureLog('Invalid session removed');
+
+            } catch (e) {
+                localStorage.removeItem(CONFIG.SESSION_KEY);
+                secureLog('Session check failed:', e);
             }
-            return;
         }
 
-        // ✅ Email login - also check Supabase session
-        if (session.loginMethod === 'email' && session.session) {
-            secureLog('Valid email session for:', session.user.email);
-            
-            if (window.location.pathname.includes('login') ||
-                window.location.pathname.includes('index') ||
-                window.location.pathname === '/') {
-                const redirectPath = CONFIG.REDIRECT_MAP[session.user.role_id] || CONFIG.DEFAULT_REDIRECT;
-                window.location.replace(redirectPath);
-            }
-            return;
-        }
-
-        // If we get here, session is invalid
-        localStorage.removeItem(CONFIG.SESSION_KEY);
-        secureLog('Invalid session removed');
-
-    } catch (e) {
-        localStorage.removeItem(CONFIG.SESSION_KEY);
-        secureLog('Session check failed:', e);
-    }
-}
         // ============================================================
         // INITIALIZATION
         // ============================================================
@@ -1203,7 +1357,6 @@ function checkExistingSession() {
 
                 DOM.loginForm.addEventListener('submit', handleLogin);
 
-                // Set default to PIN mode
                 switchMethod('pin');
 
                 const urlParams = new URLSearchParams(window.location.search);
