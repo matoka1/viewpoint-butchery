@@ -960,16 +960,6 @@ function initGreeting() {
     sendDailyGreetingNotification();
 }
 
-// ============================================================
-//  EMOJI PICKER FUNCTIONS
-// ============================================================
-function initEmojiPicker() {
-    const picker = document.getElementById('emojiPicker');
-    if (!picker) return;
-    picker.innerHTML = AVAILABLE_EMOJIS.map(emoji => 
-        `<span class="emoji-option" data-emoji="${emoji}" onclick="selectEmoji('${emoji}')">${emoji}</span>`
-    ).join('');
-}
 
 function toggleEmojiPicker() {
     const container = document.getElementById('emojiPickerContainer');
@@ -978,18 +968,9 @@ function toggleEmojiPicker() {
     }
 }
 
-function selectEmoji(emoji) {
-    currentProductEmoji = emoji;
-    const display = document.getElementById('selectedEmojiDisplay');
-    const input = document.getElementById('productEmoji');
-    if (display) display.textContent = emoji;
-    if (input) input.value = emoji;
-    document.querySelectorAll('.emoji-option').forEach(el => {
-        el.classList.toggle('selected', el.dataset.emoji === emoji);
-    });
-    const container = document.getElementById('emojiPickerContainer');
-    if (container) container.style.display = 'none';
-}
+// ============================================================
+//  CLEAR EMOJI
+// ============================================================
 
 function clearEmoji() {
     currentProductEmoji = '📦';
@@ -997,7 +978,12 @@ function clearEmoji() {
     const input = document.getElementById('productEmoji');
     if (display) display.textContent = '📦';
     if (input) input.value = '📦';
-    document.querySelectorAll('.emoji-option').forEach(el => el.classList.remove('selected'));
+    
+    document.querySelectorAll('.emoji-option').forEach(el => {
+        el.classList.remove('selected');
+        el.style.borderColor = 'transparent';
+        el.style.background = 'transparent';
+    });
 }
 
 // ============================================================
