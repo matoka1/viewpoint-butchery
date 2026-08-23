@@ -2163,15 +2163,17 @@ function updateGreeting() {
 
                 pendingPayment.paymentId = payment.id;
 
-                if (method === 'mpesa') {
-                    // ✅ REAL STK PUSH
-                    content.innerHTML = `
-                            <div class="spinner"></div>
-                            <p class="status-text">⏳ Sending STK Push via PayHero...</p>
-                            <p class="status-sub">Please check your phone for the M-Pesa prompt</p>
-                            <p class="status-sub" style="font-size:12px;color:var(--text-muted);margin-top:8px;">🔗 ${PAYHERO_CONFIG.lipwaLink}</p>
-                            <button class="btn btn-danger" style="margin-top:12px;width:100%;" onclick="cancelPayment()"><i class="fas fa-times"></i> Cancel Payment</button>
-                        `;
+               if (method === 'mpesa') {
+    // ✅ REAL STK PUSH - Clean (No PayHero link, Single Cancel)
+    content.innerHTML = `
+        <div class="spinner"></div>
+        <p class="status-text">⏳ Sending STK Push...</p>
+        <p class="status-sub">Please check your phone for the M-Pesa prompt</p>
+        <p class="status-sub" style="font-size:12px;color:var(--text-muted);margin-top:8px;">📱 Enter your PIN on your phone to complete payment</p>
+        <button class="btn btn-danger" style="margin-top:12px;width:100%;" onclick="cancelPayment()">
+            <i class="fas fa-times"></i> Cancel Payment
+        </button>
+    `;
 
                     const stkResult = await initiatePayHeroSTK(
                         phone,
@@ -2349,36 +2351,34 @@ function updateGreeting() {
                             break;
                         }
 
-                        // Update progress
-                        if (!paymentConfirmed && !pendingPayment.cancelled) {
-                            const remaining = Math.round((maxAttempts - attempts) * 1.5);
-                            content.innerHTML = `
-                                    <div class="spinner"></div>
-                                    <p class="status-text">⏳ Waiting for payment confirmation... (${attempts}/${maxAttempts})</p>
-                                    <p class="status-sub">Please check your phone and enter your PIN</p>
-                                    <p class="status-sub" style="font-size:12px;color:var(--text-muted);margin-top:8px;">
-                                        ⏱️ ${remaining} seconds remaining
-                                    </p>
-                                    <p class="status-sub" style="font-size:12px;color:var(--text-muted);margin-top:4px;">
-                                        🔗 <a href="${PAYHERO_CONFIG.lipwaLink}" target="_blank" style="color:var(--primary);">Click here if you didn't receive the STK Push</a>
-                                    </p>
-                                    <button class="btn btn-danger" style="margin-top:12px;width:100%;" onclick="cancelPayment()"><i class="fas fa-times"></i> Cancel Payment</button>
-                                `;
-                        }
-                    }
+                      // Update progress
+if (!paymentConfirmed && !pendingPayment.cancelled) {
+    const remaining = Math.round((maxAttempts - attempts) * 1.5);
+    content.innerHTML = `
+        <div class="spinner"></div>
+        <p class="status-text">⏳ Waiting for payment confirmation... (${attempts}/${maxAttempts})</p>
+        <p class="status-sub">Please check your phone and enter your PIN</p>
+        <p class="status-sub" style="font-size:12px;color:var(--text-muted);margin-top:8px;">
+            ⏱️ ${remaining} seconds remaining
+        </p>
+        <!-- ✅ PayHero link REMOVED -->
+        <button class="btn btn-danger" style="margin-top:12px;width:100%;" onclick="cancelPayment()">
+            <i class="fas fa-times"></i> Cancel Payment
+        </button>
+    `;
+}
 
-                    if (!paymentConfirmed && !pendingPayment.cancelled) {
-                        pendingPayment.isProcessing = false;
-                        content.innerHTML = `
-                                <div class="status-icon warning">⏳</div>
-                                <p class="status-text">Payment Pending</p>
-                                <p class="status-sub">Your payment is still being processed</p>
-                                <p class="status-sub" style="font-size:12px;color:var(--text-muted);margin-top:8px;">Please check your phone and complete the transaction</p>
-                                <button class="btn btn-warning" style="margin-top:12px;" onclick="closeModal('paymentModal')">Close</button>
-                            `;
-                        showToast('⏳ Payment pending. Please check your phone.', 'warning');
-                    }
-
+if (!paymentConfirmed && !pendingPayment.cancelled) {
+    pendingPayment.isProcessing = false;
+    content.innerHTML = `
+        <div class="status-icon warning">⏳</div>
+        <p class="status-text">Payment Pending</p>
+        <p class="status-sub">Your payment is still being processed</p>
+        <p class="status-sub" style="font-size:12px;color:var(--text-muted);margin-top:8px;">Please check your phone and complete the transaction</p>
+        <button class="btn btn-warning" style="margin-top:12px;" onclick="closeModal('paymentModal')">Close</button>
+    `;
+    showToast('⏳ Payment pending. Please check your phone.', 'warning');
+}
                 } else {
                     // Cash payment - complete immediately
                     await supabaseClient
