@@ -29,54 +29,212 @@ let unreadCount = 0;
 let isInitialized = false;
 let currentProductImageFile = null;
 let currentProductEmoji = '📦';
-
 // ============================================================
-//  EMOJIS - COMPLETE WITH ALL KENYAN FOODS
+//  EMOJIS - COMPLETE WITH ALL KENYAN FOODS & NAMES
 // ============================================================
 
 const AVAILABLE_EMOJIS = [
     // 🥩 MEAT & PROTEIN
-    '🥩', '🍗', '🥓', '🍖', '🐄', '🐖', '🐑', '🐐', '🐓', '🦃', 
-    '🐟', '🦐', '🦞', '🦀', '🐙', '🦑', '🐚', '🦪', '🐠', '🐡',
+    { emoji: '🥩', name: 'Meat' },
+    { emoji: '🍗', name: 'Chicken' },
+    { emoji: '🥓', name: 'Bacon' },
+    { emoji: '🍖', name: 'Ribs' },
+    { emoji: '🐄', name: 'Beef/Cow' },
+    { emoji: '🐖', name: 'Pork' },
+    { emoji: '🐑', name: 'Mutton/Sheep' },
+    { emoji: '🐐', name: 'Goat' },
+    { emoji: '🐓', name: 'Poultry' },
+    { emoji: '🦃', name: 'Turkey' },
+    { emoji: '🐟', name: 'Fish' },
+    { emoji: '🦐', name: 'Shrimp' },
+    { emoji: '🦞', name: 'Lobster' },
+    { emoji: '🦀', name: 'Crab' },
+    { emoji: '🐙', name: 'Octopus' },
+    { emoji: '🦑', name: 'Squid' },
+    { emoji: '🐚', name: 'Shellfish' },
+    { emoji: '🦪', name: 'Oysters' },
+    { emoji: '🐠', name: 'Tropical Fish' },
+    { emoji: '🐡', name: 'Blowfish' },
     
     // 🍔 FAST FOOD & MEALS
-    '🍔', '🌭', '🍕', '🧆', '🌮', '🌯', '🥙', '🧇', '🥞', '🥪',
-    '🍟', '🍝', '🍜', '🍲', '🍛', '🍣', '🍱', '🥘', '🍳', '🥚',
+    { emoji: '🍔', name: 'Burger' },
+    { emoji: '🌭', name: 'Hot Dog' },
+    { emoji: '🍕', name: 'Pizza' },
+    { emoji: '🧆', name: 'Falafel' },
+    { emoji: '🌮', name: 'Taco' },
+    { emoji: '🌯', name: 'Burrito' },
+    { emoji: '🥙', name: 'Stuffed Flatbread' },
+    { emoji: '🧇', name: 'Waffle' },
+    { emoji: '🥞', name: 'Pancakes' },
+    { emoji: '🥪', name: 'Sandwich' },
+    { emoji: '🍟', name: 'Chips/Fries' },
+    { emoji: '🍝', name: 'Pasta' },
+    { emoji: '🍜', name: 'Noodles' },
+    { emoji: '🍲', name: 'Stew/Soup' },
+    { emoji: '🍛', name: 'Curry' },
+    { emoji: '🍣', name: 'Sushi' },
+    { emoji: '🍱', name: 'Bento Box' },
+    { emoji: '🥘', name: 'Pan/Pot Food' },
+    { emoji: '🍳', name: 'Fried Egg' },
+    { emoji: '🥚', name: 'Egg' },
     
     // 🥗 VEGETABLES & SALADS
-    '🥬', '🥒', '🥑', '🍅', '🌽', '🥕', '🧅', '🧄', '🫑', '🌶️',
-    '🥦', '🥗', '🥔', '🍠', '🥜', '🌰', '🫘', '🍆',
+    { emoji: '🥬', name: 'Leafy Greens' },
+    { emoji: '🥒', name: 'Cucumber' },
+    { emoji: '🥑', name: 'Avocado' },
+    { emoji: '🍅', name: 'Tomato' },
+    { emoji: '🌽', name: 'Corn/Maize' },
+    { emoji: '🥕', name: 'Carrot' },
+    { emoji: '🧅', name: 'Onion' },
+    { emoji: '🧄', name: 'Garlic' },
+    { emoji: '🫑', name: 'Bell Pepper' },
+    { emoji: '🌶️', name: 'Chili Pepper' },
+    { emoji: '🥦', name: 'Broccoli' },
+    { emoji: '🥗', name: 'Salad' },
+    { emoji: '🥔', name: 'Potato' },
+    { emoji: '🍠', name: 'Sweet Potato' },
+    { emoji: '🥜', name: 'Peanuts' },
+    { emoji: '🌰', name: 'Nuts' },
+    { emoji: '🫘', name: 'Beans' },
+    { emoji: '🍆', name: 'Eggplant' },
     
     // 🍎 FRUITS
-    '🍎', '🍊', '🍋', '🍌', '🍉', '🍇', '🍓', '🫐', '🍑', '🍒',
-    '🍍', '🥭', '🍑', '🍐', '🍏', '🍈', '🥥', '🥝',
+    { emoji: '🍎', name: 'Apple' },
+    { emoji: '🍊', name: 'Orange' },
+    { emoji: '🍋', name: 'Lemon' },
+    { emoji: '🍌', name: 'Banana/Matoke' },
+    { emoji: '🍉', name: 'Watermelon' },
+    { emoji: '🍇', name: 'Grapes' },
+    { emoji: '🍓', name: 'Strawberry' },
+    { emoji: '🫐', name: 'Blueberry' },
+    { emoji: '🍑', name: 'Peach' },
+    { emoji: '🍒', name: 'Cherry' },
+    { emoji: '🍍', name: 'Pineapple' },
+    { emoji: '🥭', name: 'Mango' },
+    { emoji: '🍐', name: 'Pear' },
+    { emoji: '🍏', name: 'Green Apple' },
+    { emoji: '🍈', name: 'Melon' },
+    { emoji: '🥥', name: 'Coconut' },
+    { emoji: '🥝', name: 'Kiwi' },
     
     // 🥤 DRINKS
-    '🥤', '🧃', '🧉', '🍵', '☕', '🍺', '🍷', '🥂', '🥛', '🧋',
-    '🍶', '🍾', '🧊', '🍹', '🍸', '🥃', '🍻',
+    { emoji: '🥤', name: 'Soda/Drink' },
+    { emoji: '🧃', name: 'Juice' },
+    { emoji: '🧉', name: 'Mate Tea' },
+    { emoji: '🍵', name: 'Tea' },
+    { emoji: '☕', name: 'Coffee' },
+    { emoji: '🍺', name: 'Beer' },
+    { emoji: '🍷', name: 'Wine' },
+    { emoji: '🥂', name: 'Toast/Cheers' },
+    { emoji: '🥛', name: 'Milk' },
+    { emoji: '🧋', name: 'Bubble Tea' },
+    { emoji: '🍶', name: 'Sake' },
+    { emoji: '🍾', name: 'Bottle' },
+    { emoji: '🧊', name: 'Ice' },
+    { emoji: '🍹', name: 'Cocktail' },
+    { emoji: '🍸', name: 'Martini' },
+    { emoji: '🥃', name: 'Whiskey' },
+    { emoji: '🍻', name: 'Beer Clink' },
     
     // 🍞 BREADS & BAKED
-    '🍞', '🥐', '🥖', '🫓', '🥨', '🥯', '🧇', '🥞', '🧁', '🍰',
-    '🎂', '🍩', '🍪', '🥮', '🍥', '🥠', '🥟', '🍘', '🍙', '🍚',
+    { emoji: '🍞', name: 'Bread' },
+    { emoji: '🥐', name: 'Croissant' },
+    { emoji: '🥖', name: 'Baguette' },
+    { emoji: '🫓', name: 'Chapati/Flatbread' },
+    { emoji: '🥨', name: 'Pretzel' },
+    { emoji: '🥯', name: 'Bagel' },
+    { emoji: '🧇', name: 'Waffle' },
+    { emoji: '🥞', name: 'Pancakes' },
+    { emoji: '🧁', name: 'Cupcake' },
+    { emoji: '🍰', name: 'Cake' },
+    { emoji: '🎂', name: 'Birthday Cake' },
+    { emoji: '🍩', name: 'Donut' },
+    { emoji: '🍪', name: 'Cookie' },
+    { emoji: '🥮', name: 'Mooncake' },
+    { emoji: '🍥', name: 'Fish Cake' },
+    { emoji: '🥠', name: 'Fortune Cookie' },
+    { emoji: '🥟', name: 'Dumpling' },
+    { emoji: '🍘', name: 'Rice Cracker' },
+    { emoji: '🍙', name: 'Rice Ball' },
+    { emoji: '🍚', name: 'Rice' },
     
     // 🍦 DESSERTS
-    '🍦', '🍧', '🍨', '🍩', '🍪', '🧁', '🎂', '🍰', '🍫', '🍬',
-    '🍭', '🍮', '🍯', '🥮', '🍡',
+    { emoji: '🍦', name: 'Ice Cream' },
+    { emoji: '🍧', name: 'Shaved Ice' },
+    { emoji: '🍨', name: 'Ice Cream Sundae' },
+    { emoji: '🍩', name: 'Donut' },
+    { emoji: '🍪', name: 'Cookie' },
+    { emoji: '🧁', name: 'Cupcake' },
+    { emoji: '🎂', name: 'Cake' },
+    { emoji: '🍰', name: 'Slice Cake' },
+    { emoji: '🍫', name: 'Chocolate' },
+    { emoji: '🍬', name: 'Candy' },
+    { emoji: '🍭', name: 'Lollipop' },
+    { emoji: '🍮', name: 'Pudding' },
+    { emoji: '🍯', name: 'Honey' },
+    { emoji: '🥮', name: 'Mooncake' },
+    { emoji: '🍡', name: 'Dango' },
     
     // 🥘 TRADITIONAL/AFRICAN
-    '🥘', '🍲', '🍛', '🍣', '🍱', '🥡', '🍜', '🍝', '🍤', '🍥',
-    '🥠', '🥟', '🍘', '🍙', '🍚', '🫓', '🌽', '🥔',
+    { emoji: '🥘', name: 'Githeri/Stew' },
+    { emoji: '🍲', name: 'Beef Stew' },
+    { emoji: '🍛', name: 'Pilau/Curry' },
+    { emoji: '🍣', name: 'Sushi' },
+    { emoji: '🍱', name: 'Bento' },
+    { emoji: '🥡', name: 'Takeout' },
+    { emoji: '🍜', name: 'Noodles' },
+    { emoji: '🍝', name: 'Pasta' },
+    { emoji: '🍤', name: 'Bhajias/Fried' },
+    { emoji: '🍥', name: 'Fish Cake' },
+    { emoji: '🥠', name: 'Fortune Cookie' },
+    { emoji: '🥟', name: 'Samosas' },
+    { emoji: '🍘', name: 'Rice Cracker' },
+    { emoji: '🍙', name: 'Rice Ball' },
+    { emoji: '🍚', name: 'Rice' },
+    { emoji: '🫓', name: 'Chapati' },
+    { emoji: '🌽', name: 'Ugali/Corn' },
+    { emoji: '🥔', name: 'Mukimo/Potato' },
     
     // 🧂 SPICES
-    '🧂', '🧈', '🧀', '🧅', '🧄', '🫑', '🌶️', '🥫', '🫙', '🌿',
+    { emoji: '🧂', name: 'Salt' },
+    { emoji: '🧈', name: 'Butter' },
+    { emoji: '🧀', name: 'Cheese' },
+    { emoji: '🧅', name: 'Onion' },
+    { emoji: '🧄', name: 'Garlic' },
+    { emoji: '🫑', name: 'Pepper' },
+    { emoji: '🌶️', name: 'Chili' },
+    { emoji: '🥫', name: 'Canned Food' },
+    { emoji: '🫙', name: 'Jar' },
+    { emoji: '🌿', name: 'Herbs' },
     
     // 🍽️ UTENSILS
-    '🍽️', '🥄', '🍴', '🥢', '🔪', '🍶', '🧂', '🥫', '🫙', '🍾',
+    { emoji: '🍽️', name: 'Plate/Cutlery' },
+    { emoji: '🥄', name: 'Spoon' },
+    { emoji: '🍴', name: 'Fork & Knife' },
+    { emoji: '🥢', name: 'Chopsticks' },
+    { emoji: '🔪', name: 'Knife' },
+    { emoji: '🍶', name: 'Sake' },
+    { emoji: '🧂', name: 'Salt' },
+    { emoji: '🥫', name: 'Canned' },
+    { emoji: '🫙', name: 'Jar' },
+    { emoji: '🍾', name: 'Bottle' },
     
     // 📦 GENERAL
-    '📦', '🏷️', '⭐', '💎', '🎯', '🔥', '👍', '👌', '✨', '🌟'
+    { emoji: '📦', name: 'Package' },
+    { emoji: '🏷️', name: 'Label' },
+    { emoji: '⭐', name: 'Star' },
+    { emoji: '💎', name: 'Diamond' },
+    { emoji: '🎯', name: 'Target' },
+    { emoji: '🔥', name: 'Hot/Popular' },
+    { emoji: '👍', name: 'Thumbs Up' },
+    { emoji: '👌', name: 'OK' },
+    { emoji: '✨', name: 'Special' },
+    { emoji: '🌟', name: 'Featured' }
 ];
 
+// ============================================================
+//  UPDATED getEmoji FUNCTION
+// ============================================================
 function getEmoji(name) {
     const emojis = {
         // 🥩 MEATS
@@ -272,6 +430,59 @@ function getEmoji(name) {
         'default': '📦'
     };
     return emojis[name] || emojis['default'];
+}
+
+// ============================================================
+//  UPDATED EMOJI PICKER - WITH NAMES
+// ============================================================
+
+function initEmojiPicker() {
+    const picker = document.getElementById('emojiPicker');
+    if (!picker) return;
+    
+    picker.innerHTML = AVAILABLE_EMOJIS.map(item => 
+        `<span class="emoji-option" data-emoji="${item.emoji}" onclick="selectEmoji('${item.emoji}')" style="
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 10px;
+            font-size: 20px;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+            border: 2px solid transparent;
+            background: transparent;
+        ">
+            <span style="font-size: 28px;">${item.emoji}</span>
+            <span style="font-size: 12px; color: var(--text-secondary); white-space: nowrap;">${item.name}</span>
+        </span>`
+    ).join('');
+}
+
+// ============================================================
+//  UPDATED SELECT EMOJI
+// ============================================================
+function selectEmoji(emoji) {
+    currentProductEmoji = emoji;
+    const display = document.getElementById('selectedEmojiDisplay');
+    const input = document.getElementById('productEmoji');
+    if (display) display.textContent = emoji;
+    if (input) input.value = emoji;
+    
+    // Highlight selected
+    document.querySelectorAll('.emoji-option').forEach(el => {
+        el.classList.toggle('selected', el.dataset.emoji === emoji);
+        if (el.dataset.emoji === emoji) {
+            el.style.borderColor = 'var(--primary)';
+            el.style.background = 'rgba(108,60,225,0.1)';
+        } else {
+            el.style.borderColor = 'transparent';
+            el.style.background = 'transparent';
+        }
+    });
+    
+    const container = document.getElementById('emojiPickerContainer');
+    if (container) container.style.display = 'none';
 }
 
 // ============================================================
