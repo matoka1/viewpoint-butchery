@@ -9,7 +9,15 @@ const SUPABASE_CONFIG = {
     anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNpcGdueWtzaGF4cnh3ZGVzd2ZjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY4OTA2MzMsImV4cCI6MjEwMjQ2NjYzM30.xJtq_3jNMLnXCyVSurdIuUnrlmZEyMWNO1-Azk_4k2E'
 };
 const supabaseClient = supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.anonKey);
-
+// ===== PAYHERO CONFIGURATION =====
+const PAYHERO_CONFIG = {
+    accountId: '11408',
+    username: 'UTx8RzRfHqW9b59aGlwj',
+    password: 'PI4mUW7vopRQ4T91hvHqgR3L9iphnFpJSxckaEtY',
+    basicAuth: 'Basic VVR4OFJ6UmZIcVc5YjU5YUdsd2o6UEk0bVVXN3ZvcFJRNFQ5MWh2SHFnUjNMOWlwaG5GcEpTeGNrYUV0WQ==',
+    lipwaLink: 'https://lipwa.link/11408',
+    baseUrl: 'https://api.payhero.co.ke',
+};
 // ===== STATE =====
 let currentUser = null;
 let salesChart = null;
