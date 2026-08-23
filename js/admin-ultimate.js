@@ -696,32 +696,49 @@ async function logout() {
 window.logout = logout;
 
 // ============================================================
-//  LOG USER ACTIVITY - FIXED (handles 401 error)
+//  LOG USER ACTIVITY - UPDATED (uses audit_logs table)
 // ============================================================
-async function logUserActivity(action, details = '') {
+async function logUserActivity(action, details = '', entityType = '', entityId = '', newValue = null, oldValue = null) {
     try {
-        if (!currentUser) return;
-        
-        const { error: tableError } = await supabaseClient
-            .from('user_activity_log')
-            .select('id')
-            .limit(1);
-            
-        if (tableError && tableError.code === '42P01') {
-            console.log('user_activity_log table not found, skipping log');
+        if (!currentUser) {
+            console.log('⚠️ No current user, skipping audit log');
             return;
         }
         
-        await supabaseClient.from('user_activity_log').insert({
-            user_id: currentUser.id,
-            action: action,
-            details: details || '',
-            ip_address: await getIPAddress() || 'unknown',
-            user_agent: navigator.userAgent || 'unknown',
-            created_at: new Date().toISOString()
-        });
+        // Get user IP
+        let ip = 'unknown';
+        try {
+            const response = await fetch('https://api.ipify.org?format=json');
+            const data = await response.json();
+            ip = data.ip;
+        } catch (e) {
+            // IP fetch failed, use 'unknown'
+        }
+        
+        // ✅ Log to audit_logs table (not user_activity_log)
+        const { error } = await supabaseClient
+            .from('audit_logs')
+            .insert({
+                user_id: currentUser.id,
+                action: action,
+                details: details || '',
+                entity_type: entityType || '',
+                entity_id: entityId || '',
+                new_value: newValue || null,
+                old_value: oldValue || null,
+                ip_address: ip,
+                user_agent: navigator.userAgent || 'unknown',
+                created_at: new Date().toISOString()
+            });
+            
+        if (error) {
+            console.error('❌ Audit log error:', error);
+        } else {
+            console.log(`✅ Audit: ${action} by ${currentUser.full_name || currentUser.email}`);
+        }
+        
     } catch (e) {
-        console.log('Activity log skipped:', e.message);
+        console.log('⚠️ Audit log skipped:', e.message);
     }
 }
 
@@ -3794,6 +3811,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         await loadProfitData();
         await loadProfitBreakdown(); 
         await loadAuditLogs();
+         await loadAuditUsers();
         await loadProductDropdown();
 
         isInitialized = true;
