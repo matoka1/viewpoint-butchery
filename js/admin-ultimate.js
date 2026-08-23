@@ -2528,34 +2528,338 @@ function refreshProfitData() {
     loadProfitBreakdown();
 }
 // ============================================================
-//  AUDIT TRAIL
+//  AUDIT TRAIL - COMPLETE ENHANCED VERSION
 // ============================================================
-async function loadAuditLogs() {
+
+let auditPage = 1;
+let auditLimit = 20;
+let auditTotalCount = 0;
+
+async function loadAuditLogs(direction) {
     try {
+        // Handle pagination
+        if (direction === 'next') auditPage++;
+        else if (direction === 'prev') auditPage = Math.max(1, auditPage - 1);
+        
+        // Get filter values
         const date = document.getElementById('auditDate')?.value;
-        let query = supabaseClient.from('audit_logs').select('*, users(full_name)').order('created_at', { ascending: false });
+        const action = document.getElementById('auditAction')?.value;
+        const userRole = document.getElementById('auditUserRole')?.value;
+        const userId = document.getElementById('auditUser')?.value;
+        auditLimit = parseInt(document.getElementById('auditLimit')?.value) || 20;
+        
+        // Build query with all filters
+        let query = supabaseClient
+            .from('audit_logs')
+            .select('*, users!inner(full_name, role_id, roles(name))', { count: 'exact' })
+            .order('created_at', { ascending: false })
+            .range((auditPage - 1) * auditLimit, auditPage * auditLimit - 1);
+        
+        // Apply filters
         if (date) {
-            query = query.gte('created_at', date + 'T00:00:00').lte('created_at', date + 'T23:59:59');
+            query = query.gte('created_at', date + 'T00:00:00')
+                .lte('created_at', date + 'T23:59:59');
         }
-        const { data: logs } = await query.limit(50);
+        
+        if (action) {
+            query = query.eq('action', action);
+        }
+        
+        if (userId) {
+            query = query.eq('user_id', userId);
+        }
+        
+        if (userRole) {
+            query = query.eq('users.role_id', parseInt(userRole));
+        }
+        
+        const { data: logs, error, count } = await query;
+        auditTotalCount = count || 0;
+        
         const table = document.getElementById('auditTable');
+        const countEl = document.getElementById('auditCount');
+        const pageEl = document.getElementById('auditPage');
+        const totalEl = document.getElementById('auditTotalEvents');
+        const todayEl = document.getElementById('auditTodayEvents');
+        const uniqueEl = document.getElementById('auditUniqueUsers');
+        const mostActiveEl = document.getElementById('auditMostActive');
+        
         if (!table) return;
-        if (!logs?.length) {
-            table.innerHTML = '<div class="empty-state"><i class="fas fa-history"></i><p>No audit logs found</p></div>';
+        
+        // Update stats
+        if (countEl) countEl.textContent = `${count || 0} logs found`;
+        if (pageEl) pageEl.textContent = `Page ${auditPage}`;
+        if (totalEl) totalEl.textContent = count || 0;
+        
+        // Calculate today's events
+        const today = new Date().toISOString().split('T')[0];
+        const todayCount = logs?.filter(l => l.created_at?.startsWith(today)).length || 0;
+        if (todayEl) todayEl.textContent = todayCount;
+        
+        // Calculate unique users
+        const uniqueUsers = new Set(logs?.map(l => l.user_id) || []);
+        if (uniqueEl) uniqueEl.textContent = uniqueUsers.size;
+        
+        // Calculate most active user
+        if (logs && logs.length > 0) {
+            const userCounts = {};
+            logs.forEach(l => {
+                const name = l.users?.full_name || 'System';
+                userCounts[name] = (userCounts[name] || 0) + 1;
+            });
+            const mostActive = Object.entries(userCounts).sort((a, b) => b[1] - a[1])[0];
+            if (mostActiveEl) mostActiveEl.textContent = mostActive ? `${mostActive[0]} (${mostActive[1]})` : '—';
+        }
+        
+        if (error || !logs?.length) {
+            table.innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-history"></i>
+                    <p>No audit logs found</p>
+                    <p style="font-size:12px;color:var(--text-muted);">${error?.message || 'Try adjusting your filters'}</p>
+                </div>
+            `;
             return;
         }
-        let html = '<div class="table-wrapper"><table class="data-table"><thead><tr><th>👤 User</th><th>📋 Action</th><th>📂 Type</th><th>📅 Date</th></tr></thead><tbody>';
+        
+        // Build table with all details
+        let html = `
+            <div class="table-wrapper">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>👤 User</th>
+                            <th>📋 Action</th>
+                            <th>📂 Entity</th>
+                            <th>🔗 Details</th>
+                            <th>📅 Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+        `;
+        
+        // Action emojis mapping
+        const actionEmojis = {
+            'Login': '🔐',
+            'Logout': '🚪',
+            'Product Created': '📦',
+            'Product Updated': '✏️',
+            'Product Deleted': '🗑️',
+            'Order Created': '🛒',
+            'Order Updated': '📝',
+            'Order Paid': '💳',
+            'Order Cancelled': '❌',
+            'User Created': '👤',
+            'User Updated': '✏️',
+            'User Deleted': '🗑️',
+            'PIN Set': '🔑',
+            'PIN Updated': '🔑',
+            'PIN Login': '🔐',
+            'Stock Adjusted': '📊',
+            'Payment Processed': '💳',
+            'Receipt Generated': '🧾',
+            'Report Generated': '📊',
+            'Setting Changed': '⚙️',
+            'POS Sale': '🛒',
+            'Customer Added': '👤',
+            'Customer Updated': '✏️',
+            'Customer Deleted': '🗑️',
+            'Supplier Added': '🚚',
+            'Supplier Updated': '✏️',
+            'Supplier Deleted': '🗑️',
+            'Kitchen Order Started': '🍳',
+            'Kitchen Order Ready': '✅',
+            'Kitchen Order Completed': '🏁'
+        };
+        
         logs.forEach(log => {
-            html += `<tr>
-                <td>${log.users?.full_name || 'System'}</td>
-                <td><strong>${log.action}</strong></td>
-                <td><span class="badge info">${log.entity_type || 'N/A'}</span></td>
-                <td>${new Date(log.created_at).toLocaleString()}</td>
-            </tr>`;
+            const user = log.users;
+            const userName = user?.full_name || 'System';
+            const userRoleName = user?.roles?.name || 'Unknown';
+            const roleEmoji = userRoleName === 'admin' ? '👑' : 
+                             userRoleName === 'cashier' ? '💰' : 
+                             userRoleName === 'butcher' ? '🥩' : 
+                             userRoleName === 'kitchen' ? '🍳' : '👤';
+            
+            const emoji = actionEmojis[log.action] || '📌';
+            
+            html += `
+                <tr>
+                    <td>
+                        <strong>${userName}</strong>
+                        <br>
+                        <small style="color:var(--text-muted);font-size:11px;">${roleEmoji} ${userRoleName}</small>
+                    </td>
+                    <td><span class="badge primary">${emoji} ${log.action}</span></td>
+                    <td><span class="badge info">${log.entity_type || '—'}</span></td>
+                    <td style="max-width:250px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px;">
+                        ${log.details || ''}
+                        ${log.new_value ? `<br><small style="color:var(--text-muted);font-size:11px;">📝 ${JSON.stringify(log.new_value).substring(0, 40)}${JSON.stringify(log.new_value).length > 40 ? '...' : ''}</small>` : ''}
+                    </td>
+                    <td>
+                        <div>${new Date(log.created_at).toLocaleDateString()}</div>
+                        <div style="font-size:11px;color:var(--text-muted);">${new Date(log.created_at).toLocaleTimeString()}</div>
+                        ${log.ip_address ? `<div style="font-size:10px;color:var(--text-muted);">🌐 ${log.ip_address}</div>` : ''}
+                    </td>
+                </tr>
+            `;
         });
-        html += '</tbody></table></div>';
+        
+        html += `
+                    </tbody>
+                </table>
+            </div>
+        `;
+        
         table.innerHTML = html;
-    } catch (e) { console.error('Audit error:', e); }
+        
+    } catch (e) { 
+        console.error('Audit error:', e);
+        const table = document.getElementById('auditTable');
+        if (table) {
+            table.innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <p>Could not load audit logs</p>
+                    <p style="font-size:12px;color:var(--text-muted);">${e.message}</p>
+                </div>
+            `;
+        }
+    }
+}
+
+// ============================================================
+//  LOAD USERS FOR FILTER DROPDOWN
+// ============================================================
+
+async function loadAuditUsers() {
+    try {
+        const { data: users } = await supabaseClient
+            .from('users')
+            .select('id, full_name, role_id, roles(name)')
+            .order('full_name');
+            
+        const select = document.getElementById('auditUser');
+        if (!select) return;
+        
+        select.innerHTML = '<option value="">All Users</option>';
+        if (users && users.length > 0) {
+            users.forEach(u => {
+                const roleEmoji = u.roles?.name === 'admin' ? '👑' : 
+                                 u.roles?.name === 'cashier' ? '💰' : 
+                                 u.roles?.name === 'butcher' ? '🥩' : 
+                                 u.roles?.name === 'kitchen' ? '🍳' : '👤';
+                select.innerHTML += `<option value="${u.id}">${roleEmoji} ${u.full_name} (${u.roles?.name || 'Unknown'})</option>`;
+            });
+        }
+    } catch (e) {
+        console.error('Load audit users error:', e);
+    }
+}
+
+// ============================================================
+//  EXPORT AUDIT LOGS
+// ============================================================
+
+async function exportAuditLogs() {
+    try {
+        const date = document.getElementById('auditDate')?.value;
+        const action = document.getElementById('auditAction')?.value;
+        const userRole = document.getElementById('auditUserRole')?.value;
+        const userId = document.getElementById('auditUser')?.value;
+        
+        let query = supabaseClient
+            .from('audit_logs')
+            .select('*, users(full_name, role_id, roles(name))')
+            .order('created_at', { ascending: false });
+        
+        if (date) {
+            query = query.gte('created_at', date + 'T00:00:00')
+                .lte('created_at', date + 'T23:59:59');
+        }
+        
+        if (action) {
+            query = query.eq('action', action);
+        }
+        
+        if (userId) {
+            query = query.eq('user_id', userId);
+        }
+        
+        if (userRole) {
+            query = query.eq('users.role_id', parseInt(userRole));
+        }
+        
+        const { data: logs } = await query.limit(10000);
+        
+        if (!logs?.length) {
+            showToast('No logs to export', 'warning');
+            return;
+        }
+        
+        // Create CSV
+        let csv = 'User,Role,Action,Entity,Details,Date,IP Address\n';
+        logs.forEach(log => {
+            const user = log.users;
+            csv += `"${user?.full_name || 'System'}","${user?.roles?.name || 'Unknown'}","${log.action}","${log.entity_type || 'N/A'}","${log.details || ''}","${new Date(log.created_at).toLocaleString()}","${log.ip_address || 'Unknown'}"\n`;
+        });
+        
+        // Download
+        const blob = new Blob([csv], { type: 'text/csv' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `audit_logs_${new Date().toISOString().split('T')[0]}.csv`;
+        a.click();
+        window.URL.revokeObjectURL(url);
+        
+        showToast('📤 Audit logs exported successfully!', 'success');
+        
+    } catch (error) {
+        console.error('Export error:', error);
+        showToast('❌ Could not export logs: ' + error.message, 'error');
+    }
+}
+
+// ============================================================
+//  LOG USER ACTIVITY - TRACKS EVERYTHING
+// ============================================================
+
+async function logUserActivity(action, details = '', entityType = '', entityId = '', newValue = null, oldValue = null) {
+    try {
+        if (!currentUser) return;
+        
+        // Get user IP
+        let ip = 'unknown';
+        try {
+            const response = await fetch('https://api.ipify.org?format=json');
+            const data = await response.json();
+            ip = data.ip;
+        } catch (e) {}
+        
+        // Log the activity
+        const { error } = await supabaseClient
+            .from('audit_logs')
+            .insert({
+                user_id: currentUser.id,
+                action: action,
+                details: details,
+                entity_type: entityType,
+                entity_id: entityId,
+                new_value: newValue,
+                old_value: oldValue,
+                ip_address: ip,
+                user_agent: navigator.userAgent,
+                created_at: new Date().toISOString()
+            });
+            
+        if (error) {
+            console.error('Audit log error:', error);
+        }
+        
+    } catch (e) {
+        console.log('Audit log skipped:', e.message);
+    }
 }
 
 // ============================================================
