@@ -597,37 +597,173 @@
             </div>
         </section>
 
-        <!-- ===== PROFIT/LOSS ===== -->
-        <section id="profitSection" class="section-page">
-            <div class="card"><div class="card-header"><h3>💰 Profit & Loss</h3></div>
-                <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:16px;">
-                    <div style="background:var(--bg);padding:16px;border-radius:var(--radius-sm);text-align:center;">
-                        <div style="font-size:12px;color:var(--text-muted);">Total Revenue</div>
-                        <div style="font-size:24px;font-weight:700;color:var(--success);" id="totalRevenue">KES 0</div>
-                    </div>
-                    <div style="background:var(--bg);padding:16px;border-radius:var(--radius-sm);text-align:center;">
-                        <div style="font-size:12px;color:var(--text-muted);">Total Cost</div>
-                        <div style="font-size:24px;font-weight:700;color:var(--danger);" id="totalCost">KES 0</div>
-                    </div>
-                    <div style="background:var(--bg);padding:16px;border-radius:var(--radius-sm);text-align:center;">
-                        <div style="font-size:12px;color:var(--text-muted);">Net Profit</div>
-                        <div style="font-size:24px;font-weight:700;color:var(--primary);" id="netProfit">KES 0</div>
-                    </div>
+      <!-- ===== PROFIT/LOSS ===== -->
+<section id="profitSection" class="section-page">
+    <div class="card">
+        <div class="card-header">
+            <h3>💰 Profit & Loss</h3>
+            <button class="card-action" onclick="refreshProfitData()">
+                <i class="fas fa-sync-alt"></i> Refresh
+            </button>
+        </div>
+        
+        <!-- Stats Cards -->
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:16px;">
+            <div style="background:var(--bg);padding:16px;border-radius:var(--radius-sm);text-align:center;border:1px solid var(--border);">
+                <div style="font-size:12px;color:var(--text-muted);margin-bottom:4px;">
+                    <i class="fas fa-arrow-up" style="color:var(--success);"></i> Total Revenue
                 </div>
-                <div id="profitChartContainer"><canvas id="profitChart" height="200"></canvas></div>
+                <div style="font-size:24px;font-weight:700;color:var(--success);" id="totalRevenue">KES 0.00</div>
+                <div style="font-size:11px;color:var(--text-muted);margin-top:4px;">From paid orders</div>
             </div>
-        </section>
-
+            <div style="background:var(--bg);padding:16px;border-radius:var(--radius-sm);text-align:center;border:1px solid var(--border);">
+                <div style="font-size:12px;color:var(--text-muted);margin-bottom:4px;">
+                    <i class="fas fa-arrow-down" style="color:var(--danger);"></i> Total Cost
+                </div>
+                <div style="font-size:24px;font-weight:700;color:var(--danger);" id="totalCost">KES 0.00</div>
+                <div style="font-size:11px;color:var(--text-muted);margin-top:4px;">Cost of goods sold</div>
+            </div>
+            <div style="background:var(--bg);padding:16px;border-radius:var(--radius-sm);text-align:center;border:1px solid var(--border);">
+                <div style="font-size:12px;color:var(--text-muted);margin-bottom:4px;">
+                    <i class="fas fa-coins" style="color:var(--primary);"></i> Net Profit
+                </div>
+                <div style="font-size:24px;font-weight:700;color:var(--primary);" id="netProfit">KES 0.00</div>
+                <div style="font-size:11px;color:var(--text-muted);margin-top:4px;" id="profitMargin">Margin: 0%</div>
+            </div>
+        </div>
+        
+        <!-- Profit Chart -->
+        <div style="background:var(--bg);border-radius:var(--radius-sm);padding:20px;border:1px solid var(--border);margin-bottom:16px;">
+            <h4 style="margin-bottom:12px;font-size:14px;color:var(--text-secondary);">
+                📊 Profit Distribution
+            </h4>
+            <canvas id="profitChart" height="250"></canvas>
+        </div>
+        
+        <!-- Profit Breakdown Table -->
+        <div style="background:var(--bg);border-radius:var(--radius-sm);padding:16px;border:1px solid var(--border);">
+            <h4 style="margin-bottom:10px;font-size:14px;color:var(--text-secondary);">
+                📋 Profit Breakdown
+            </h4>
+            <div id="profitBreakdown">
+                <div class="empty-state" style="padding:20px;">
+                    <i class="fas fa-spinner fa-spin"></i>
+                    <p>Loading profit breakdown...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
         <!-- ===== AUDIT TRAIL ===== -->
-        <section id="auditSection" class="section-page">
-            <div class="card"><div class="card-header"><h3>📜 Audit Trail</h3>
-                <div style="display:flex;gap:8px;">
-                    <input type="date" id="auditDate" style="padding:6px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg);color:var(--text-primary);">
-                    <button class="btn btn-sm btn-primary" onclick="loadAuditLogs()"><i class="fas fa-search"></i> Search</button>
-                </div>
+<section id="auditSection" class="section-page">
+    <div class="card">
+        <div class="card-header">
+            <h3>📜 Audit Trail</h3>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                <input type="date" id="auditDate" style="padding:6px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg);color:var(--text-primary);">
+                <select id="auditUser" style="padding:6px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg);color:var(--text-primary);">
+                    <option value="">All Users</option>
+                </select>
+                <select id="auditAction" style="padding:6px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg);color:var(--text-primary);">
+                    <option value="">All Actions</option>
+                    <option value="Login">🔐 Login</option>
+                    <option value="Logout">🚪 Logout</option>
+                    <option value="Product Created">📦 Product Created</option>
+                    <option value="Product Updated">✏️ Product Updated</option>
+                    <option value="Product Deleted">🗑️ Product Deleted</option>
+                    <option value="Product Viewed">👁️ Product Viewed</option>
+                    <option value="Order Created">🛒 Order Created</option>
+                    <option value="Order Updated">📝 Order Updated</option>
+                    <option value="Order Paid">💳 Order Paid</option>
+                    <option value="Order Cancelled">❌ Order Cancelled</option>
+                    <option value="User Created">👤 User Created</option>
+                    <option value="User Updated">✏️ User Updated</option>
+                    <option value="User Deleted">🗑️ User Deleted</option>
+                    <option value="User Login">🔐 User Login</option>
+                    <option value="User Logout">🚪 User Logout</option>
+                    <option value="PIN Set">🔑 PIN Set</option>
+                    <option value="PIN Updated">🔑 PIN Updated</option>
+                    <option value="PIN Login">🔐 PIN Login</option>
+                    <option value="Stock Adjusted">📊 Stock Adjusted</option>
+                    <option value="Stock Low Alert">⚠️ Stock Low Alert</option>
+                    <option value="Payment Processed">💳 Payment Processed</option>
+                    <option value="Receipt Generated">🧾 Receipt Generated</option>
+                    <option value="Report Generated">📊 Report Generated</option>
+                    <option value="Setting Changed">⚙️ Setting Changed</option>
+                    <option value="POS Sale">🛒 POS Sale</option>
+                    <option value="Customer Added">👤 Customer Added</option>
+                    <option value="Customer Updated">✏️ Customer Updated</option>
+                    <option value="Customer Deleted">🗑️ Customer Deleted</option>
+                    <option value="Supplier Added">🚚 Supplier Added</option>
+                    <option value="Supplier Updated">✏️ Supplier Updated</option>
+                    <option value="Supplier Deleted">🗑️ Supplier Deleted</option>
+                    <option value="Inventory Check">📊 Inventory Check</option>
+                    <option value="Kitchen Order Started">🍳 Kitchen Order Started</option>
+                    <option value="Kitchen Order Ready">✅ Kitchen Order Ready</option>
+                    <option value="Kitchen Order Completed">🏁 Kitchen Order Completed</option>
+                </select>
+                <select id="auditUserRole" style="padding:6px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg);color:var(--text-primary);">
+                    <option value="">All Roles</option>
+                    <option value="1">👑 Admin</option>
+                    <option value="2">💰 Cashier</option>
+                    <option value="3">🥩 Butcher</option>
+                    <option value="4">🍳 Kitchen</option>
+                </select>
+                <button class="btn btn-sm btn-primary" onclick="loadAuditLogs()">
+                    <i class="fas fa-search"></i> Search
+                </button>
+                <button class="btn btn-sm btn-outline" onclick="loadAuditLogs()">
+                    <i class="fas fa-sync-alt"></i> Refresh
+                </button>
+                <button class="btn btn-sm btn-success" onclick="exportAuditLogs()">
+                    <i class="fas fa-download"></i> Export
+                </button>
             </div>
-            <div id="auditTable"><div class="empty-state"><p>Loading audit logs...</p></div></div>
-        </section>
+        </div>
+        
+        <!-- Audit Summary Stats -->
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px;">
+            <div style="background:var(--bg);padding:10px;border-radius:var(--radius-sm);text-align:center;">
+                <div style="font-size:11px;color:var(--text-muted);">Total Events</div>
+                <div style="font-size:18px;font-weight:700;color:var(--primary);" id="auditTotalEvents">0</div>
+            </div>
+            <div style="background:var(--bg);padding:10px;border-radius:var(--radius-sm);text-align:center;">
+                <div style="font-size:11px;color:var(--text-muted);">Today</div>
+                <div style="font-size:18px;font-weight:700;color:var(--success);" id="auditTodayEvents">0</div>
+            </div>
+            <div style="background:var(--bg);padding:10px;border-radius:var(--radius-sm);text-align:center;">
+                <div style="font-size:11px;color:var(--text-muted);">Unique Users</div>
+                <div style="font-size:18px;font-weight:700;color:var(--info);" id="auditUniqueUsers">0</div>
+            </div>
+            <div style="background:var(--bg);padding:10px;border-radius:var(--radius-sm);text-align:center;">
+                <div style="font-size:11px;color:var(--text-muted);">Most Active</div>
+                <div style="font-size:16px;font-weight:700;color:var(--warning);" id="auditMostActive">—</div>
+            </div>
+        </div>
+        
+        <div id="auditTable">
+            <div class="empty-state">
+                <i class="fas fa-history"></i>
+                <p>Loading audit logs...</p>
+            </div>
+        </div>
+        
+        <div style="margin-top:10px;display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--text-muted);flex-wrap:wrap;gap:8px;">
+            <span id="auditCount">0 logs found</span>
+            <div style="display:flex;gap:4px;align-items:center;">
+                <button class="btn btn-sm btn-outline" onclick="loadAuditLogs('prev')">←</button>
+                <span id="auditPage">Page 1</span>
+                <button class="btn btn-sm btn-outline" onclick="loadAuditLogs('next')">→</button>
+                <select id="auditLimit" onchange="loadAuditLogs()" style="padding:4px 8px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg);color:var(--text-primary);font-size:12px;">
+                    <option value="10">10</option>
+                    <option value="20" selected>20</option>
+                    <option value="50">50</option>
+                    <option value="100">100</option>
+                </select>
+            </div>
+        </div>
+    </div>
+</section>
 
         <!-- ===== SETTINGS ===== -->
         <section id="settingsSection" class="section-page">
