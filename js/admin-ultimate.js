@@ -595,7 +595,7 @@ function resetSessionTimer() {
 }
 
 // ============================================================
-//  AUTH
+//  AUTH - FIXED FOR PIN LOGIN
 // ============================================================
 async function checkAuth() {
     try {
@@ -631,10 +631,41 @@ async function checkAuth() {
         }
 
         console.log('✅ User authenticated:', user.email);
+        console.log('🔑 Login method:', loginMethod || 'email');
+
+        // ✅ Set current user
         currentUser = user;
+        
+        // ✅ Update UI with user info
         updateUI(user);
         resetSessionTimer();
-        return user;
+
+        // ✅ If PIN login, verify user is still active in database
+        if (loginMethod === 'pin') {
+            try {
+                const { data: dbUser, error } = await supabaseClient
+                    .from('users')
+                    .select('id, email, full_name, role_id, status, pin_enabled')
+                    .eq('id', user.id)
+                    .single();
+                
+                if (error || !dbUser || dbUser.status !== 'active') {
+                    console.log('❌ User no longer active or not found');
+                    localStorage.removeItem('viewpoint_session');
+                    window.location.href = 'login.html';
+                    return null;
+                }
+                
+                // ✅ Update current user with fresh data
+                currentUser = { ...user, ...dbUser };
+                
+            } catch (e) {
+                // If we can't verify, keep the session but log it
+                console.log('⚠️ Could not verify user in database, but session is valid');
+            }
+        }
+
+        return currentUser;
 
     } catch (error) {
         console.error('❌ Auth error:', error);
@@ -643,7 +674,6 @@ async function checkAuth() {
         return null;
     }
 }
-
 function updateUI(user) {
     const avatar = document.getElementById('userAvatar');
     const userName = document.getElementById('userName');
