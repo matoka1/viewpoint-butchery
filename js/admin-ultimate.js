@@ -29,6 +29,14 @@ let unreadCount = 0;
 let isInitialized = false;
 let currentProductImageFile = null;
 let currentProductEmoji = '📦';
+let pendingPayment = {
+    isProcessing: false,
+    cancelled: false,
+    orderId: null,
+    paymentId: null,
+    transactionId: null,
+    intervalId: null
+};
 // ============================================================
 //  EMOJIS - COMPLETE WITH ALL KENYAN FOODS & NAMES
 // ============================================================
