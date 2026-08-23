@@ -1627,11 +1627,13 @@ async function loadUsers() {
         let html = '<div class="table-wrapper"><table class="data-table"><thead><tr><th>👤 Name</th><th>📧 Email</th><th>👑 Role</th><th>🔐 PIN</th><th>🔑 2FA</th><th>📊 Status</th><th>⚙️ Actions</th></tr></thead><tbody>';
         usersData.forEach(u => {
             const roleEmoji = u.roles?.name === 'admin' ? '👑' : u.roles?.name === 'cashier' ? '💰' : u.roles?.name === 'butcher' ? '🥩' : '🍳';
+            // ✅ Check both pin and pin_enabled
+            const hasPin = u.pin && u.pin_enabled;
             html += `<tr>
                 <td><strong>${u.full_name}</strong></td>
                 <td>${u.email}</td>
                 <td><span class="badge ${u.roles?.name || 'cashier'}">${roleEmoji} ${u.roles?.name || 'Unknown'}</span></td>
-                <td>${u.pin ? '✅ Set' : '❌ Not set'}</td>
+                <td>${hasPin ? '✅ Set' : '❌ Not set'}</td>
                 <td>${u.two_fa_enabled ? '✅ Enabled' : '❌ Disabled'}</td>
                 <td><span class="status-badge ${u.status}">${u.status}</span></td>
                 <td>
@@ -1679,6 +1681,7 @@ document.getElementById('userForm')?.addEventListener('submit', async (e) => {
             throw new Error('PIN must be exactly 4 digits');
         }
 
+        // Create auth user
         const { data: authData, error: authError } = await supabaseClient.auth.admin.createUser({
             email: email,
             password: password,
@@ -1716,10 +1719,13 @@ document.getElementById('userForm')?.addEventListener('submit', async (e) => {
             phone: phone || null,
             role_id: roleId,
             status: status,
-            pin: pin,
+            pin: pin,  // ✅ Using 'pin' column
+            pin_enabled: true,  // ✅ Enable PIN
+            pin_updated_at: new Date().toISOString(),
             two_fa_enabled: twoFA === 1,
             email_verified: true,
-            created_at: new Date().toISOString()
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
         });
 
         if (insertError) throw new Error(insertError.message);
@@ -1737,7 +1743,6 @@ document.getElementById('userForm')?.addEventListener('submit', async (e) => {
         btn.disabled = false;
     }
 });
-
 // ============================================================
 //  EDIT USER
 // ============================================================
@@ -1795,28 +1800,42 @@ document.getElementById('editUserForm')?.addEventListener('submit', async functi
     try {
         const userId = document.getElementById('editUserId')?.value;
         const pin = document.getElementById('editUserPin')?.value || '';
+        const roleId = parseInt(document.getElementById('editUserRole')?.value) || 2;
+        const twoFA = parseInt(document.getElementById('editUser2FA')?.value) === 1;
+        const status = document.getElementById('editUserStatus')?.value || 'active';
         
+        // Build data object
         const data = {
             full_name: document.getElementById('editUserFullName')?.value?.trim() || '',
             email: document.getElementById('editUserEmail')?.value?.trim() || '',
             phone: document.getElementById('editUserPhone')?.value?.trim() || null,
-            role_id: parseInt(document.getElementById('editUserRole')?.value) || 2,
-            two_fa_enabled: parseInt(document.getElementById('editUser2FA')?.value) === 1,
-            status: document.getElementById('editUserStatus')?.value || 'active'
+            role_id: roleId,
+            two_fa_enabled: twoFA,
+            status: status,
+            updated_at: new Date().toISOString()
         };
         
+        // ✅ Update PIN if provided
         if (pin && pin.length === 4 && /^\d{4}$/.test(pin)) {
-            data.pin = pin;
+            data.pin = pin;  // Using 'pin' column
+            data.pin_enabled = true;  // Enable PIN
+            data.pin_updated_at = new Date().toISOString();
+            console.log('✅ Updating PIN to:', pin);
         } else if (pin && pin.length > 0) {
             throw new Error('PIN must be exactly 4 digits');
         }
+
+        console.log('📤 Updating user data:', data);
 
         const { error: updateError } = await supabaseClient
             .from('users')
             .update(data)
             .eq('id', userId);
 
-        if (updateError) throw updateError;
+        if (updateError) {
+            console.error('❌ Update error:', updateError);
+            throw new Error(updateError.message);
+        }
 
         showToast('✅ User updated successfully!', 'success');
         closeModal('editUserModal');
