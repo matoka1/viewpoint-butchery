@@ -3395,10 +3395,55 @@ function printReceipt() {
 }
 
 // ============================================================
-//  PROCESS PAYMENT POS - WITH REAL STK PUSH (CLEAN VERSION)
+//  PROCESS PAYMENT POS - FULLY FIXED (FOR ADMIN & CASHIER)
+//  WITH USER AUTH CHECK, REAL STK PUSH, CANCELLATION HANDLING
 // ============================================================
 
 async function processPaymentPOS(method) {
+    // ============================================================
+    //  ✅ STEP 1: CHECK USER AUTHENTICATION
+    // ============================================================
+    let userId = null;
+    let userFullName = null;
+    
+    // Try to get user from currentUser
+    if (currentUser && currentUser.id) {
+        userId = currentUser.id;
+        userFullName = currentUser.full_name || 'User';
+        console.log('✅ User found in currentUser:', userId);
+    } else {
+        // Try to restore from localStorage
+        try {
+            const stored = localStorage.getItem('viewpoint_session');
+            if (stored) {
+                const session = JSON.parse(stored);
+                if (session && session.user && session.user.id) {
+                    userId = session.user.id;
+                    userFullName = session.user.full_name || 'User';
+                    currentUser = session.user;
+                    console.log('✅ User restored from session:', userId);
+                }
+            }
+        } catch (e) {
+            console.error('Failed to restore session:', e);
+        }
+    }
+    
+    // If still no user, redirect to login
+    if (!userId) {
+        showToast('Please login again. Session expired.', 'error');
+        setTimeout(() => {
+            window.location.href = 'login.html';
+        }, 2000);
+        return;
+    }
+    
+    console.log('✅ User ID:', userId);
+    console.log('✅ User Name:', userFullName);
+
+    // ============================================================
+    //  STEP 2: VALIDATE CART
+    // ============================================================
     if (!cart.length) {
         showToast('Cart is empty!', 'error');
         return;
@@ -3473,10 +3518,12 @@ async function processPaymentPOS(method) {
     }
 
     try {
-        // Create order
+        // ============================================================
+        //  STEP 3: CREATE ORDER WITH userId
+        // ============================================================
         const { data: order, error } = await supabaseClient.from('orders').insert({
             order_type: posMode,
-            user_id: currentUser?.id,
+            user_id: userId,  // ✅ Use the userId we got above
             customer_phone: phone || null,
             subtotal: total,
             total: total,
@@ -3490,6 +3537,8 @@ async function processPaymentPOS(method) {
             throw new Error('Failed to create order: ' + error.message);
         }
 
+        console.log('✅ Order created:', order.id);
+
         pendingPayment.orderId = order.id;
 
         const items = cart.map(item => ({
@@ -3501,16 +3550,26 @@ async function processPaymentPOS(method) {
         }));
         await supabaseClient.from('order_items').insert(items);
 
-        // Create payment record
-        const { data: payment } = await supabaseClient.from('payments').insert({
+        // ============================================================
+        //  STEP 4: CREATE PAYMENT
+        // ============================================================
+        const { data: payment, error: paymentError } = await supabaseClient.from('payments').insert({
             order_id: order.id,
             payment_method: method,
             amount: total,
             status: 'pending'
         }).select().single();
 
+        if (paymentError) {
+            console.error('Payment error:', paymentError);
+            throw new Error('Failed to create payment: ' + paymentError.message);
+        }
+
         pendingPayment.paymentId = payment.id;
 
+        // ============================================================
+        //  STEP 5: PROCESS PAYMENT
+        // ============================================================
         if (method === 'mpesa') {
             // ✅ REAL STK PUSH INTEGRATION
             try {
@@ -3559,13 +3618,15 @@ async function processPaymentPOS(method) {
                     transaction_reference: stkData.transaction_id
                 }).eq('id', payment.id);
 
-                // ✅ Wait for payment confirmation - POLLING
+                // ============================================================
+                //  STEP 6: POLLING FOR PAYMENT CONFIRMATION
+                // ============================================================
                 let attempts = 0;
                 const maxAttempts = 30;
                 let paymentConfirmed = false;
                 let paymentData = null;
 
-                // ✅ Update UI for waiting - CLEAN (NO LINK, SINGLE CANCEL)
+                // Update UI for waiting - CLEAN (NO LINK, SINGLE CANCEL)
                 if (content) {
                     content.innerHTML = `
                         <div class="spinner"></div>
@@ -3634,7 +3695,7 @@ async function processPaymentPOS(method) {
                             }
                         }
 
-                        // ✅ Update progress - CLEAN (NO LINK, SINGLE CANCEL)
+                        // Update progress - CLEAN (NO LINK, SINGLE CANCEL)
                         if (content && !paymentConfirmed && !pendingPayment.cancelled) {
                             const remaining = Math.round((maxAttempts - attempts) * 2);
                             content.innerHTML = `
@@ -3654,7 +3715,11 @@ async function processPaymentPOS(method) {
                     }
                 }
 
-                // ✅ Process payment result
+                // ============================================================
+                //  STEP 7: PROCESS PAYMENT RESULT
+                // ============================================================
+
+                // ✅ PAYMENT SUCCESS
                 if (paymentConfirmed && paymentData && paymentData.status === 'completed') {
                     // Payment successful
                     await supabaseClient.from('payments').update({
@@ -3732,6 +3797,7 @@ async function processPaymentPOS(method) {
                         resetSessionTimer();
                     }, 2000);
 
+                // ❌ PAYMENT FAILED
                 } else if (paymentConfirmed && paymentData && (paymentData.status === 'failed' || paymentData.status === 'cancelled')) {
                     // Payment failed
                     await supabaseClient.from('payments').update({
@@ -3771,6 +3837,7 @@ async function processPaymentPOS(method) {
                         updateCartDisplayPOS();
                     }, 3000);
 
+                // ⏳ PAYMENT PENDING (Timeout)
                 } else {
                     // Timeout - payment pending
                     await supabaseClient.from('payments').update({
@@ -3831,7 +3898,9 @@ async function processPaymentPOS(method) {
             }
 
         } else {
-            // Cash payment - instant success
+            // ============================================================
+            //  💵 CASH PAYMENT - Instant success
+            // ============================================================
             await supabaseClient.from('payments').update({
                 status: 'completed',
                 completed_at: new Date().toISOString()
@@ -3860,7 +3929,7 @@ async function processPaymentPOS(method) {
             // Log cash payment
             await logUserActivity(
                 'Payment Processed',
-                `Cash payment of KES ${total.toFixed(2)} processed by ${currentUser?.full_name}`,
+                `Cash payment of KES ${total.toFixed(2)} processed by ${userFullName}`,
                 'payment',
                 payment.id,
                 { amount: total, method: 'cash' }
@@ -3908,7 +3977,6 @@ async function processPaymentPOS(method) {
         addNotification('Payment Error', error.message, 'error');
     }
 }
-
 // ============================================================
 //  CANCEL PAYMENT
 // ============================================================
