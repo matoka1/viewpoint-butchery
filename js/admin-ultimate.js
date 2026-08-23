@@ -3379,7 +3379,7 @@ function printReceipt() {
 }
 
 // ============================================================
-//  PROCESS PAYMENT POS - WITH REAL STK PUSH (NO LINK DISPLAY)
+//  PROCESS PAYMENT POS - WITH REAL STK PUSH (CLEAN VERSION)
 // ============================================================
 
 async function processPaymentPOS(method) {
@@ -3415,15 +3415,31 @@ async function processPaymentPOS(method) {
         return;
     }
 
+    // ✅ Reset payment state
+    pendingPayment.isProcessing = true;
+    pendingPayment.cancelled = false;
+    pendingPayment.orderId = null;
+    pendingPayment.paymentId = null;
+    pendingPayment.transactionId = null;
+
+    // ✅ Show modal - CLEAN (NO LINK, SINGLE CANCEL)
     if (title) title.textContent = `⏳ Processing ${method.toUpperCase()} Payment`;
     if (content) {
         content.innerHTML = `
             <div class="spinner"></div>
             <p class="status-text">${method === 'mpesa' ? '⏳ Sending STK Push...' : '⏳ Processing cash payment...'}</p>
             <p class="status-sub" id="paymentDetails">Amount: KES ${total.toFixed(2)}</p>
-            ${method === 'mpesa' ? `<p class="status-sub" style="font-size:12px;margin-top:8px;">📱 Enter PIN on your phone to complete payment</p>` : ''}
+            ${method === 'mpesa' ? `<p class="status-sub" style="font-size:12px;margin-top:8px;">📱 Check your phone and enter your PIN</p>` : ''}
+            ${method === 'mpesa' ? `<button class="btn btn-danger" style="margin-top:12px;width:100%;" onclick="cancelPayment()"><i class="fas fa-times"></i> Cancel Payment</button>` : ''}
         `;
     }
+
+    // ✅ Hide the modal footer cancel button
+    const cancelBtn = document.getElementById('cancelPaymentBtn');
+    const closeBtn = document.getElementById('closePaymentBtn');
+    if (cancelBtn) cancelBtn.style.display = 'none';
+    if (closeBtn) closeBtn.style.display = 'inline-flex';
+
     modal.classList.add('active');
 
     // Save customer if phone provided
@@ -3458,6 +3474,8 @@ async function processPaymentPOS(method) {
             throw new Error('Failed to create order: ' + error.message);
         }
 
+        pendingPayment.orderId = order.id;
+
         const items = cart.map(item => ({
             order_id: order.id,
             product_id: item.product_id,
@@ -3474,6 +3492,8 @@ async function processPaymentPOS(method) {
             amount: total,
             status: 'pending'
         }).select().single();
+
+        pendingPayment.paymentId = payment.id;
 
         if (method === 'mpesa') {
             // ✅ REAL STK PUSH INTEGRATION
@@ -3500,8 +3520,7 @@ async function processPaymentPOS(method) {
                             amount: totalAmount,
                             order_id: order.id,
                             description: `Viewpoint Order #${order.order_number || order.id.slice(0,8)}`,
-                            account_id: PAYHERO_CONFIG.accountId,
-                            lipwa_link: PAYHERO_CONFIG.lipwaLink
+                            account_id: PAYHERO_CONFIG.accountId
                         }
                     });
 
@@ -3517,6 +3536,8 @@ async function processPaymentPOS(method) {
                 console.log('✅ STK Push sent:', stkData);
                 console.log('📱 Transaction ID:', stkData.transaction_id);
 
+                pendingPayment.transactionId = stkData.transaction_id;
+
                 // Update payment with transaction reference
                 await supabaseClient.from('payments').update({
                     transaction_reference: stkData.transaction_id
@@ -3528,7 +3549,7 @@ async function processPaymentPOS(method) {
                 let paymentConfirmed = false;
                 let paymentData = null;
 
-                // Update UI for waiting
+                // ✅ Update UI for waiting - CLEAN (NO LINK, SINGLE CANCEL)
                 if (content) {
                     content.innerHTML = `
                         <div class="spinner"></div>
@@ -3537,11 +3558,34 @@ async function processPaymentPOS(method) {
                         <p class="status-sub" style="font-size:12px;color:var(--text-muted);margin-top:8px;">
                             ⏱️ Waiting for M-Pesa confirmation...
                         </p>
+                        <button class="btn btn-danger" style="margin-top:12px;width:100%;" onclick="cancelPayment()">
+                            <i class="fas fa-times"></i> Cancel Payment
+                        </button>
                     `;
                 }
 
                 // Poll for payment status
                 while (attempts < maxAttempts && !paymentConfirmed) {
+                    // ✅ Check if payment was cancelled
+                    if (pendingPayment.cancelled) {
+                        console.log('⛔ Payment cancelled by user');
+                        if (content) {
+                            content.innerHTML = `
+                                <div class="status-icon warning">⛔</div>
+                                <p class="status-text">Payment Cancelled</p>
+                                <p class="status-sub">You cancelled the payment.</p>
+                                <button class="btn btn-primary" style="margin-top:12px;" onclick="closeModal('paymentModal')">OK</button>
+                            `;
+                        }
+                        showToast('⛔ Payment cancelled', 'warning');
+                        pendingPayment.isProcessing = false;
+                        await supabaseClient
+                            .from('orders')
+                            .update({ status: 'cancelled', payment_status: 'cancelled' })
+                            .eq('id', order.id);
+                        return;
+                    }
+
                     await new Promise(resolve => setTimeout(resolve, 2000));
                     attempts++;
 
@@ -3574,16 +3618,19 @@ async function processPaymentPOS(method) {
                             }
                         }
 
-                        // Update progress
-                        if (content && !paymentConfirmed) {
+                        // ✅ Update progress - CLEAN (NO LINK, SINGLE CANCEL)
+                        if (content && !paymentConfirmed && !pendingPayment.cancelled) {
                             const remaining = Math.round((maxAttempts - attempts) * 2);
                             content.innerHTML = `
                                 <div class="spinner"></div>
-                                <p class="status-text">⏳ Waiting for payment confirmation...</p>
-                                <p class="status-sub">Attempt ${attempts}/${maxAttempts}</p>
-                                <p class="status-sub" style="font-size:12px;color:var(--text-muted);margin-top:4px;">
+                                <p class="status-text">⏳ Waiting for payment confirmation... (${attempts}/${maxAttempts})</p>
+                                <p class="status-sub">Please check your phone and enter your PIN</p>
+                                <p class="status-sub" style="font-size:12px;color:var(--text-muted);margin-top:8px;">
                                     ⏱️ ${remaining} seconds remaining
                                 </p>
+                                <button class="btn btn-danger" style="margin-top:12px;width:100%;" onclick="cancelPayment()">
+                                    <i class="fas fa-times"></i> Cancel Payment
+                                </button>
                             `;
                         }
                     } catch (pollError) {
@@ -3655,6 +3702,8 @@ async function processPaymentPOS(method) {
                     showToast('✅ Payment successful!', 'success');
                     addNotification('Payment Successful', `Order #${order.order_number || order.id.slice(0,8)} - KES ${total.toFixed(2)}`, 'success', 'orders');
 
+                    pendingPayment.isProcessing = false;
+
                     setTimeout(() => {
                         modal.classList.remove('active');
                         generateAdminReceipt(order.id);
@@ -3698,6 +3747,8 @@ async function processPaymentPOS(method) {
                     showToast('❌ Payment failed. Please try again.', 'error');
                     addNotification('Payment Failed', `Order #${order.order_number || order.id.slice(0,8)} failed. Please try again.`, 'error');
                     
+                    pendingPayment.isProcessing = false;
+                    
                     setTimeout(() => {
                         modal.classList.remove('active');
                         cart = [];
@@ -3722,6 +3773,8 @@ async function processPaymentPOS(method) {
 
                     showToast('⏳ Payment pending. Please check your phone.', 'warning');
                     addNotification('Payment Pending', `Order #${order.order_number || order.id.slice(0,8)} is pending payment confirmation`, 'warning', 'orders');
+                    
+                    pendingPayment.isProcessing = false;
                     
                     setTimeout(() => {
                         modal.classList.remove('active');
@@ -3753,6 +3806,8 @@ async function processPaymentPOS(method) {
 
                 showToast('❌ Payment error: ' + stkError.message, 'error');
                 addNotification('Payment Error', stkError.message, 'error');
+                
+                pendingPayment.isProcessing = false;
                 
                 setTimeout(() => {
                     modal.classList.remove('active');
@@ -3807,6 +3862,8 @@ async function processPaymentPOS(method) {
             showToast(`✅ Cash payment successful!`, 'success');
             addNotification('Cash Payment', `Order #${order.order_number || order.id.slice(0,8)} - KES ${total.toFixed(2)}`, 'success', 'orders');
 
+            pendingPayment.isProcessing = false;
+
             setTimeout(() => {
                 modal.classList.remove('active');
                 generateAdminReceipt(order.id);
@@ -3822,21 +3879,22 @@ async function processPaymentPOS(method) {
 
     } catch (error) {
         console.error('Payment error:', error);
+        pendingPayment.isProcessing = false;
         if (content) {
             content.innerHTML = `
                 <div class="status-icon failed">❌</div>
                 <p class="status-text">Payment Error</p>
                 <p class="status-sub">${error.message}</p>
+                <button class="btn btn-primary" style="margin-top:12px;" onclick="closeModal('paymentModal')">OK</button>
             `;
         }
         showToast('❌ Payment error: ' + error.message, 'error');
         addNotification('Payment Error', error.message, 'error');
-        setTimeout(() => {
-            modal.classList.remove('active');
-        }, 2000);
     }
 }
-
+// Make functions globally available
+window.cancelPayment = cancelPayment;
+window.showPaymentModal = showPaymentModal;
 // ============================================================
 //  CANCEL PAYMENT
 // ============================================================
