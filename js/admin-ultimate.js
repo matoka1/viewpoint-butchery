@@ -3892,9 +3892,7 @@ async function processPaymentPOS(method) {
         addNotification('Payment Error', error.message, 'error');
     }
 }
-// Make functions globally available
-window.cancelPayment = cancelPayment;
-window.showPaymentModal = showPaymentModal;
+
 // ============================================================
 //  CANCEL PAYMENT
 // ============================================================
