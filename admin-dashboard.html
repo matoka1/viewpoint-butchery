@@ -2548,6 +2548,7 @@ function addToCartPOS() {
     if (!qty && !amount) { showToast('Enter quantity or amount', 'warning'); return; }
     const total = amount || (qty * product.selling_price);
     const quantity = qty || (amount / product.selling_price);
+    // Keep the legacy POS cart and the dedicated Current Sale cart in sync.
     cart.push({
         product_id: product.id,
         name: product.name,
@@ -2557,6 +2558,20 @@ function addToCartPOS() {
         emoji: product.emoji || getEmoji(product.name)
     });
     updateCartDisplayPOS();
+
+    // The upgraded UI renders the cart from its own state store.
+    // Add the selected product there as well so the Current Sale panel updates.
+    if (typeof window.addUltimateCartItem === 'function') {
+        window.addUltimateCartItem({
+            id: product.id,
+            name: product.name,
+            price: Number(product.selling_price) || 0,
+            qty: Number(quantity) || 1,
+            emoji: product.emoji || getEmoji(product.name),
+            unit: product.unit || ''
+        });
+    }
+
     showToast(`✅ ${product.name} added to cart`, 'success');
     const qtyEl = document.getElementById('posQty');
     const amountEl = document.getElementById('posAmount');
@@ -2566,7 +2581,11 @@ function addToCartPOS() {
     document.querySelectorAll('.product-card').forEach(el => el.classList.remove('selected'));
 }
 
-function clearCartPOS() { cart = []; updateCartDisplayPOS(); }
+function clearCartPOS() {
+    cart = [];
+    updateCartDisplayPOS();
+    if (typeof window.clearPOSCart === 'function') window.clearPOSCart();
+}
 
 function updateCartDisplayPOS() {
     const container = document.getElementById('posCartItems');
