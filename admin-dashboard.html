@@ -1707,6 +1707,9 @@ function showToast(message, type = 'success') {
     }, 3500);
 }
 
+// Backward-compatible toast alias used by newer POS modules.
+window.toast = showToast;
+
 // ============================================================
 //  NOTIFICATION SYSTEM
 // ============================================================
