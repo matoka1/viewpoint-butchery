@@ -570,8 +570,8 @@ body{background:var(--vp-bg)!important;color:var(--vp-text)}
         <div class="kpi-mini"><div class="label">CASH SALES TODAY</div><div class="value" id="cashSalesToday">KES 0.00</div></div>
     </div>
     <div class="profit-split-grid">
-        <div class="profit-split butchery"><div><span>🥩 Butchery</span><small>Paid sales</small></div><strong id="dashboardButcheryProfit">KES 0.00</strong></div>
-        <div class="profit-split kitchen"><div><span>🍳 Kitchen</span><small>Paid sales</small></div><strong id="dashboardKitchenProfit">KES 0.00</strong></div>
+        <div class="profit-split butchery"><div><span>🥩 Butchery</span><small>Gross profit (paid sales − item cost)</small></div><strong id="dashboardButcheryProfit">KES 0.00</strong></div>
+        <div class="profit-split kitchen"><div><span>🍳 Kitchen</span><small>Gross profit (paid sales − item cost)</small></div><strong id="dashboardKitchenProfit">KES 0.00</strong></div>
     </div>
     <div class="grid-2">
         <div class="card"><div class="card-header"><h3>📈 Sales Overview</h3><button class="card-action" onclick="refreshAll()"><i class="fas fa-sync-alt"></i> Refresh</button></div><canvas id="salesChart" height="200"></canvas></div>
@@ -2324,7 +2324,7 @@ async function loadDashboard() {
 
         let total = 0, butchery = 0, restaurant = 0, mpesa = 0, pending = 0;
         orders?.forEach(o => {
-            if (o.status === 'paid' || o.status === 'completed') {
+            if ((o.status === 'paid' || o.status === 'completed') && !(String(o.payment_method || '').toLowerCase() === 'credit' && String(o.payment_status || '').toLowerCase() !== 'completed')) {
                 total += o.total || 0;
                 if (o.order_type === 'butchery') butchery += o.total || 0;
                 else restaurant += o.total || 0;
@@ -2369,7 +2369,7 @@ let hourlySalesChart=null,paymentMixChart=null,departmentSalesChart=null,orderSt
 function destroyChart(c){if(c&&typeof c.destroy==='function')c.destroy();return null}
 async function loadEnhancedDashboardCharts(orders){
     try{
-        const paid=(orders||[]).filter(o=>o.status==='paid'||o.status==='completed');
+        const paid=(orders||[]).filter(o=>(o.status==='paid'||o.status==='completed') && !(String(o.payment_method||'').toLowerCase()==='credit' && String(o.payment_status||'').toLowerCase()!=='completed'));
         const money=v=>`KES ${Number(v||0).toLocaleString('en-KE',{minimumFractionDigits:2,maximumFractionDigits:2})}`;
         const tx=document.getElementById('todayTransactions'); if(tx)tx.textContent=paid.length;
         const aov=document.getElementById('averageOrderValue'); if(aov)aov.textContent=money(paid.length?paid.reduce((a,o)=>a+Number(o.total||0),0)/paid.length:0);
@@ -5423,6 +5423,26 @@ window.refreshProfitData = refreshProfitData;
       window.openBarcodePrompt=()=>{openModal('barcodeModal');setTimeout(()=>document.getElementById('barcodeInput')?.focus(),50)};
       window.openHeldSales=()=>{renderHeld();openModal('heldSalesModal')};
       window.clearPOSCart=()=>{if(state.cart.length&&!confirm('Clear the current sale?'))return;state.cart=[];save();renderCart()};
+      // AUTHORITATIVE POST-SALE CART RESET: clears the modern POS cart and
+      // the original payment engine cart together. Payment logic itself is
+      // intentionally left unchanged.
+      window.clearUltimatePOSCart=()=>{
+        try{
+          state.cart=[];
+          save();
+          renderCart();
+        }catch(e){console.warn('Ultimate cart clear:',e)}
+        try{
+          if(Array.isArray(window.cart)) window.cart=[];
+          if(typeof updateCartDisplayPOS==='function') updateCartDisplayPOS();
+        }catch(e){console.warn('Legacy cart clear:',e)}
+        try{
+          const discount=document.getElementById('posDiscount'); if(discount) discount.value='0';
+          const cash=document.getElementById('cashReceived'); if(cash) cash.value='';
+          const phone=document.getElementById('mpesaPhone'); if(phone) phone.value='';
+          if(typeof window.updateUltimateCart==='function') window.updateUltimateCart();
+        }catch(e){console.warn('Payment field reset:',e)}
+      };
       window.selectPaymentMethod=m=>{state.paymentMethod=m;document.querySelectorAll('.payment-method').forEach(b=>b.classList.toggle('active',b.dataset.method===m));document.getElementById('cashTenderBox').style.display=m==='cash'?'block':'none';document.getElementById('mpesaPhoneBox').style.display=m==='mpesa'?'block':'none'};
       window.setPOSCategory=(cat,el)=>{document.querySelectorAll('.pos-cat').forEach(x=>x.classList.remove('active'));el?.classList.add('active'); if(typeof window.switchPOS==='function')window.switchPOS(cat==='all'?'butchery':cat);};
       window.filterPOSProducts=q=>{if(typeof window.filterProducts==='function')return window.filterProducts(q); document.querySelectorAll('.pos-product').forEach(c=>c.style.display=c.innerText.toLowerCase().includes(q.toLowerCase())?'':'none')};
