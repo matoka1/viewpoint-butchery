@@ -50,7 +50,7 @@
         /* ===== SIDEBAR ===== */
         .sidebar { position: fixed; top: 0; left: 0; width: 250px; height: 100vh; background: var(--secondary); padding: 24px 16px; overflow-y: auto; z-index: 1000; transition: var(--transition); }
         .sidebar-brand { display: flex; align-items: center; gap: 12px; padding: 0 8px 20px; border-bottom: 1px solid rgba(255,255,255,0.08); margin-bottom: 20px; }
-        .sidebar-brand .logo-icon { width: 44px; height: 44px; background: var(--primary-gradient); border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; font-size: 22px; color: #fff; flex-shrink: 0; box-shadow: 0 4px 12px rgba(108,60,225,0.3); }
+        .sidebar-brand .logo-icon { width: 44px; height: 44px; background: var(--primary-gradient); border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; font-size: 22px; color: #fff; flex-shrink: 0; box-shadow: 0 4px 12px rgba(37,99,235,0.25); }
         .sidebar-brand .brand-text { font-size: 20px; font-weight: 800; color: #fff; }
         .sidebar-brand .brand-sub { font-size: 11px; color: rgba(255,255,255,0.5); display: block; }
         .sidebar-menu { list-style: none; }
@@ -58,11 +58,11 @@
         .sidebar-menu li { padding: 10px 14px; margin: 2px 0; border-radius: var(--radius-sm); cursor: pointer; transition: var(--transition); display: flex; align-items: center; gap: 14px; font-size: 14px; font-weight: 500; color: rgba(255,255,255,0.6); }
         .sidebar-menu li i { width: 20px; font-size: 16px; }
         .sidebar-menu li:hover { background: rgba(255,255,255,0.06); color: #fff; }
-        .sidebar-menu li.active { background: var(--primary-gradient); color: #fff; box-shadow: 0 4px 16px rgba(108,60,225,0.3); }
+        .sidebar-menu li.active { background: var(--primary-gradient); color: #fff; box-shadow: 0 4px 16px rgba(37,99,235,0.25); }
         .sidebar-menu li .badge { margin-left: auto; background: rgba(255,255,255,0.2); color: #fff; padding: 0 10px; border-radius: var(--radius-full); font-size: 11px; font-weight: 600; }
         .sidebar-menu .logout-btn { margin-top: 16px; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 16px; color: rgba(255,255,255,0.5); }
         .sidebar-menu .logout-btn:hover { background: var(--danger); color: #fff; }
-        .sidebar-toggle { display: none; position: fixed; bottom: 24px; right: 24px; z-index: 999; width: 56px; height: 56px; border-radius: 50%; background: var(--primary-gradient); color: #fff; border: none; font-size: 22px; box-shadow: 0 8px 24px rgba(108,60,225,0.4); cursor: pointer; transition: var(--transition); }
+        .sidebar-toggle { display: none; position: fixed; bottom: 24px; right: 24px; z-index: 999; width: 56px; height: 56px; border-radius: 50%; background: var(--primary-gradient); color: #fff; border: none; font-size: 22px; box-shadow: 0 8px 24px rgba(37,99,235,0.35); cursor: pointer; transition: var(--transition); }
 
         /* ===== MAIN CONTENT ===== */
         .main-content { margin-left: 250px; padding: 20px 28px 40px; min-height: 100vh; transition: var(--transition); }
@@ -76,7 +76,7 @@
         .theme-toggle { width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--border); background: var(--bg-card); color: var(--text-secondary); cursor: pointer; transition: var(--transition); display: flex; align-items: center; justify-content: center; font-size: 18px; }
         .theme-toggle:hover { border-color: var(--primary); color: var(--primary); }
         .user-profile { display: flex; align-items: center; gap: 12px; padding-left: 16px; border-left: 1px solid var(--border); }
-        .user-profile .avatar { width: 40px; height: 40px; border-radius: 50%; background: var(--primary-gradient); color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 16px; box-shadow: 0 4px 12px rgba(108,60,225,0.3); }
+        .user-profile .avatar { width: 40px; height: 40px; border-radius: 50%; background: var(--primary-gradient); color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 16px; box-shadow: 0 4px 12px rgba(37,99,235,0.25); }
         .user-profile .user-name { font-size: 14px; font-weight: 600; transition: var(--transition); }
         .user-profile .user-role { font-size: 12px; color: var(--text-muted); transition: var(--transition); }
 
@@ -85,12 +85,12 @@
         .stat-card { background: var(--bg-card); border-radius: var(--radius); padding: 20px 22px; border: 1px solid var(--border); transition: var(--transition); position: relative; overflow: hidden; }
         .stat-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); }
         .stat-card .stat-icon { width: 44px; height: 44px; border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; font-size: 18px; margin-bottom: 10px; }
-        .stat-card .stat-icon.purple { background: rgba(108,60,225,0.12); color: var(--primary); }
+        .stat-card .stat-icon.purple { background: rgba(37,99,235,0.12); color: var(--primary); }
         .stat-card .stat-icon.green { background: rgba(16,185,129,0.12); color: var(--success); }
         .stat-card .stat-icon.orange { background: rgba(245,158,11,0.12); color: var(--warning); }
         .stat-card .stat-icon.blue { background: rgba(59,130,246,0.12); color: var(--info); }
         .stat-card .stat-icon.red { background: rgba(239,68,68,0.12); color: var(--danger); }
-        .stat-card .stat-icon.pink { background: rgba(236,72,153,0.12); color: #EC4899; }
+        .stat-card .stat-icon.pink { background: rgba(59,130,246,0.12); color: var(--info); }
         .stat-card .stat-value { font-size: 26px; font-weight: 800; letter-spacing: -0.5px; transition: var(--transition); }
         .stat-card .stat-label { font-size: 13px; color: var(--text-muted); margin-top: 4px; font-weight: 500; transition: var(--transition); }
         .stat-card .stat-change { font-size: 12px; font-weight: 600; margin-top: 6px; display: inline-flex; align-items: center; gap: 4px; padding: 2px 10px; border-radius: var(--radius-full); }
@@ -106,6 +106,24 @@
         .card-header .card-action { font-size: 13px; color: var(--primary); font-weight: 600; cursor: pointer; background: none; border: none; transition: var(--transition); font-family: var(--font); }
         .card-header .card-action:hover { color: var(--primary-dark); transform: translateX(4px); }
         .grid-2 { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; }
+        .financial-grid { display:grid; grid-template-columns:repeat(6,1fr); gap:12px; }
+        .financial-item { padding:15px; border:1px solid var(--border); border-radius:var(--radius-sm); background:var(--bg); }
+        .financial-item span { display:block; font-size:11px; color:var(--text-muted); margin-bottom:6px; }
+        .financial-item strong { font-size:18px; font-weight:800; color:var(--text-primary); }
+        .financial-item.revenue strong { color:var(--info); } .financial-item.cost strong,.financial-item.expense strong { color:var(--danger); }
+        .financial-item.gross strong,.financial-item.net strong { color:var(--success); } .financial-item.margin strong { color:var(--primary); }
+        .pnl-period-note { display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap; padding:10px 12px; margin-bottom:16px; background:var(--bg); border:1px solid var(--border); border-radius:var(--radius-sm); color:var(--text-muted); font-size:12px; }
+        .pnl-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-bottom:18px; }
+        .pnl-card { padding:18px; border:1px solid var(--border); border-radius:var(--radius); background:var(--bg-card); box-shadow:var(--shadow); }
+        .pnl-card .pnl-icon { width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:800;margin-bottom:10px;background:var(--bg);color:var(--primary); }
+        .pnl-card span { display:block;font-size:12px;color:var(--text-secondary);font-weight:650; }
+        .pnl-card strong { display:block;font-size:24px;margin:5px 0;color:var(--text-primary); }
+        .pnl-card small { color:var(--text-muted);font-size:11px; }
+        .pnl-card.revenue strong {color:var(--info)} .pnl-card.cost strong {color:var(--danger)} .pnl-card.gross strong,.pnl-card.net strong {color:var(--success)} .pnl-card.expense strong {color:var(--warning)} .pnl-card.margin strong {color:var(--primary)}
+        .pnl-chart-card,.pnl-breakdown { background:var(--bg); border:1px solid var(--border); border-radius:var(--radius-sm); padding:18px; margin-bottom:16px; }
+        .pnl-notice { padding:10px 12px; border-radius:var(--radius-sm); background:rgba(37,99,235,.06); border:1px solid rgba(37,99,235,.16); color:var(--text-secondary); font-size:11px; margin-bottom:16px; }
+        @media (max-width:1100px){ .financial-grid{grid-template-columns:repeat(3,1fr)} .pnl-grid{grid-template-columns:repeat(2,1fr)} }
+        @media (max-width:700px){ .financial-grid,.pnl-grid{grid-template-columns:1fr} .pnl-period-note{flex-direction:column} }
 
         /* ===== TABLES ===== */
         .table-wrapper { overflow-x: auto; border-radius: var(--radius-sm); }
@@ -117,7 +135,7 @@
 
         /* ===== BADGES ===== */
         .badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 12px; border-radius: var(--radius-full); font-size: 12px; font-weight: 600; }
-        .badge.primary { background: rgba(108,60,225,0.12); color: var(--primary); }
+        .badge.primary { background: rgba(37,99,235,0.12); color: var(--primary); }
         .badge.success { background: rgba(16,185,129,0.12); color: var(--success); }
         .badge.danger { background: rgba(239,68,68,0.12); color: var(--danger); }
         .badge.warning { background: rgba(245,158,11,0.12); color: var(--warning); }
@@ -138,8 +156,8 @@
 
         /* ===== BUTTONS ===== */
         .btn { display: inline-flex; align-items: center; gap: 8px; padding: 9px 18px; border: none; border-radius: var(--radius-sm); font-weight: 600; font-size: 14px; cursor: pointer; transition: var(--transition); font-family: var(--font); }
-        .btn-primary { background: var(--primary-gradient); color: #fff; box-shadow: 0 4px 12px rgba(108,60,225,0.3); }
-        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(108,60,225,0.4); }
+        .btn-primary { background: var(--primary-gradient); color: #fff; box-shadow: 0 4px 12px rgba(37,99,235,0.25); }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(37,99,235,0.35); }
         .btn-success { background: var(--success); color: #fff; box-shadow: 0 4px 12px rgba(16,185,129,0.3); }
         .btn-success:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(16,185,129,0.4); }
         .btn-danger { background: var(--danger); color: #fff; box-shadow: 0 4px 12px rgba(239,68,68,0.3); }
@@ -571,6 +589,24 @@ body{background:var(--vp-bg)!important;color:var(--vp-text)}
         <div class="card"><div class="card-header"><h3>🏪 Sales by Department</h3></div><canvas id="departmentSalesChart"></canvas></div>
         <div class="card"><div class="card-header"><h3>📊 Order Status</h3></div><canvas id="orderStatusChart"></canvas></div>
     </div>
+    <div class="dashboard-financials card">
+        <div class="card-header">
+            <div>
+                <h3>💰 Profit & Loss Overview</h3>
+                <div style="font-size:12px;color:var(--text-muted);margin-top:3px;">All paid and completed sales recorded in Viewpoint</div>
+            </div>
+            <button class="card-action" onclick="navigateTo('profit')">Open Profit & Loss →</button>
+        </div>
+        <div class="financial-grid">
+            <div class="financial-item revenue"><span>Sales Revenue</span><strong id="dashboardRevenue">KES 0.00</strong></div>
+            <div class="financial-item cost"><span>Cost of Goods Sold</span><strong id="dashboardCOGS">KES 0.00</strong></div>
+            <div class="financial-item gross"><span>Gross Profit</span><strong id="dashboardGrossProfit">KES 0.00</strong></div>
+            <div class="financial-item expense"><span>Operating Expenses</span><strong id="dashboardExpenses">KES 0.00</strong></div>
+            <div class="financial-item net"><span>Net Profit</span><strong id="dashboardNetProfit">KES 0.00</strong></div>
+            <div class="financial-item margin"><span>Net Margin</span><strong id="dashboardNetMargin">0.0%</strong></div>
+        </div>
+        <div id="dashboardFinancialNotice" style="font-size:11px;color:var(--text-muted);margin-top:10px;"></div>
+    </div>
     <div class="card"><div class="card-header"><h3>📋 Recent Orders</h3><button class="card-action" onclick="navigateTo('orders')">View All →</button></div><div id="recentOrdersTable"><div class="empty-state"><p>Loading orders...</p></div></div></div>
 </section>
  <!-- ===== POS ===== -->
@@ -693,56 +729,32 @@ body{background:var(--vp-bg)!important;color:var(--vp-text)}
 <section id="profitSection" class="section-page">
     <div class="card">
         <div class="card-header">
-            <h3>💰 Profit & Loss</h3>
-            <button class="card-action" onclick="refreshProfitData()">
-                <i class="fas fa-sync-alt"></i> Refresh
-            </button>
+            <div>
+                <h3>💰 Profit & Loss</h3>
+                <div style="font-size:12px;color:var(--text-muted);margin-top:3px;">Calculated from all paid and completed sales</div>
+            </div>
+            <button class="card-action" onclick="refreshProfitData()"><i class="fas fa-sync-alt"></i> Refresh</button>
         </div>
-        
-        <!-- Stats Cards -->
-        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:16px;">
-            <div style="background:var(--bg);padding:16px;border-radius:var(--radius-sm);text-align:center;border:1px solid var(--border);">
-                <div style="font-size:12px;color:var(--text-muted);margin-bottom:4px;">
-                    <i class="fas fa-arrow-up" style="color:var(--success);"></i> Total Revenue
-                </div>
-                <div style="font-size:24px;font-weight:700;color:var(--success);" id="totalRevenue">KES 0.00</div>
-                <div style="font-size:11px;color:var(--text-muted);margin-top:4px;">From paid orders</div>
-            </div>
-            <div style="background:var(--bg);padding:16px;border-radius:var(--radius-sm);text-align:center;border:1px solid var(--border);">
-                <div style="font-size:12px;color:var(--text-muted);margin-bottom:4px;">
-                    <i class="fas fa-arrow-down" style="color:var(--danger);"></i> Total Cost
-                </div>
-                <div style="font-size:24px;font-weight:700;color:var(--danger);" id="totalCost">KES 0.00</div>
-                <div style="font-size:11px;color:var(--text-muted);margin-top:4px;">Cost of goods sold</div>
-            </div>
-            <div style="background:var(--bg);padding:16px;border-radius:var(--radius-sm);text-align:center;border:1px solid var(--border);">
-                <div style="font-size:12px;color:var(--text-muted);margin-bottom:4px;">
-                    <i class="fas fa-coins" style="color:var(--primary);"></i> Net Profit
-                </div>
-                <div style="font-size:24px;font-weight:700;color:var(--primary);" id="netProfit">KES 0.00</div>
-                <div style="font-size:11px;color:var(--text-muted);margin-top:4px;" id="profitMargin">Margin: 0%</div>
-            </div>
+        <div class="pnl-period-note">
+            <span><i class="fas fa-database"></i> Live sales data</span>
+            <span><i class="fas fa-clock"></i> Updated automatically after completed payments</span>
         </div>
-        
-        <!-- Profit Chart -->
-        <div style="background:var(--bg);border-radius:var(--radius-sm);padding:20px;border:1px solid var(--border);margin-bottom:16px;">
-            <h4 style="margin-bottom:12px;font-size:14px;color:var(--text-secondary);">
-                📊 Profit Distribution
-            </h4>
-            <canvas id="profitChart" height="250"></canvas>
+        <div class="pnl-grid">
+            <div class="pnl-card revenue"><div class="pnl-icon">↗</div><span>Total Revenue</span><strong id="totalRevenue">KES 0.00</strong><small>Paid + completed orders</small></div>
+            <div class="pnl-card cost"><div class="pnl-icon">↘</div><span>Cost of Goods Sold</span><strong id="totalCost">KES 0.00</strong><small>Product cost × quantity</small></div>
+            <div class="pnl-card gross"><div class="pnl-icon">◆</div><span>Gross Profit</span><strong id="grossProfit">KES 0.00</strong><small>Revenue − COGS</small></div>
+            <div class="pnl-card expense"><div class="pnl-icon">−</div><span>Operating Expenses</span><strong id="totalExpenses">KES 0.00</strong><small>Expenses recorded in this dashboard</small></div>
+            <div class="pnl-card net"><div class="pnl-icon">✓</div><span>Net Profit</span><strong id="netProfit">KES 0.00</strong><small>Gross profit − expenses</small></div>
+            <div class="pnl-card margin"><div class="pnl-icon">%</div><span>Net Margin</span><strong id="profitMargin">0.0%</strong><small>Net profit ÷ revenue</small></div>
         </div>
-        
-        <!-- Profit Breakdown Table -->
-        <div style="background:var(--bg);border-radius:var(--radius-sm);padding:16px;border:1px solid var(--border);">
-            <h4 style="margin-bottom:10px;font-size:14px;color:var(--text-secondary);">
-                📋 Profit Breakdown
-            </h4>
-            <div id="profitBreakdown">
-                <div class="empty-state" style="padding:20px;">
-                    <i class="fas fa-spinner fa-spin"></i>
-                    <p>Loading profit breakdown...</p>
-                </div>
-            </div>
+        <div class="pnl-chart-card">
+            <div class="card-header" style="margin-bottom:8px;"><div><h3>📊 Financial Performance</h3><span style="font-size:11px;color:var(--text-muted);">Revenue, COGS, gross profit, expenses and net profit</span></div></div>
+            <div style="height:310px;"><canvas id="profitChart"></canvas></div>
+        </div>
+        <div class="pnl-notice" id="profitDataNotice"></div>
+        <div class="pnl-breakdown">
+            <div class="card-header"><div><h3>📋 Product Profit Breakdown</h3><span style="font-size:11px;color:var(--text-muted);">Top products by realized gross profit</span></div></div>
+            <div id="profitBreakdown"><div class="empty-state" style="padding:20px;"><i class="fas fa-spinner fa-spin"></i><p>Loading profit breakdown...</p></div></div>
         </div>
     </div>
 </section>
@@ -2243,51 +2255,86 @@ function clearProductImage() {
 // ============================================================
 //  DASHBOARD - UPDATED WITH PROFIT & LOSS
 // ============================================================
+function isSuccessfulSale(order) {
+    const status = String(order?.status || '').toLowerCase();
+    const paymentStatus = String(order?.payment_status || '').toLowerCase();
+    return status === 'paid' || status === 'completed' || paymentStatus === 'completed';
+}
+
+function getLocalDashboardExpenses() {
+    try {
+        const raw = localStorage.getItem('viewpoint_ultimate_pos_state_v1');
+        const parsed = raw ? JSON.parse(raw) : null;
+        const expenses = Array.isArray(parsed?.expenses) ? parsed.expenses : [];
+        return expenses.reduce((sum, item) => sum + Number(item.amount || 0), 0);
+    } catch (e) {
+        return 0;
+    }
+}
+
 async function loadDashboard() {
     try {
-        const today = new Date().toISOString().split('T')[0];
-        const { data: orders } = await supabaseClient.from('orders').select('*').gte('created_at', today);
+        const today = new Date();
+        const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate()).toISOString();
+        const chartStart = new Date(today.getTime() - 6 * 24 * 60 * 60 * 1000);
+        chartStart.setHours(0,0,0,0);
 
-        let total = 0, butchery = 0, restaurant = 0, mpesa = 0, pending = 0;
-        orders?.forEach(o => {
-            if (o.status === 'paid' || o.status === 'completed') {
-                total += o.total || 0;
-                if (o.order_type === 'butchery') butchery += o.total || 0;
-                else restaurant += o.total || 0;
-                if (o.payment_method === 'mpesa') mpesa += o.total || 0;
-            }
-            if (o.status === 'paid' || o.status === 'preparing') pending++;
+        // Today's orders drive the daily KPIs. The 7-day query drives the sales chart.
+        const [{ data: todayOrders, error: todayError }, { data: chartOrders, error: chartError }] = await Promise.all([
+            supabaseClient.from('orders').select('*').gte('created_at', todayStart),
+            supabaseClient.from('orders').select('*').gte('created_at', chartStart.toISOString()).order('created_at', { ascending: true })
+        ]);
+        if (todayError) throw todayError;
+        if (chartError) console.warn('7-day sales chart query:', chartError.message);
+
+        const orders = todayOrders || [];
+        const successfulToday = orders.filter(isSuccessfulSale);
+        let total = 0, butchery = 0, restaurant = 0, mpesa = 0;
+        successfulToday.forEach(o => {
+            const amount = Number(o.total || 0);
+            total += amount;
+            if (String(o.order_type || '').toLowerCase() === 'butchery') butchery += amount;
+            else if (String(o.order_type || '').toLowerCase() === 'restaurant') restaurant += amount;
+            const method = String(o.payment_method || '').toLowerCase();
+            if (method === 'mpesa') mpesa += amount;
         });
 
         const setText = (id, val) => {
             const el = document.getElementById(id);
             if (el) el.textContent = val;
         };
-        setText('todaySales', `KES ${total.toFixed(2)}`);
-        setText('butcherySales', `KES ${butchery.toFixed(2)}`);
-        setText('restaurantSales', `KES ${restaurant.toFixed(2)}`);
-        setText('mpesaSales', `KES ${mpesa.toFixed(2)}`);
-        setText('pendingOrders', pending);
+        const money = v => `KES ${Number(v || 0).toLocaleString('en-KE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+        setText('todaySales', money(total));
+        setText('butcherySales', money(butchery));
+        setText('restaurantSales', money(restaurant));
+        setText('mpesaSales', money(mpesa));
+        setText('pendingOrders', orders.filter(o => ['pending','preparing','ready'].includes(String(o.status || '').toLowerCase())).length);
+        setText('todayTransactions', successfulToday.length);
+        setText('averageOrderValue', money(successfulToday.length ? total / successfulToday.length : 0));
+        setText('cashSalesToday', money(successfulToday.filter(o => String(o.payment_method || '').toLowerCase() === 'cash').reduce((a,o) => a + Number(o.total || 0), 0)));
 
         const { data: productsData } = await supabaseClient.from('products').select('stock_quantity, reorder_level');
-        const low = productsData?.filter(p => p.stock_quantity <= p.reorder_level) || [];
+        const low = (productsData || []).filter(p => Number(p.stock_quantity || 0) <= Number(p.reorder_level || 0));
         setText('lowStock', low.length);
 
         await loadRecentOrders();
         await loadTopProducts();
-        await createSalesChart(orders || []);
-        await loadEnhancedDashboardCharts(orders || []);
-        
-        // ✅ Load Profit & Loss data for dashboard
+        await createSalesChart((chartOrders || []).filter(isSuccessfulSale));
+        await loadEnhancedDashboardCharts(orders);
+
+        // Full business financials use every paid/completed sale, not only today's sales.
         await loadProfitData();
         await loadProfitBreakdown();
 
+        const liveKitchen = document.getElementById('liveKitchenCount');
+        if (liveKitchen) liveKitchen.textContent = orders.filter(o => ['pending','preparing','ready'].includes(String(o.status || '').toLowerCase())).length;
+
         if (low.length > 0) {
-            showToast(`⚠️ ${low.length} items are low on stock!`, 'warning');
             addNotification('Low Stock Alert', `${low.length} items are low on stock. Please restock.`, 'warning', 'inventory');
         }
     } catch (e) {
         console.error('Dashboard error:', e);
+        showToast('Could not refresh dashboard data', 'error');
     }
 }
 
@@ -2295,7 +2342,7 @@ let hourlySalesChart=null,paymentMixChart=null,departmentSalesChart=null,orderSt
 function destroyChart(c){if(c&&typeof c.destroy==='function')c.destroy();return null}
 async function loadEnhancedDashboardCharts(orders){
     try{
-        const paid=(orders||[]).filter(o=>o.status==='paid'||o.status==='completed');
+        const paid=(orders||[]).filter(isSuccessfulSale);
         const money=v=>`KES ${Number(v||0).toLocaleString('en-KE',{minimumFractionDigits:2,maximumFractionDigits:2})}`;
         const tx=document.getElementById('todayTransactions'); if(tx)tx.textContent=paid.length;
         const aov=document.getElementById('averageOrderValue'); if(aov)aov.textContent=money(paid.length?paid.reduce((a,o)=>a+Number(o.total||0),0)/paid.length:0);
@@ -2303,7 +2350,7 @@ async function loadEnhancedDashboardCharts(orders){
         const base={responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{usePointStyle:true,boxWidth:8}}}};
         const hourly=Array.from({length:24},(_,h)=>({h,label:`${String(h).padStart(2,'0')}:00`,value:0}));
         paid.forEach(o=>{const h=new Date(o.created_at).getHours();if(hourly[h])hourly[h].value+=Number(o.total||0)});
-        const hc=document.getElementById('hourlySalesChart'); if(hc){hourlySalesChart=destroyChart(hourlySalesChart);hourlySalesChart=new Chart(hc,{type:'line',data:{labels:hourly.map(x=>x.label),datasets:[{label:'Sales',data:hourly.map(x=>x.value),borderColor:'#2563EB',backgroundColor:'rgba(108,60,225,.10)',fill:true,tension:.35,pointRadius:2}]},options:{...base,scales:{y:{beginAtZero:true,ticks:{callback:v=>'KES '+Number(v).toLocaleString()}}}}});}
+        const hc=document.getElementById('hourlySalesChart'); if(hc){hourlySalesChart=destroyChart(hourlySalesChart);hourlySalesChart=new Chart(hc,{type:'line',data:{labels:hourly.map(x=>x.label),datasets:[{label:'Sales',data:hourly.map(x=>x.value),borderColor:'#2563EB',backgroundColor:'rgba(37,99,235,.10)',fill:true,tension:.35,pointRadius:2}]},options:{...base,scales:{y:{beginAtZero:true,ticks:{callback:v=>'KES '+Number(v).toLocaleString()}}}}});}
         const payment={cash:0,mpesa:0,card:0,credit:0}; paid.forEach(o=>{const k=(o.payment_method||'cash').toLowerCase();if(payment[k]===undefined)payment[k]=0;payment[k]+=Number(o.total||0)});
         const pc=document.getElementById('paymentMixChart'); if(pc){paymentMixChart=destroyChart(paymentMixChart);paymentMixChart=new Chart(pc,{type:'doughnut',data:{labels:['Cash','M-Pesa','Card','Credit'],datasets:[{data:[payment.cash,payment.mpesa,payment.card,payment.credit],backgroundColor:['#2563EB','#10B981','#3B82F6','#F59E0B'],borderWidth:0}]},options:{...base,cutout:'65%'}});}
         const dept={butchery:0,restaurant:0}; paid.forEach(o=>{const k=(o.order_type||'restaurant').toLowerCase();if(dept[k]===undefined)dept[k]=0;dept[k]+=Number(o.total||0)});
@@ -2343,48 +2390,18 @@ async function loadTopProducts() {
     try {
         const list = document.getElementById('topProductsList');
         if (!list) return;
-        let items = [];
-        
-        try {
-            const { data, error } = await supabaseClient
-                .from('order_items')
-                .select('product_id, quantity, products(name, emoji)')
-                .limit(30);
-            if (!error) items = data || [];
-        } catch (e) {
-            console.log('Could not fetch order_items:', e.message);
-        }
-        
-        if (!items || !items.length) {
-            list.innerHTML = '<div class="empty-state"><p>No sales data yet</p></div>';
-            return;
-        }
-        
+        const { data: orders, error: orderError } = await supabaseClient.from('orders').select('id').in('status', ['paid','completed']);
+        if (orderError) throw orderError;
+        const ids = (orders || []).map(o => o.id);
+        if (!ids.length) { list.innerHTML = '<div class="empty-state"><p>No completed sales yet</p></div>'; return; }
+        const { data: items, error } = await supabaseClient.from('order_items').select('product_id, quantity, products(name, emoji)').in('order_id', ids);
+        if (error) throw error;
         const counts = {};
-        items.forEach(item => {
-            const name = item.products?.name || 'Unknown';
-            counts[name] = (counts[name] || 0) + (item.quantity || 0);
-        });
-        
-        const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 5);
-        if (!sorted.length) {
-            list.innerHTML = '<div class="empty-state"><p>No sales data yet</p></div>';
-            return;
-        }
-        
-        const colors = ['#2563EB', '#10B981', '#F59E0B', '#EF4444', '#3B82F6'];
-        list.innerHTML = sorted.map(([name, qty], i) => {
-            const emoji = items.find(it => it.products?.name === name)?.products?.emoji || getEmoji(name);
-            return `
-                <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);">
-                    <div style="display:flex;align-items:center;gap:10px;">
-                        <span style="display:inline-flex;width:26px;height:26px;border-radius:50%;background:${colors[i]};color:#fff;align-items:center;justify-content:center;font-weight:700;font-size:12px;">${i+1}</span>
-                        <span style="font-weight:500;">${emoji} ${name}</span>
-                    </div>
-                    <span style="font-weight:700;color:var(--primary);">${qty.toFixed(1)}</span>
-                </div>
-            `;
-        }).join('');
+        (items || []).forEach(item => { const name=item.products?.name || 'Unknown'; counts[name]=(counts[name]||0)+Number(item.quantity||0); });
+        const sorted=Object.entries(counts).sort((a,b)=>b[1]-a[1]).slice(0,5);
+        if(!sorted.length){list.innerHTML='<div class="empty-state"><p>No completed sales yet</p></div>';return;}
+        const colors=['#2563EB','#10B981','#F59E0B','#EF4444','#3B82F6'];
+        list.innerHTML=sorted.map(([name,qty],i)=>{const emoji=items.find(it=>it.products?.name===name)?.products?.emoji||getEmoji(name);return `<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);"><div style="display:flex;align-items:center;gap:10px;"><span style="display:inline-flex;width:28px;height:28px;border-radius:50%;background:${colors[i]};color:#fff;align-items:center;justify-content:center;font-weight:700;font-size:12px;">${i+1}</span><span style="font-weight:600;">${emoji} ${name}</span></div><span style="font-weight:700;color:var(--primary);">${qty.toFixed(1)}</span></div>`;}).join('');
     } catch (e) {
         console.error('Top products error:', e);
         const list = document.getElementById('topProductsList');
@@ -2397,40 +2414,33 @@ async function createSalesChart(orders) {
         const ctx = document.getElementById('salesChart');
         if (!ctx) return;
         const daily = {};
-        orders.forEach(o => {
-            const d = new Date(o.created_at).toLocaleDateString();
-            daily[d] = (daily[d] || 0) + (o.total || 0);
-        });
+        const now = new Date();
+        for (let i=6;i>=0;i--) { const d=new Date(now); d.setDate(now.getDate()-i); const key=d.toLocaleDateString(); daily[key]=0; }
+        (orders || []).filter(isSuccessfulSale).forEach(o => { const d=new Date(o.created_at).toLocaleDateString(); if(daily[d]!==undefined) daily[d]+=Number(o.total||0); });
         if (salesChart) salesChart.destroy();
         salesChart = new Chart(ctx, {
             type: 'line',
-            data: {
-                labels: Object.keys(daily).length ? Object.keys(daily) : ['No Data'],
-                datasets: [{
-                    label: 'Sales (KES)',
-                    data: Object.values(daily).length ? Object.values(daily) : [0],
-                    borderColor: '#2563EB',
-                    backgroundColor: 'rgba(108,60,225,0.08)',
-                    fill: true,
-                    tension: 0.4,
-                    pointBackgroundColor: '#2563EB',
-                    pointBorderColor: '#fff',
-                    pointBorderWidth: 2,
-                    pointRadius: 4
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: true,
-                plugins: { legend: { display: false } },
-                scales: {
-                    y: { beginAtZero: true, ticks: { callback: function(value) { return 'KES ' + value.toLocaleString(); } } }
-                }
-            }
+            data: { labels:Object.keys(daily), datasets:[{label:'Sales (KES)',data:Object.values(daily),borderColor:'#2563EB',backgroundColor:'rgba(37,99,235,.10)',fill:true,tension:.4,pointBackgroundColor:'#2563EB',pointBorderColor:'#fff',pointBorderWidth:2,pointRadius:4}]},
+            options:{responsive:true,maintainAspectRatio:true,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{callback:value=>'KES '+Number(value).toLocaleString()}}}}
         });
-    } catch (e) {
-        console.error('Chart error:', e);
-    }
+    } catch(e){ console.error('Chart error:',e); }
+}
+
+let dashboardRealtimeChannel = null;
+let dashboardRefreshTimer = null;
+function scheduleDashboardRefresh(){
+    clearTimeout(dashboardRefreshTimer);
+    dashboardRefreshTimer=setTimeout(()=>loadDashboard(),700);
+}
+function initDashboardRealtime(){
+    try{
+        if(dashboardRealtimeChannel || !supabaseClient?.channel) return;
+        dashboardRealtimeChannel=supabaseClient.channel('viewpoint-dashboard-live')
+            .on('postgres_changes',{event:'*',schema:'public',table:'orders'},scheduleDashboardRefresh)
+            .on('postgres_changes',{event:'*',schema:'public',table:'order_items'},scheduleDashboardRefresh)
+            .on('postgres_changes',{event:'*',schema:'public',table:'products'},scheduleDashboardRefresh)
+            .subscribe((status)=>console.log('Dashboard realtime:',status));
+    }catch(e){console.warn('Realtime dashboard subscription unavailable:',e.message)}
 }
 
 function refreshAll() {
@@ -3463,298 +3473,121 @@ async function loadKitchenOrders() {
 //  PROFIT & LOSS - LOAD DATA
 // ============================================================
 
+function money(v){return `KES ${Number(v||0).toLocaleString('en-KE',{minimumFractionDigits:2,maximumFractionDigits:2})}`;}
+
+async function fetchSuccessfulSalesWithItems() {
+    const baseSelect = 'id,total,status,created_at,order_type,payment_method,order_number';
+    const result = await supabaseClient.from('orders').select(baseSelect).in('status', ['paid','completed']).order('created_at', { ascending: false });
+    if (result.error) throw result.error;
+    const orders = result.data || [];
+    if (!orders.length) return [];
+    const ids = orders.map(o => o.id);
+    let items = [];
+    let itemError = null;
+    const joined = await supabaseClient.from('order_items').select('order_id,product_id,quantity,unit_price,total,products(id,name,emoji,cost_price)').in('order_id', ids);
+    if (!joined.error) {
+        items = joined.data || [];
+    } else {
+        itemError = joined.error;
+        console.warn('Joined order_items/products query failed:', joined.error.message);
+        const fallback = await supabaseClient.from('order_items').select('order_id,product_id,quantity,unit_price,total').in('order_id', ids);
+        if (fallback.error) throw fallback.error;
+        items = fallback.data || [];
+        const productIds = [...new Set(items.map(i => i.product_id).filter(Boolean))];
+        if (productIds.length) {
+            const products = await supabaseClient.from('products').select('id,name,emoji,cost_price').in('id', productIds);
+            if (!products.error) {
+                const map = Object.fromEntries((products.data || []).map(p => [p.id,p]));
+                items = items.map(i => ({...i, products: map[i.product_id] || null}));
+            }
+        }
+    }
+    const byOrder = {};
+    items.forEach(item => { (byOrder[item.order_id] ||= []).push(item); });
+    return orders.map(order => ({...order, order_items: byOrder[order.id] || []}));
+}
+
 async function loadProfitData() {
     try {
-        console.log('💰 Loading profit & loss data...');
-        
-        // Get all PAID orders with their items and products
-        const { data: orders, error: ordersError } = await supabaseClient
-            .from('orders')
-            .select('*, order_items(*, products(*))')
-            .eq('status', 'paid');
-            
-        if (ordersError) {
-            console.error('Orders error:', ordersError);
-            showToast('❌ Could not load profit data', 'error');
-            return;
-        }
-
-        console.log(`📊 Found ${orders?.length || 0} paid orders`);
-
-        let revenue = 0;
-        let cost = 0;
-        
-        // Calculate totals
-        if (orders && orders.length > 0) {
-            orders.forEach(order => {
-                // Add order total to revenue
-                revenue += order.total || 0;
-                
-                // Calculate cost from order items
-                if (order.order_items && order.order_items.length > 0) {
-                    order.order_items.forEach(item => {
-                        const productCost = item.products?.cost_price || 0;
-                        const quantity = item.quantity || 0;
-                        cost += productCost * quantity;
-                    });
-                }
+        const orders = await fetchSuccessfulSalesWithItems();
+        let revenue = 0, cost = 0, missingCost = 0, soldUnits = 0;
+        orders.forEach(order => {
+            revenue += Number(order.total || 0);
+            (order.order_items || []).forEach(item => {
+                const qty = Number(item.quantity || 0);
+                const rawCost = item.products?.cost_price;
+                const unitCost = Number(rawCost || 0);
+                soldUnits += qty;
+                if (rawCost === null || rawCost === undefined || rawCost === '') missingCost += qty;
+                cost += unitCost * qty;
             });
-        }
-        
-        const profit = revenue - cost;
-        const profitMargin = revenue > 0 ? (profit / revenue * 100) : 0;
-
-        // Update DOM elements
-        const revenueEl = document.getElementById('totalRevenue');
-        const costEl = document.getElementById('totalCost');
-        const profitEl = document.getElementById('netProfit');
-        const marginEl = document.getElementById('profitMargin');
-        
-        if (revenueEl) {
-            revenueEl.textContent = `KES ${revenue.toFixed(2)}`;
-        }
-        if (costEl) {
-            costEl.textContent = `KES ${cost.toFixed(2)}`;
-        }
-        if (profitEl) {
-            profitEl.textContent = `KES ${profit.toFixed(2)}`;
-            profitEl.style.color = profit >= 0 ? 'var(--success)' : 'var(--danger)';
-        }
-        if (marginEl) {
-            marginEl.textContent = `Margin: ${profitMargin.toFixed(1)}%`;
-            marginEl.style.color = profitMargin > 20 ? 'var(--success)' : profitMargin > 10 ? 'var(--warning)' : 'var(--danger)';
-        }
-
-        // Create/Update Profit Chart
-        await createProfitChart(revenue, cost, profit);
-
-        console.log(`✅ Revenue: KES ${revenue.toFixed(2)}, Cost: KES ${cost.toFixed(2)}, Profit: KES ${profit.toFixed(2)}`);
-        
-        return { revenue, cost, profit, profitMargin };
-
-    } catch (error) {
-        console.error('Profit & Loss error:', error);
-        showToast('❌ Error loading profit data: ' + error.message, 'error');
-    }
-}
-// ============================================================
-//  CREATE PROFIT CHART
-// ============================================================
-
-async function createProfitChart(revenue, cost, profit) {
-    try {
-        const ctx = document.getElementById('profitChart');
-        if (!ctx) {
-            console.warn('Profit chart canvas not found');
-            return;
-        }
-
-        if (profitChart) {
-            profitChart.destroy();
-            profitChart = null;
-        }
-
-        // Get theme colors
-        const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-        const textColor = isDark ? '#94A3B8' : '#475569';
-        
-        profitChart = new Chart(ctx, {
-            type: 'doughnut',
-            data: {
-                labels: ['Revenue', 'Cost', 'Profit'],
-                datasets: [{
-                    data: [revenue, cost, profit > 0 ? profit : 0],
-                    backgroundColor: [
-                        '#10B981',  // Green - Revenue
-                        '#EF4444',  // Red - Cost
-                        '#2563EB'   // Purple - Profit
-                    ],
-                    borderColor: [
-                        '#059669',
-                        '#DC2626',
-                        '#1D4ED8'
-                    ],
-                    borderWidth: 2,
-                    hoverOffset: 8
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: true,
-                cutout: '65%',
-                plugins: {
-                    legend: {
-                        position: 'bottom',
-                        labels: {
-                            color: textColor,
-                            padding: 16,
-                            usePointStyle: true,
-                            pointStyle: 'circle',
-                            font: {
-                                size: 13,
-                                weight: '600'
-                            }
-                        }
-                    },
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) {
-                                let label = context.label || '';
-                                let value = context.parsed || 0;
-                                let total = context.dataset.data.reduce((a, b) => a + b, 0);
-                                let percentage = total > 0 ? (value / total * 100).toFixed(1) : 0;
-                                return `${label}: KES ${value.toFixed(2)} (${percentage}%)`;
-                            }
-                        }
-                    }
-                },
-                animation: {
-                    animateRotate: true,
-                    duration: 800
-                }
-            }
         });
-    } catch (error) {
-        console.error('Profit chart error:', error);
+        const grossProfit = revenue - cost;
+        const expenses = getLocalDashboardExpenses();
+        const netProfit = grossProfit - expenses;
+        const margin = revenue > 0 ? (netProfit / revenue) * 100 : 0;
+        const money = v => `KES ${Number(v||0).toLocaleString('en-KE',{minimumFractionDigits:2,maximumFractionDigits:2})}`;
+        const setText=(id,val)=>{const el=document.getElementById(id);if(el)el.textContent=val};
+        setText('totalRevenue',money(revenue));
+        setText('totalCost',money(cost));
+        setText('grossProfit',money(grossProfit));
+        setText('totalExpenses',money(expenses));
+        setText('netProfit',money(netProfit));
+        setText('profitMargin',`${margin.toFixed(1)}%`);
+        const np=document.getElementById('netProfit'); if(np) np.style.color=netProfit>=0?'var(--success)':'var(--danger)';
+        const gm=document.getElementById('grossProfit'); if(gm) gm.style.color=grossProfit>=0?'var(--success)':'var(--danger)';
+        const nm=document.getElementById('profitMargin'); if(nm) nm.style.color=margin>=20?'var(--success)':margin>=10?'var(--warning)':'var(--danger)';
+        setText('dashboardRevenue',money(revenue));
+        setText('dashboardCOGS',money(cost));
+        setText('dashboardGrossProfit',money(grossProfit));
+        setText('dashboardExpenses',money(expenses));
+        setText('dashboardNetProfit',money(netProfit));
+        setText('dashboardNetMargin',`${margin.toFixed(1)}%`);
+        const notice = `Based on ${orders.length.toLocaleString()} paid/completed orders and ${soldUnits.toLocaleString()} units sold.` + (missingCost ? ` ${missingCost.toLocaleString()} units have no cost price, so COGS/profit may be understated.` : ' Cost prices are available for all sold units.');
+        setText('profitDataNotice',notice); setText('dashboardFinancialNotice',notice);
+        await createProfitChart(revenue,cost,grossProfit,expenses,netProfit);
+        return {revenue,cost,grossProfit,expenses,netProfit,margin,ordersCount:orders.length,missingCostUnits:missingCost};
+    } catch(error) {
+        console.error('Profit & Loss error:',error);
+        const notice=document.getElementById('profitDataNotice'); if(notice) notice.textContent='Could not calculate profit and loss. Check the orders, order_items and products data.';
+        showToast('Could not load profit data: '+error.message,'error');
+        return null;
     }
 }
-// ============================================================
-//  PROFIT BREAKDOWN - DETAILED VIEW
-// ============================================================
+
+async function createProfitChart(revenue,cost,grossProfit,expenses,netProfit) {
+    try {
+        const ctx=document.getElementById('profitChart'); if(!ctx)return;
+        if(profitChart) {profitChart.destroy();profitChart=null;}
+        const isDark=document.documentElement.getAttribute('data-theme')==='dark';
+        profitChart=new Chart(ctx,{type:'bar',data:{labels:['Revenue','COGS','Gross Profit','Expenses','Net Profit'],datasets:[{label:'KES',data:[revenue,cost,grossProfit,expenses,netProfit],backgroundColor:['#2563EB','#EF4444','#10B981','#F59E0B',netProfit>=0?'#059669':'#DC2626'],borderRadius:8}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>'KES '+Number(c.raw||0).toLocaleString('en-KE',{minimumFractionDigits:2,maximumFractionDigits:2})}}},scales:{y:{beginAtZero:true,ticks:{color:isDark?'#94A3B8':'#475569',callback:v=>'KES '+Number(v).toLocaleString()}},x:{ticks:{color:isDark?'#94A3B8':'#475569'}}}}});
+    }catch(error){console.error('Profit chart error:',error)}
+}
 
 async function loadProfitBreakdown() {
     try {
-        const { data: orders, error } = await supabaseClient
-            .from('orders')
-            .select('*, order_items(*, products(*))')
-            .eq('status', 'paid')
-            .order('created_at', { ascending: false });
-            
-        if (error || !orders || orders.length === 0) {
-            const breakdownEl = document.getElementById('profitBreakdown');
-            if (breakdownEl) {
-                breakdownEl.innerHTML = `
-                    <div class="empty-state" style="padding:20px;">
-                        <i class="fas fa-inbox"></i>
-                        <p>No paid orders yet</p>
-                    </div>
-                `;
-            }
-            return;
-        }
-
-        let totalRevenue = 0;
-        let totalCost = 0;
-        const items = [];
-
-        orders.forEach(order => {
-            const orderTotal = order.total || 0;
-            totalRevenue += orderTotal;
-            
-            if (order.order_items) {
-                order.order_items.forEach(item => {
-                    const costPrice = item.products?.cost_price || 0;
-                    const quantity = item.quantity || 0;
-                    const itemCost = costPrice * quantity;
-                    totalCost += itemCost;
-                    
-                    items.push({
-                        name: item.products?.name || 'Unknown',
-                        emoji: item.products?.emoji || '📦',
-                        quantity: quantity,
-                        unitPrice: item.unit_price || 0,
-                        totalPrice: item.total || 0,
-                        costPrice: costPrice,
-                        totalCost: itemCost,
-                        profit: (item.total || 0) - itemCost
-                    });
-                });
-            }
-        });
-
-        const profit = totalRevenue - totalCost;
-        const margin = totalRevenue > 0 ? (profit / totalRevenue * 100) : 0;
-
-        // Update profit margin
-        const marginEl = document.getElementById('profitMargin');
-        if (marginEl) {
-            marginEl.textContent = `Margin: ${margin.toFixed(1)}%`;
-            marginEl.style.color = margin > 20 ? 'var(--success)' : margin > 10 ? 'var(--warning)' : 'var(--danger)';
-        }
-
-        // Show breakdown table
-        let html = `
-            <div class="table-wrapper">
-                <table class="data-table">
-                    <thead>
-                        <tr>
-                            <th>📦 Product</th>
-                            <th>Qty</th>
-                            <th>Revenue</th>
-                            <th>Cost</th>
-                            <th>Profit</th>
-                            <th>Margin</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-        `;
-
-        // Show top items by profit
-        const sortedItems = items.sort((a, b) => b.profit - a.profit).slice(0, 15);
-        
-        sortedItems.forEach(item => {
-            const margin = item.totalPrice > 0 ? (item.profit / item.totalPrice * 100) : 0;
-            html += `
-                <tr>
-                    <td><strong>${item.emoji} ${item.name}</strong></td>
-                    <td>${item.quantity.toFixed(3)}</td>
-                    <td>KES ${item.totalPrice.toFixed(2)}</td>
-                    <td>KES ${item.totalCost.toFixed(2)}</td>
-                    <td style="color: ${item.profit > 0 ? 'var(--success)' : 'var(--danger)'};">
-                        KES ${item.profit.toFixed(2)}
-                    </td>
-                    <td>
-                        <span style="color: ${margin > 30 ? 'var(--success)' : margin > 15 ? 'var(--warning)' : 'var(--danger)'};">
-                            ${margin.toFixed(1)}%
-                        </span>
-                    </td>
-                </tr>
-            `;
-        });
-
-        html += `
-                    </tbody>
-                </table>
-            </div>
-        `;
-
-        const breakdownEl = document.getElementById('profitBreakdown');
-        if (breakdownEl) {
-            breakdownEl.innerHTML = html;
-        }
-
-    } catch (error) {
-        console.error('Profit breakdown error:', error);
-        const breakdownEl = document.getElementById('profitBreakdown');
-        if (breakdownEl) {
-            breakdownEl.innerHTML = `
-                <div class="empty-state" style="padding:20px;">
-                    <i class="fas fa-exclamation-triangle"></i>
-                    <p>Could not load profit breakdown</p>
-                </div>
-            `;
-        }
+        const orders=await fetchSuccessfulSalesWithItems();
+        const breakdownEl=document.getElementById('profitBreakdown'); if(!breakdownEl)return;
+        if(!orders.length){breakdownEl.innerHTML='<div class="empty-state" style="padding:20px;"><i class="fas fa-inbox"></i><p>No paid or completed orders yet</p></div>';return;}
+        const products={};
+        orders.forEach(order => (order.order_items||[]).forEach(item => {
+            const p=item.products||{}; const key=item.product_id||p.id||p.name||'unknown'; const qty=Number(item.quantity||0); const revenue=Number(item.total||0); const cost=Number(p.cost_price||0)*qty;
+            if(!products[key])products[key]={name:p.name||'Unknown',emoji:p.emoji||'📦',quantity:0,revenue:0,cost:0};
+            products[key].quantity+=qty; products[key].revenue+=revenue; products[key].cost+=cost;
+        }));
+        const rows=Object.values(products).map(p=>({...p,profit:p.revenue-p.cost,margin:p.revenue?p.profit/p.revenue*100:0})).sort((a,b)=>b.profit-a.profit).slice(0,20);
+        breakdownEl.innerHTML=`<div class="table-wrapper"><table class="data-table"><thead><tr><th>Product</th><th>Qty Sold</th><th>Revenue</th><th>COGS</th><th>Gross Profit</th><th>Margin</th></tr></thead><tbody>${rows.map(p=>`<tr><td><strong>${p.emoji} ${p.name}</strong></td><td>${p.quantity.toFixed(3)}</td><td>${money(p.revenue)}</td><td>${money(p.cost)}</td><td style="color:${p.profit>=0?'var(--success)':'var(--danger)'};font-weight:700;">${money(p.profit)}</td><td>${p.margin.toFixed(1)}%</td></tr>`).join('')}</tbody></table></div>`;
+    } catch(error) {
+        console.error('Profit breakdown error:',error);
+        const el=document.getElementById('profitBreakdown'); if(el)el.innerHTML='<div class="empty-state" style="padding:20px;"><i class="fas fa-exclamation-triangle"></i><p>Could not load profit breakdown</p></div>';
     }
 }
-// ============================================================
-//  REFRESH PROFIT DATA
-// ============================================================
 
 function refreshProfitData() {
-    showToast('🔄 Refreshing profit data...', 'info');
-    loadProfitData();
-    loadProfitBreakdown();
+    showToast('🔄 Refreshing profit data...','info');
+    Promise.all([loadProfitData(),loadProfitBreakdown()]);
 }
+// ============================================================
 // ============================================================
 //  AUDIT TRAIL - COMPLETE ENHANCED VERSION
 // ============================================================
@@ -5370,13 +5203,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         await loadCustomers();
         await loadSuppliers();
         await loadKitchenOrders();
-        await loadProfitData();
-        await loadProfitBreakdown(); 
         await loadAuditLogs();
          await loadAuditUsers();
         await loadProductDropdown();
 
         isInitialized = true;
+        initDashboardRealtime();
+        setInterval(()=>{ if(document.visibilityState !== 'hidden') loadDashboard(); }, 60000);
         console.log('✅ Admin dashboard loaded successfully!');
         
         addNotification(
