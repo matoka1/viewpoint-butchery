@@ -3,7 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Viewpoint POS - Ultimate Admin Dashboard</title>
+    <title>Viewpoint POS | Admin Dashboard</title>
+    <meta name="theme-color" content="#0F172A">
+    <meta name="application-name" content="Viewpoint POS">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 64 64%27%3E%3Cdefs%3E%3ClinearGradient id=%27g%27 x1=%270%27 y1=%270%27 x2=%271%27 y2=%271%27%3E%3Cstop stop-color=%272563EB%27/%3E%3Cstop offset=%271%27 stop-color=%2310B981%27/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width=%2764%27 height=%2764%27 rx=%2716%27 fill=%27%230F172A%27/%3E%3Cpath d=%27M13 22c8-8 30-8 38 0-5 13-12 20-19 20S18 35 13 22Z%27 fill=%27url(%23g)%27/%3E%3Ccircle cx=%2732%27 cy=%2726%27 r=%278%27 fill=%27white%27/%3E%3Ccircle cx=%2732%27 cy=%2726%27 r=%274%27 fill=%27%230F172A%27/%3E%3Cpath d=%27M20 48l7-11 5 7 5-7 7 11%27 fill=%27none%27 stroke=%27white%27 stroke-width=%274%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27/%3E%3C/svg%3E">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 64 64%27%3E%3Crect width=%2764%27 height=%2764%27 rx=%2716%27 fill=%27%230F172A%27/%3E%3Cpath d=%27M13 22c8-8 30-8 38 0-5 13-12 20-19 20S18 35 13 22Z%27 fill=%27%232563EB%27/%3E%3Ccircle cx=%2732%27 cy=%2726%27 r=%278%27 fill=%27white%27/%3E%3Ccircle cx=%2732%27 cy=%2726%27 r=%274%27 fill=%27%2310B981%27/%3E%3Cpath d=%27M20 48l7-11 5 7 5-7 7 11%27 fill=%27none%27 stroke=%27white%27 stroke-width=%274%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27/%3E%3C/svg%3E">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -497,14 +501,37 @@
 :root{--vp-navy:#0F172A;--vp-navy-2:#1E293B;--vp-blue:#2563EB;--vp-blue-2:#1D4ED8;--vp-green:#10B981;--vp-amber:#F59E0B;--vp-red:#EF4444;--vp-bg:#F8FAFC;--vp-text:#0F172A;--vp-muted:#64748B}
 .sidebar,.side-nav,.sidebar-header{background:var(--vp-navy)!important}
 body{background:var(--vp-bg)!important;color:var(--vp-text)}
+</style>
+<style id="viewpoint-brand-upgrade">
+.sidebar-brand{display:flex!important;align-items:center;gap:12px;padding:18px 16px 20px!important;border-bottom:1px solid rgba(255,255,255,.10);position:relative;overflow:hidden}
+.sidebar-brand:after{content:"";position:absolute;right:-35px;top:-45px;width:110px;height:110px;border-radius:50%;background:radial-gradient(circle,rgba(37,99,235,.24),transparent 68%);pointer-events:none}
+.vp-logo-mark{width:44px;height:44px;min-width:44px;border-radius:13px;background:linear-gradient(135deg,#2563EB 0%,#10B981 100%);padding:2px;box-shadow:0 8px 22px rgba(37,99,235,.28);position:relative;z-index:1}
+.vp-logo-inner{width:100%;height:100%;border-radius:11px;background:#0F172A;display:flex;align-items:center;justify-content:center;color:#fff}
+.vp-logo-inner svg{width:30px;height:30px;display:block}
+.sidebar-brand .brand-copy{display:flex;flex-direction:column;min-width:0;position:relative;z-index:1}
+.sidebar-brand .brand-text{font-size:19px!important;font-weight:800!important;letter-spacing:-.5px;color:#fff!important;line-height:1.05}
+.sidebar-brand .brand-sub{font-size:9px!important;font-weight:700!important;text-transform:uppercase;letter-spacing:1.4px;color:#94A3B8!important;margin-top:5px}
+.dashboard-brand-logo{width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,#2563EB,#10B981);display:inline-flex;align-items:center;justify-content:center;box-shadow:0 5px 14px rgba(37,99,235,.2);vertical-align:middle;margin-right:8px}
+.dashboard-brand-logo svg{width:23px;height:23px}
+@media(max-width:600px){.sidebar-brand{padding:15px 12px 16px!important}.vp-logo-mark{width:40px;height:40px;min-width:40px}}
 </style></head>
 <body>
 
     <!-- ===== SIDEBAR ===== -->
     <nav class="sidebar" id="sidebar">
-        <div class="sidebar-brand">
-            <div class="logo-icon"><i class="fas fa-store"></i></div>
-            <div><span class="brand-text">Viewpoint</span><span class="brand-sub">Ultimate Admin</span></div>
+        <div class="sidebar-brand" aria-label="Viewpoint POS">
+            <div class="vp-logo-mark" title="Viewpoint POS">
+                <div class="vp-logo-inner">
+                    <svg viewBox="0 0 48 48" fill="none" aria-hidden="true">
+                        <path d="M6 17.5C16 8 32 8 42 17.5C36.8 28.5 31.5 34 24 34S11.2 28.5 6 17.5Z" fill="url(#vpG)"/>
+                        <circle cx="24" cy="21" r="7" fill="white"/>
+                        <circle cx="24" cy="21" r="3.5" fill="#0F172A"/>
+                        <path d="M14 41L19.5 31.5L24 37L28.5 31.5L34 41" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                        <defs><linearGradient id="vpG" x1="6" y1="10" x2="42" y2="34" gradientUnits="userSpaceOnUse"><stop stop-color="#2563EB"/><stop offset="1" stop-color="#10B981"/></linearGradient></defs>
+                    </svg>
+                </div>
+            </div>
+            <div class="brand-copy"><span class="brand-text">Viewpoint</span><span class="brand-sub">Smart POS • Admin</span></div>
         </div>
         <ul class="sidebar-menu">
             <li class="menu-label">Main</li>
