@@ -11,16 +11,16 @@
         /* ===== COMPLETE ULTIMATE STYLES ===== */
         * { margin: 0; padding: 0; box-sizing: border-box; }
         :root {
-            --primary: #6C3CE1;
-            --primary-light: #8B5CF6;
-            --primary-dark: #5B21B6;
-            --primary-gradient: linear-gradient(135deg, #6C3CE1, #8B5CF6);
+            --primary: #2563EB;
+            --primary-light: #3B82F6;
+            --primary-dark: #1D4ED8;
+            --primary-gradient: linear-gradient(135deg, #2563EB, #3B82F6);
             --secondary: #1E293B;
             --success: #10B981;
             --danger: #EF4444;
             --warning: #F59E0B;
             --info: #3B82F6;
-            --bg: #F0F2F5;
+            --bg: #F8FAFC;
             --bg-card: #FFFFFF;
             --text-primary: #0F172A;
             --text-secondary: #475569;
@@ -454,7 +454,7 @@
 
         /* ===== VIEWPOINT UNIFIED VISUAL SYSTEM ===== */
         :root{
-            --vp-purple:#6C3CE1;--vp-purple-light:#8B5CF6;--vp-purple-dark:#5B21B6;
+            --vp-purple:#2563EB;--vp-purple-light:#3B82F6;--vp-purple-dark:#1D4ED8;
             --vp-navy:#1E293B;--vp-green:#10B981;--vp-orange:#F59E0B;--vp-blue:#3B82F6;--vp-red:#EF4444;
             --vp-pink:#EC4899;--vp-surface:#FFFFFF;--vp-soft:#F6F5FF;
         }
@@ -475,7 +475,11 @@
         @media(max-width:900px){.analytics-grid{grid-template-columns:1fr}.kpi-strip{grid-template-columns:1fr 1fr}}
         @media(max-width:600px){.kpi-strip{grid-template-columns:1fr}}
     </style>
-</head>
+<style id="viewpoint-navy-emerald-theme">
+:root{--vp-navy:#0F172A;--vp-navy-2:#1E293B;--vp-blue:#2563EB;--vp-blue-2:#1D4ED8;--vp-green:#10B981;--vp-amber:#F59E0B;--vp-red:#EF4444;--vp-bg:#F8FAFC;--vp-text:#0F172A;--vp-muted:#64748B}
+.sidebar,.side-nav,.sidebar-header{background:var(--vp-navy)!important}
+body{background:var(--vp-bg)!important;color:var(--vp-text)}
+</style></head>
 <body>
 
     <!-- ===== SIDEBAR ===== -->
@@ -2011,14 +2015,14 @@ function getTimeBasedGreeting() {
             greeting: 'Good Afternoon',
             emoji: '☀️',
             message: 'Keep the momentum going! You\'re doing great.',
-            gradient: 'linear-gradient(135deg, #3B82F6, #8B5CF6)'
+            gradient: 'linear-gradient(135deg, #3B82F6, #3B82F6)'
         };
     } else if (hour >= 17 && hour < 21) {
         return {
             greeting: 'Good Evening',
             emoji: '🌅',
             message: 'Wind down and finish strong!',
-            gradient: 'linear-gradient(135deg, #EF4444, #8B5CF6)'
+            gradient: 'linear-gradient(135deg, #EF4444, #3B82F6)'
         };
     } else {
         return {
@@ -2299,13 +2303,13 @@ async function loadEnhancedDashboardCharts(orders){
         const base={responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{usePointStyle:true,boxWidth:8}}}};
         const hourly=Array.from({length:24},(_,h)=>({h,label:`${String(h).padStart(2,'0')}:00`,value:0}));
         paid.forEach(o=>{const h=new Date(o.created_at).getHours();if(hourly[h])hourly[h].value+=Number(o.total||0)});
-        const hc=document.getElementById('hourlySalesChart'); if(hc){hourlySalesChart=destroyChart(hourlySalesChart);hourlySalesChart=new Chart(hc,{type:'line',data:{labels:hourly.map(x=>x.label),datasets:[{label:'Sales',data:hourly.map(x=>x.value),borderColor:'#6C3CE1',backgroundColor:'rgba(108,60,225,.10)',fill:true,tension:.35,pointRadius:2}]},options:{...base,scales:{y:{beginAtZero:true,ticks:{callback:v=>'KES '+Number(v).toLocaleString()}}}}});}
+        const hc=document.getElementById('hourlySalesChart'); if(hc){hourlySalesChart=destroyChart(hourlySalesChart);hourlySalesChart=new Chart(hc,{type:'line',data:{labels:hourly.map(x=>x.label),datasets:[{label:'Sales',data:hourly.map(x=>x.value),borderColor:'#2563EB',backgroundColor:'rgba(108,60,225,.10)',fill:true,tension:.35,pointRadius:2}]},options:{...base,scales:{y:{beginAtZero:true,ticks:{callback:v=>'KES '+Number(v).toLocaleString()}}}}});}
         const payment={cash:0,mpesa:0,card:0,credit:0}; paid.forEach(o=>{const k=(o.payment_method||'cash').toLowerCase();if(payment[k]===undefined)payment[k]=0;payment[k]+=Number(o.total||0)});
-        const pc=document.getElementById('paymentMixChart'); if(pc){paymentMixChart=destroyChart(paymentMixChart);paymentMixChart=new Chart(pc,{type:'doughnut',data:{labels:['Cash','M-Pesa','Card','Credit'],datasets:[{data:[payment.cash,payment.mpesa,payment.card,payment.credit],backgroundColor:['#6C3CE1','#10B981','#3B82F6','#F59E0B'],borderWidth:0}]},options:{...base,cutout:'65%'}});}
+        const pc=document.getElementById('paymentMixChart'); if(pc){paymentMixChart=destroyChart(paymentMixChart);paymentMixChart=new Chart(pc,{type:'doughnut',data:{labels:['Cash','M-Pesa','Card','Credit'],datasets:[{data:[payment.cash,payment.mpesa,payment.card,payment.credit],backgroundColor:['#2563EB','#10B981','#3B82F6','#F59E0B'],borderWidth:0}]},options:{...base,cutout:'65%'}});}
         const dept={butchery:0,restaurant:0}; paid.forEach(o=>{const k=(o.order_type||'restaurant').toLowerCase();if(dept[k]===undefined)dept[k]=0;dept[k]+=Number(o.total||0)});
         const dc=document.getElementById('departmentSalesChart'); if(dc){departmentSalesChart=destroyChart(departmentSalesChart);departmentSalesChart=new Chart(dc,{type:'bar',data:{labels:['Butchery','Restaurant'],datasets:[{label:'Sales',data:[dept.butchery||0,dept.restaurant||0],backgroundColor:['#10B981','#F59E0B'],borderRadius:8}]},options:{...base,indexAxis:'y',scales:{x:{beginAtZero:true,ticks:{callback:v=>'KES '+Number(v).toLocaleString()}}},plugins:{legend:{display:false}}}});}
         const status={pending:0,paid:0,preparing:0,ready:0,completed:0,cancelled:0};(orders||[]).forEach(o=>{const k=(o.status||'pending').toLowerCase();if(status[k]!==undefined)status[k]++});
-        const sc=document.getElementById('orderStatusChart'); if(sc){orderStatusChart=destroyChart(orderStatusChart);orderStatusChart=new Chart(sc,{type:'bar',data:{labels:['Pending','Paid','Preparing','Ready','Completed','Cancelled'],datasets:[{label:'Orders',data:[status.pending,status.paid,status.preparing,status.ready,status.completed,status.cancelled],backgroundColor:['#F59E0B','#6C3CE1','#3B82F6','#10B981','#059669','#EF4444'],borderRadius:7}]},options:{...base,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{precision:0}}}}});}
+        const sc=document.getElementById('orderStatusChart'); if(sc){orderStatusChart=destroyChart(orderStatusChart);orderStatusChart=new Chart(sc,{type:'bar',data:{labels:['Pending','Paid','Preparing','Ready','Completed','Cancelled'],datasets:[{label:'Orders',data:[status.pending,status.paid,status.preparing,status.ready,status.completed,status.cancelled],backgroundColor:['#F59E0B','#2563EB','#3B82F6','#10B981','#059669','#EF4444'],borderRadius:7}]},options:{...base,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{precision:0}}}}});}
     }catch(e){console.error('Enhanced dashboard charts error:',e)}
 }
 
@@ -2368,7 +2372,7 @@ async function loadTopProducts() {
             return;
         }
         
-        const colors = ['#6C3CE1', '#10B981', '#F59E0B', '#EF4444', '#3B82F6'];
+        const colors = ['#2563EB', '#10B981', '#F59E0B', '#EF4444', '#3B82F6'];
         list.innerHTML = sorted.map(([name, qty], i) => {
             const emoji = items.find(it => it.products?.name === name)?.products?.emoji || getEmoji(name);
             return `
@@ -2405,11 +2409,11 @@ async function createSalesChart(orders) {
                 datasets: [{
                     label: 'Sales (KES)',
                     data: Object.values(daily).length ? Object.values(daily) : [0],
-                    borderColor: '#6C3CE1',
+                    borderColor: '#2563EB',
                     backgroundColor: 'rgba(108,60,225,0.08)',
                     fill: true,
                     tension: 0.4,
-                    pointBackgroundColor: '#6C3CE1',
+                    pointBackgroundColor: '#2563EB',
                     pointBorderColor: '#fff',
                     pointBorderWidth: 2,
                     pointRadius: 4
@@ -3563,12 +3567,12 @@ async function createProfitChart(revenue, cost, profit) {
                     backgroundColor: [
                         '#10B981',  // Green - Revenue
                         '#EF4444',  // Red - Cost
-                        '#6C3CE1'   // Purple - Profit
+                        '#2563EB'   // Purple - Profit
                     ],
                     borderColor: [
                         '#059669',
                         '#DC2626',
-                        '#5B21B6'
+                        '#1D4ED8'
                     ],
                     borderWidth: 2,
                     hoverOffset: 8
@@ -4440,7 +4444,7 @@ function printReceipt() {
                         .receipt-header h2 {
                             font-size: 16px;
                             letter-spacing: 1px;
-                            color: #6C3CE1;
+                            color: #2563EB;
                         }
                         .receipt-header p {
                             font-size: 11px;
@@ -4485,7 +4489,7 @@ function printReceipt() {
                             border-top: 1px solid #333;
                             padding-top: 6px;
                             margin-top: 4px;
-                            color: #6C3CE1;
+                            color: #2563EB;
                         }
                         .receipt-footer {
                             text-align: center;
@@ -4498,7 +4502,7 @@ function printReceipt() {
                         .receipt-footer .thank-you {
                             font-size: 14px;
                             font-weight: bold;
-                            color: #6C3CE1;
+                            color: #2563EB;
                         }
                         .no-print {
                             text-align: center;
@@ -4521,7 +4525,7 @@ function printReceipt() {
                             box-shadow: 0 4px 12px rgba(0,0,0,0.15);
                         }
                         .btn-print {
-                            background: #6C3CE1;
+                            background: #2563EB;
                             color: white;
                         }
                         .btn-close {
@@ -4538,7 +4542,11 @@ function printReceipt() {
                             .receipt-container { padding: 10px; }
                         }
                     </style>
-                </head>
+                <style id="viewpoint-navy-emerald-theme">
+:root{--vp-navy:#0F172A;--vp-navy-2:#1E293B;--vp-blue:#2563EB;--vp-blue-2:#1D4ED8;--vp-green:#10B981;--vp-amber:#F59E0B;--vp-red:#EF4444;--vp-bg:#F8FAFC;--vp-text:#0F172A;--vp-muted:#64748B}
+.sidebar,.side-nav,.sidebar-header{background:var(--vp-navy)!important}
+body{background:var(--vp-bg)!important;color:var(--vp-text)}
+</style></head>
                 <body>
                     <div class="receipt-container">
                         <pre style="white-space: pre-wrap; font-family: inherit; margin: 0; font-size: 12px; line-height: 1.6;">${receiptText}</pre>
