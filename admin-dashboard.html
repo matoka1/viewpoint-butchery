@@ -4750,31 +4750,86 @@ async function processPaymentPOS(method) {
 
                 // ✅ PAYMENT SUCCESS
                 if (paymentConfirmed && paymentData && paymentData.status === 'completed') {
-                    // Payment successful
-                    await supabaseClient.from('payments').update({
-                        status: 'completed',
-                        completed_at: new Date().toISOString()
-                    }).eq('id', payment.id);
-                    
-                    await supabaseClient.from('orders').update({
-                        status: 'paid',
-                        payment_status: 'completed',
-                        completed_at: new Date().toISOString()
-                    }).eq('id', order.id);
+                    // ============================================================
+                    //  PAYMENT SUCCESS - VERIFY EVERY DATABASE WRITE
+                    // ============================================================
+                    const completedAt = new Date().toISOString();
 
-                    // Record M-Pesa transaction
-                    await supabaseClient.from('mpesa_transactions').insert({
-                        payment_id: payment.id,
-                        order_id: order.id,
-                        phone_number: phone,
-                        amount: total,
-                        mpesa_receipt_number: paymentData.receipt_number || stkData.receipt_number,
-                        transaction_reference: stkData.transaction_id,
-                        result_code: 0,
-                        result_description: 'Success',
-                        status: 'completed',
-                        created_at: new Date().toISOString()
+                    // 1) Mark the payment as completed and verify the row returned.
+                    const { data: completedPayment, error: completePaymentError } = await supabaseClient
+                        .from('payments')
+                        .update({
+                            status: 'completed',
+                            completed_at: completedAt
+                        })
+                        .eq('id', payment.id)
+                        .select('id, order_id, status, amount, completed_at')
+                        .single();
+
+                    if (completePaymentError) {
+                        console.error('❌ Payment finalization failed:', completePaymentError);
+                        throw new Error('Payment was received but could not be finalized in the database: ' + completePaymentError.message);
+                    }
+
+                    if (!completedPayment || completedPayment.status !== 'completed') {
+                        throw new Error('Payment was received but the payment record could not be confirmed as completed.');
+                    }
+
+                    // 2) Mark the order as paid and verify the returned order.
+                    const { data: completedOrder, error: orderUpdateError } = await supabaseClient
+                        .from('orders')
+                        .update({
+                            status: 'paid',
+                            payment_status: 'completed',
+                            completed_at: completedAt
+                        })
+                        .eq('id', order.id)
+                        .select('id, order_number, status, payment_status, completed_at')
+                        .single();
+
+                    if (orderUpdateError) {
+                        console.error('❌ Order finalization failed:', orderUpdateError);
+                        throw new Error('M-Pesa was received, but the order could not be finalized: ' + orderUpdateError.message);
+                    }
+
+                    if (!completedOrder ||
+                        String(completedOrder.status).toLowerCase() !== 'paid' ||
+                        String(completedOrder.payment_status).toLowerCase() !== 'completed') {
+                        console.error('❌ Order verification failed:', completedOrder);
+                        throw new Error('M-Pesa was received, but the order status could not be verified as paid.');
+                    }
+
+                    console.log('✅ Payment and order finalized:', {
+                        paymentId: completedPayment.id,
+                        orderId: completedOrder.id,
+                        orderStatus: completedOrder.status,
+                        paymentStatus: completedOrder.payment_status
                     });
+
+                    // 3) Record the M-Pesa transaction and verify the insert.
+                    const { data: mpesaTransaction, error: mpesaTransactionError } = await supabaseClient
+                        .from('mpesa_transactions')
+                        .insert({
+                            payment_id: payment.id,
+                            order_id: order.id,
+                            phone_number: phone,
+                            amount: total,
+                            mpesa_receipt_number: paymentData.receipt_number || stkData.receipt_number,
+                            transaction_reference: stkData.transaction_id,
+                            result_code: 0,
+                            result_description: 'Success',
+                            status: 'completed',
+                            created_at: completedAt
+                        })
+                        .select('id, order_id, payment_id, status, amount')
+                        .single();
+
+                    if (mpesaTransactionError) {
+                        console.error('❌ M-Pesa transaction record failed:', mpesaTransactionError);
+                        throw new Error('Payment and order were completed, but the M-Pesa transaction record failed: ' + mpesaTransactionError.message);
+                    }
+
+                    console.log('✅ M-Pesa transaction recorded:', mpesaTransaction);
 
                     // Update stock
                     for (const item of items) {
