@@ -589,12 +589,15 @@ body{background:var(--vp-bg)!important;color:var(--vp-text)}
     <div id="greetingContainer"></div>
 
     <div class="stats-grid" id="statsGrid">
-        <div class="stat-card"><div class="stat-glow"></div><div class="stat-icon purple"><i class="fas fa-money-bill-wave"></i></div><div class="stat-value" id="todaySales">KES 0</div><div class="stat-label">Today's Sales</div><div class="stat-change up"><i class="fas fa-arrow-up"></i> 12.5%</div></div>
-        <div class="stat-card"><div class="stat-icon green"><i class="fas fa-drumstick-bite"></i></div><div class="stat-value" id="butcherySales">KES 0</div><div class="stat-label">Butchery Sales</div><div class="stat-change up"><i class="fas fa-arrow-up"></i> 8.2%</div></div>
-        <div class="stat-card"><div class="stat-icon orange"><i class="fas fa-utensils"></i></div><div class="stat-value" id="restaurantSales">KES 0</div><div class="stat-label">Restaurant Sales</div><div class="stat-change down"><i class="fas fa-arrow-down"></i> 2.1%</div></div>
-        <div class="stat-card"><div class="stat-icon blue"><i class="fas fa-mobile-alt"></i></div><div class="stat-value" id="mpesaSales">KES 0</div><div class="stat-label">M-Pesa Payments</div><div class="stat-change up"><i class="fas fa-arrow-up"></i> 15.3%</div></div>
-        <div class="stat-card"><div class="stat-icon red"><i class="fas fa-clock"></i></div><div class="stat-value" id="pendingOrders">0</div><div class="stat-label">Pending Orders</div><div class="stat-change down"><i class="fas fa-arrow-down"></i> 3.7%</div></div>
-        <div class="stat-card"><div class="stat-icon pink"><i class="fas fa-exclamation-triangle"></i></div><div class="stat-value" id="lowStock">0</div><div class="stat-label">Low Stock Items</div><div class="stat-change down"><i class="fas fa-arrow-down"></i> 2 items</div></div>
+        <div class="stat-card"><div class="stat-glow"></div><div class="stat-icon purple"><i class="fas fa-money-bill-wave"></i></div><div class="stat-value" id="todaySales">KES 0</div><div class="stat-label">Sales Today</div><div class="stat-change" id="salesTrend"><i class="fas fa-minus"></i> No comparison</div></div>
+        <div class="stat-card"><div class="stat-icon green"><i class="fas fa-receipt"></i></div><div class="stat-value" id="todayTransactions">0</div><div class="stat-label">Transactions Today</div><div class="stat-change" id="transactionTrend"><i class="fas fa-chart-line"></i> Completed sales</div></div>
+        <div class="stat-card"><div class="stat-icon blue"><i class="fas fa-calculator"></i></div><div class="stat-value" id="averageOrderValue">KES 0.00</div><div class="stat-label">Average Order Value</div><div class="stat-change" id="aovTrend"><i class="fas fa-chart-line"></i> Per transaction</div></div>
+        <div class="stat-card"><div class="stat-icon orange"><i class="fas fa-mobile-alt"></i></div><div class="stat-value" id="mpesaSales">KES 0</div><div class="stat-label">M-Pesa Collections</div><div class="stat-change" id="mpesaTrend"><i class="fas fa-mobile-alt"></i> 0% of sales</div></div>
+        <div class="stat-card"><div class="stat-icon green"><i class="fas fa-cash-register"></i></div><div class="stat-value" id="cashSalesToday">KES 0</div><div class="stat-label">Cash Collections</div><div class="stat-change" id="cashTrend"><i class="fas fa-money-bill-wave"></i> 0% of sales</div></div>
+        <div class="stat-card"><div class="stat-icon orange"><i class="fas fa-store"></i></div><div class="stat-value" id="butcherySales">KES 0</div><div class="stat-label">Butchery Sales</div><div class="stat-change" id="butcheryTrend"><i class="fas fa-drumstick-bite"></i> 0% of sales</div></div>
+        <div class="stat-card"><div class="stat-icon blue"><i class="fas fa-utensils"></i></div><div class="stat-value" id="restaurantSales">KES 0</div><div class="stat-label">Restaurant Sales</div><div class="stat-change" id="restaurantTrend"><i class="fas fa-utensils"></i> 0% of sales</div></div>
+        <div class="stat-card"><div class="stat-icon red"><i class="fas fa-clock"></i></div><div class="stat-value" id="pendingOrders">0</div><div class="stat-label">Orders Requiring Attention</div><div class="stat-change" id="pendingTrend"><i class="fas fa-bell"></i> Pending / preparing / ready</div></div>
+        <div class="stat-card"><div class="stat-icon pink"><i class="fas fa-exclamation-triangle"></i></div><div class="stat-value" id="lowStock">0</div><div class="stat-label">Low Stock Items</div><div class="stat-change" id="stockTrend"><i class="fas fa-box"></i> At or below reorder level</div></div>
     </div>
     <div class="dashboard-alerts">
         <div class="alert-box"><h4>⚠️ Stock Alerts <button class="card-action" style="float:right" onclick="navigateTo('inventory')">View Inventory</button></h4><div class="alert-list" id="dashboardStockAlerts"><div class="alert-item"><span>Checking stock...</span><span class="badge warning">...</span></div></div></div>
@@ -2302,15 +2305,21 @@ function getLocalDashboardExpenses() {
 async function loadDashboard() {
     try {
         const today = new Date();
-        const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate()).toISOString();
+        const todayStartDate = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+        const todayStart = todayStartDate.toISOString();
+        const yesterdayStartDate = new Date(todayStartDate);
+        yesterdayStartDate.setDate(yesterdayStartDate.getDate() - 1);
+        const yesterdayStart = yesterdayStartDate.toISOString();
         const chartStart = new Date(today.getTime() - 6 * 24 * 60 * 60 * 1000);
         chartStart.setHours(0,0,0,0);
 
         // Today's orders drive the daily KPIs. The 7-day query drives the sales chart.
-        const [{ data: todayOrders, error: todayError }, { data: chartOrders, error: chartError }] = await Promise.all([
+        const [{ data: todayOrders, error: todayError }, { data: chartOrders, error: chartError }, { data: yesterdayOrders, error: yesterdayError }] = await Promise.all([
             supabaseClient.from('orders').select('*').gte('created_at', todayStart),
-            supabaseClient.from('orders').select('*').gte('created_at', chartStart.toISOString()).order('created_at', { ascending: true })
+            supabaseClient.from('orders').select('*').gte('created_at', chartStart.toISOString()).order('created_at', { ascending: true }),
+            supabaseClient.from('orders').select('*').gte('created_at', yesterdayStart).lt('created_at', todayStart)
         ]);
+        if (yesterdayError) console.warn('Yesterday comparison query:', yesterdayError.message);
         if (todayError) throw todayError;
         if (chartError) console.warn('7-day sales chart query:', chartError.message);
 
@@ -2331,14 +2340,30 @@ async function loadDashboard() {
             if (el) el.textContent = val;
         };
         const money = v => `KES ${Number(v || 0).toLocaleString('en-KE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+        const cash = successfulToday.filter(o => String(o.payment_method || '').toLowerCase() === 'cash').reduce((a,o) => a + Number(o.total || 0), 0);
+        const card = successfulToday.filter(o => ['card','bank','bank transfer'].includes(String(o.payment_method || '').toLowerCase())).reduce((a,o) => a + Number(o.total || 0), 0);
+        const pending = orders.filter(o => ['pending','preparing','ready'].includes(String(o.status || '').toLowerCase())).length;
+        const yesterdaySuccessful = (yesterdayOrders || []).filter(isSuccessfulSale);
+        const yesterdayTotal = yesterdaySuccessful.reduce((a,o) => a + Number(o.total || 0), 0);
+        const salesChange = yesterdayTotal > 0 ? ((total - yesterdayTotal) / yesterdayTotal) * 100 : null;
+        const pct = v => total > 0 ? `${((Number(v || 0) / total) * 100).toFixed(1)}% of sales` : '0% of sales';
         setText('todaySales', money(total));
         setText('butcherySales', money(butchery));
         setText('restaurantSales', money(restaurant));
         setText('mpesaSales', money(mpesa));
-        setText('pendingOrders', orders.filter(o => ['pending','preparing','ready'].includes(String(o.status || '').toLowerCase())).length);
+        setText('pendingOrders', pending);
         setText('todayTransactions', successfulToday.length);
         setText('averageOrderValue', money(successfulToday.length ? total / successfulToday.length : 0));
-        setText('cashSalesToday', money(successfulToday.filter(o => String(o.payment_method || '').toLowerCase() === 'cash').reduce((a,o) => a + Number(o.total || 0), 0)));
+        setText('cashSalesToday', money(cash));
+        setText('salesTrend', salesChange === null ? 'No prior-day comparison' : `${salesChange >= 0 ? '↑' : '↓'} ${Math.abs(salesChange).toFixed(1)}% vs yesterday`);
+        setText('transactionTrend', `${successfulToday.length} completed sale${successfulToday.length === 1 ? '' : 's'}`);
+        setText('aovTrend', successfulToday.length ? `Based on ${successfulToday.length} completed transaction${successfulToday.length === 1 ? '' : 's'}` : 'No completed transactions');
+        setText('mpesaTrend', pct(mpesa));
+        setText('cashTrend', pct(cash));
+        setText('butcheryTrend', pct(butchery));
+        setText('restaurantTrend', pct(restaurant));
+        setText('pendingTrend', pending ? `${pending} order${pending === 1 ? '' : 's'} need attention` : 'No active pending orders');
+        setText('stockTrend', 'At or below reorder level');
 
         const { data: productsData } = await supabaseClient.from('products').select('stock_quantity, reorder_level');
         const low = (productsData || []).filter(p => Number(p.stock_quantity || 0) <= Number(p.reorder_level || 0));
@@ -3915,38 +3940,73 @@ async function exportAuditLogs() {
 
 async function logUserActivity(action, details = '', entityType = '', entityId = '', newValue = null, oldValue = null) {
     try {
-        if (!currentUser) return;
+        if (!currentUser || !currentUser.id) {
+            console.warn('⚠️ Audit log skipped: no application user is available.');
+            return false;
+        }
+
+        // The Viewpoint PIN login stores its own application session in localStorage.
+        // Supabase RLS, however, checks the Supabase Auth session. If there is no
+        // Supabase Auth session, try an anonymous Auth session when the project
+        // allows it. This gives the request the authenticated role required by the
+        // existing audit_logs INSERT policy without weakening that policy.
+        let authSession = null;
+        try {
+            const { data } = await supabaseClient.auth.getSession();
+            authSession = data?.session || null;
+        } catch (e) {
+            authSession = null;
+        }
+
+        if (!authSession) {
+            try {
+                const { data, error } = await supabaseClient.auth.signInAnonymously();
+                if (!error) authSession = data?.session || null;
+            } catch (e) {
+                authSession = null;
+            }
+        }
+
+        if (!authSession) {
+            // Do not allow audit logging to break a completed sale.
+            console.warn('⚠️ Audit log skipped: no Supabase Auth session is available.');
+            return false;
+        }
         
-        // Get user IP
+        // Get user IP without making audit logging block the POS for long.
         let ip = 'unknown';
         try {
             const response = await fetch('https://api.ipify.org?format=json');
             const data = await response.json();
-            ip = data.ip;
+            ip = data.ip || 'unknown';
         } catch (e) {}
         
-        // Log the activity
         const { error } = await supabaseClient
             .from('audit_logs')
             .insert({
                 user_id: currentUser.id,
                 action: action,
-                details: details,
-                entity_type: entityType,
-                entity_id: entityId,
-                new_value: newValue,
-                old_value: oldValue,
+                details: details || '',
+                entity_type: entityType || '',
+                entity_id: entityId || null,
+                new_value: newValue || null,
+                old_value: oldValue || null,
                 ip_address: ip,
-                user_agent: navigator.userAgent,
+                user_agent: navigator.userAgent || 'unknown',
                 created_at: new Date().toISOString()
             });
             
         if (error) {
-            console.error('Audit log error:', error);
+            console.warn('⚠️ Audit log could not be saved:', error.message);
+            return false;
         }
-        
-    } catch (e) {
-        console.log('Audit log skipped:', e.message);
+
+        console.log(`✅ Audit: ${action} by ${currentUser.full_name || currentUser.email || 'User'}`);
+        return true;
+    } catch (error) {
+        // Audit logging must never turn a successful payment into a failed sale.
+        console.warn('⚠️ Audit logging skipped:', error.message);
+        return false;
     }
 }
 
