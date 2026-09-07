@@ -555,16 +555,16 @@ body{background:var(--vp-bg)!important;color:var(--vp-text)}
         <div class="alert-box"><h4>⚠️ Stock Alerts <button class="card-action" style="float:right" onclick="navigateTo('inventory')">View Inventory</button></h4><div class="alert-list" id="dashboardStockAlerts"><div class="alert-item"><span>Checking stock...</span><span class="badge warning">...</span></div></div></div>
         <div class="alert-box"><h4>🔥 Live Operations <button class="card-action" style="float:right" onclick="navigateTo('kitchen')">Open Kitchen</button></h4><div class="alert-list" id="dashboardLiveOps"><div class="alert-item"><span>Pending kitchen orders</span><strong id="liveKitchenCount">0</strong></div><div class="alert-item"><span>Held sales</span><strong id="liveHeldCount">0</strong></div><div class="alert-item"><span>Open shift</span><strong id="liveShiftState">No</strong></div></div></div>
     </div>
-    <div class="kpi-strip">
-        <div class="kpi-mini"><div class="label">TRANSACTIONS TODAY</div><div class="value" id="todayTransactions">0</div></div>
-        <div class="kpi-mini"><div class="label">AVERAGE ORDER VALUE</div><div class="value" id="averageOrderValue">KES 0.00</div></div>
-        <div class="kpi-mini"><div class="label">CASH SALES TODAY</div><div class="value" id="cashSalesToday">KES 0.00</div></div>
-    </div>
     <div class="credit-kpi-grid">
         <div class="credit-kpi"><span>💳 Outstanding Credit</span><strong id="dashboardCreditOutstanding">KES 0.00</strong><small>Amount still owed</small></div>
         <div class="credit-kpi"><span>👥 Credit Customers</span><strong id="dashboardCreditCustomers">0</strong><small>Customers with balances</small></div>
         <div class="credit-kpi"><span>✅ Credit Settled Today</span><strong id="dashboardCreditSettled">KES 0.00</strong><small>Payments received today</small></div>
         <div class="credit-kpi"><span>📦 Kitchen Used Today</span><strong id="dashboardKitchenUsed">0</strong><small>Recorded stock units</small></div>
+    </div>
+    <div class="kpi-strip">
+        <div class="kpi-mini"><div class="label">TRANSACTIONS TODAY</div><div class="value" id="todayTransactions">0</div></div>
+        <div class="kpi-mini"><div class="label">AVERAGE ORDER VALUE</div><div class="value" id="averageOrderValue">KES 0.00</div></div>
+        <div class="kpi-mini"><div class="label">CASH SALES TODAY</div><div class="value" id="cashSalesToday">KES 0.00</div></div>
     </div>
     <div class="profit-split-grid">
         <div class="profit-split butchery"><div><span>🥩 Butchery</span><small>Paid sales</small></div><strong id="dashboardButcheryProfit">KES 0.00</strong></div>
