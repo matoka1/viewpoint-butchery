@@ -4668,14 +4668,37 @@ async function processPaymentPOS(method) {
     console.log('✅ User Name:', userFullName);
 
     // ============================================================
+    //  STEP 2: SYNC THE AUTHORITATIVE ULTIMATE POS CART
+    //  The modern POS UI stores its cart in window.ultimatePOSState.
+    //  Always copy that cart into the original payment engine before
+    //  validation so Cash, M-Pesa, Card and Credit use the same sale.
+    // ============================================================
+    const ultimateState = window.ultimatePOSState;
+    if (ultimateState && Array.isArray(ultimateState.cart)) {
+        cart = ultimateState.cart.map(item => ({
+            product_id: item.product_id || item.id,
+            id: item.id || item.product_id,
+            name: item.name || item.product_name || 'Product',
+            quantity: Number(item.qty || item.quantity || 1),
+            qty: Number(item.qty || item.quantity || 1),
+            unit_price: Number(item.price || item.unit_price || 0),
+            price: Number(item.price || item.unit_price || 0),
+            total: Number(item.price || item.unit_price || 0) * Number(item.qty || item.quantity || 1),
+            emoji: item.emoji || '🛒'
+        }));
+    }
+
+    // ============================================================
     //  STEP 2: VALIDATE CART
     // ============================================================
-    if (!cart.length) {
+    if (!Array.isArray(cart) || !cart.length) {
         showToast('Cart is empty!', 'error');
         return;
     }
 
-    const phone = document.getElementById('posPhone')?.value || '';
+    // M-Pesa phone: the current POS uses mpesaPhone. Keep legacy
+    // posPhone support only as a fallback for older screens.
+    const phone = (document.getElementById('mpesaPhone')?.value || document.getElementById('posPhone')?.value || '').trim();
     if (method === 'mpesa' && !phone) {
         showToast('Enter customer phone number', 'error');
         return;
