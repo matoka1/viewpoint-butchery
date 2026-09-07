@@ -1747,7 +1747,7 @@ async function checkAuth() {
         const stored = localStorage.getItem('viewpoint_session');
         if (!stored) {
             console.log('❌ No session found');
-            window.location.href = 'login.html';
+            window.location.href = 'index.html';
             return null;
         }
 
@@ -1756,7 +1756,7 @@ async function checkAuth() {
             sessionData = JSON.parse(stored);
         } catch (e) {
             localStorage.removeItem('viewpoint_session');
-            window.location.href = 'login.html';
+            window.location.href = 'index.html';
             return null;
         }
 
@@ -1764,14 +1764,14 @@ async function checkAuth() {
 
         if (!user) {
             localStorage.removeItem('viewpoint_session');
-            window.location.href = 'login.html';
+            window.location.href = 'index.html';
             return null;
         }
 
         const maxAge = 24 * 60 * 60 * 1000;
         if (loginTime && Date.now() - loginTime > maxAge) {
             localStorage.removeItem('viewpoint_session');
-            window.location.href = 'login.html';
+            window.location.href = 'index.html';
             return null;
         }
 
@@ -1797,7 +1797,7 @@ async function checkAuth() {
                 if (error || !dbUser || dbUser.status !== 'active') {
                     console.log('❌ User no longer active or not found');
                     localStorage.removeItem('viewpoint_session');
-                    window.location.href = 'login.html';
+                    window.location.href = 'index.html';
                     return null;
                 }
                 
@@ -1815,7 +1815,7 @@ async function checkAuth() {
     } catch (error) {
         console.error('❌ Auth error:', error);
         localStorage.removeItem('viewpoint_session');
-        window.location.href = 'login.html';
+        window.location.href = 'index.html';
         return null;
     }
 }
@@ -1836,7 +1836,7 @@ async function logout() {
         }
     } catch (e) {}
     localStorage.removeItem('viewpoint_session');
-    window.location.href = 'login.html';
+    window.location.href = 'index.html';
 }
 window.logout = logout;
 
@@ -4575,7 +4575,7 @@ async function processPaymentPOS(method) {
     if (!userId) {
         showToast('Please login again. Session expired.', 'error');
         setTimeout(() => {
-            window.location.href = 'login.html';
+            window.location.href = 'index.html';
         }, 2000);
         return;
     }
@@ -5461,7 +5461,7 @@ window.refreshProfitData = refreshProfitData;
             'use strict';
             
             const SESSION_KEY = 'viewpoint_session';
-            const LOGIN_URL = 'login.html';
+            const LOGIN_URL = 'index.html';
             
             function checkAuth() {
                 try {
