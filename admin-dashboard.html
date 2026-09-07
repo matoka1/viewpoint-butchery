@@ -655,6 +655,22 @@ body{background:var(--vp-bg)!important;color:var(--vp-text)}
                 <div class="form-group"><label>Movement period</label><select id="stockMovementPeriod" onchange="loadStockMovementLedger()"><option value="today">Today</option><option value="week" selected>This Week</option><option value="all">All</option></select></div>
                 <div id="stockMovementLedger"><div class="empty-state"><p>Loading stock movements...</p></div></div>
             </div>
+            <div class="card" style="margin-top:18px">
+                <div class="card-header"><h3>🍳 Kitchen Cost & Profit Control</h3><button class="card-action" onclick="loadKitchenCostProfit()"><i class="fas fa-sync-alt"></i> Refresh</button></div>
+                <div class="kitchen-profit-kpis">
+                    <div><span>Kitchen Sales Today</span><strong id="kitchenSalesToday">KES 0.00</strong></div>
+                    <div><span>Ingredient Cost Used</span><strong id="kitchenIngredientCostToday">KES 0.00</strong></div>
+                    <div><span>Kitchen Gross Profit</span><strong id="kitchenGrossProfitToday">KES 0.00</strong></div>
+                    <div><span>Gross Margin</span><strong id="kitchenGrossMarginToday">0.0%</strong></div>
+                </div>
+                <div class="kitchen-flow-summary">
+                    <div><b>Purchased This Week</b><span id="kitchenPurchasedCostWeek">KES 0.00</span></div>
+                    <div><b>Issued to Kitchen This Week</b><span id="kitchenIssuedCostWeek">KES 0.00</span></div>
+                    <div><b>Used by Kitchen Today</b><span id="kitchenUsedCostToday">KES 0.00</span></div>
+                    <div><b>Kitchen Stock on Hand</b><span id="kitchenStockValue">KES 0.00</span></div>
+                </div>
+                <div id="kitchenIngredientTable"><div class="empty-state"><p>Loading kitchen ingredient movement...</p></div></div>
+            </div>
         </section>
 
         <!-- ===== USERS ===== -->
@@ -4478,6 +4494,10 @@ body{width:80mm;font-family:"Courier New",monospace;font-size:11px;line-height:1
 <div class="receipt">${escapeReceiptHtml(receiptText)}</div>
 <div class="no-print"><button onclick="window.print()">🖨️ Print Receipt</button></div>
 <script>window.onload=function(){setTimeout(function(){window.print()},350)};<\/script>
+
+<style id="viewpoint-kitchen-cost-profit-css">
+.kitchen-profit-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:14px 0}.kitchen-profit-kpis>div{background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:14px}.kitchen-profit-kpis span{display:block;color:#64748b;font-size:12px;font-weight:700}.kitchen-profit-kpis strong{display:block;color:#0f172a;font-size:20px;margin-top:7px}.kitchen-flow-summary{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:12px 0 18px}.kitchen-flow-summary>div{padding:12px;border-left:3px solid #10b981;background:#f8fafc;border-radius:8px}.kitchen-flow-summary b{display:block;font-size:12px;color:#475569}.kitchen-flow-summary span{display:block;font-weight:800;margin-top:5px;color:#0f172a}@media(max-width:1000px){.kitchen-profit-kpis,.kitchen-flow-summary{grid-template-columns:1fr 1fr}}@media(max-width:600px){.kitchen-profit-kpis,.kitchen-flow-summary{grid-template-columns:1fr}}
+</style>
 </body></html>`);
     win.document.close();
     if (autoPrint) {
@@ -5564,7 +5584,41 @@ async function recordCreditSettlement(u,amount,method){try{let remaining=amount;
   window.loadWeeklyOrders=async function(){const box=document.getElementById('weeklyOrdersTable');if(!box)return;try{const {data:orders,error}=await supabaseClient.from('orders').select('*').gte('created_at',weekStart().toISOString()).order('created_at',{ascending:false});if(error)throw error;let paid=0,credit=0,settled=0;(orders||[]).forEach(o=>{const n=Number(o.total||0);if(o.payment_method==='credit'){credit+=n;if(o.payment_status==='completed')settled+=n}else if(o.payment_status==='completed'||o.status==='paid'||o.status==='completed')paid+=n});setText2('weeklyPaidSales',money2(paid));setText2('weeklyCreditIssued',money2(credit));setText2('weeklyCreditSettled',money2(settled));setText2('weeklyOrderCount',(orders||[]).length);if(!orders?.length){box.innerHTML='<div class="empty-state"><p>No orders this week</p></div>';return}box.innerHTML='<div class="table-wrapper"><table class="data-table"><thead><tr><th>Order</th><th>Type</th><th>Payment</th><th>Amount</th><th>Status</th><th>Date</th></tr></thead><tbody>'+orders.map(o=>`<tr><td>#${esc2(o.order_number||String(o.id).slice(0,8))}</td><td>${esc2(o.order_type||'—')}</td><td>${esc2(o.payment_method||'—')}</td><td>${money2(o.total)}</td><td>${esc2(o.payment_status||o.status||'—')}</td><td>${new Date(o.created_at).toLocaleString()}</td></tr>`).join('')+'</tbody></table></div>'}catch(e){box.innerHTML='<div class="empty-state"><p>Weekly orders unavailable.</p></div>'}};
 
   function setText2(id,v){const e=document.getElementById(id);if(e)e.textContent=v}
-  async function enhanceDashboard(){try{const start=dayStart(now()).toISOString();const {data:orders}=await supabaseClient.from('orders').select('*').gte('created_at',start);let but=0,kitch=0,credit=0,settled=0;(orders||[]).forEach(o=>{const n=Number(o.total||0);if(o.payment_method==='credit'){credit+=o.payment_status==='completed'?0:n;settled+=o.payment_status==='completed'?n:0}});const paidOrders=(orders||[]).filter(o=>o.payment_method!=='credit'&&(o.payment_status==='completed'||o.status==='paid'||o.status==='completed'));try{const ids=paidOrders.map(o=>o.id);if(ids.length){const {data:oi}=await supabaseClient.from('order_items').select('order_id,quantity,unit_price,total,products(cost_price)').in('order_id',ids);(oi||[]).forEach(x=>{const rev=Number(x.total||0),cost=Number(x.products?.cost_price||0)*Number(x.quantity||0),profit=rev-cost;const o=paidOrders.find(z=>z.id===x.order_id);if(o?.order_type==='butchery')but+=profit;else kitch+=profit})}}catch(e){paidOrders.forEach(o=>{if(o.order_type==='butchery')but+=Number(o.total||0);else kitch+=Number(o.total||0)})}setText2('dashboardCreditOutstanding',money2(credit));setText2('dashboardCreditCustomers',new Set((orders||[]).filter(o=>o.payment_method==='credit'&&o.payment_status!=='completed').map(o=>o.customer_phone||o.id)).size);setText2('dashboardCreditSettled',money2(settled));setText2('dashboardButcheryProfit',money2(but));setText2('dashboardKitchenProfit',money2(kitch));const {data:m}=await supabaseClient.from('inventory_movements').select('*').gte('created_at',start);const ku=(m||[]).filter(x=>String(x.movement_type||'').toLowerCase()==='kitchen_used'||String(x.notes||'').toUpperCase().startsWith('KITCHEN_USED')).reduce((a,x)=>a+Math.abs(Number(x.quantity)||0),0);setText2('dashboardKitchenUsed',ku)}catch(e){console.warn('BI dashboard:',e)}}
+  async function loadKitchenCostProfit(){
+  try{
+    const start=dayStart(now()).toISOString();
+    const weekStart=new Date(now()); weekStart.setHours(0,0,0,0); weekStart.setDate(weekStart.getDate()-weekStart.getDay());
+    const weekISO=weekStart.toISOString();
+    const money=v=>`KES ${Number(v||0).toLocaleString('en-KE',{minimumFractionDigits:2,maximumFractionDigits:2})}`;
+    const [{data:mov},{data:orders}]=await Promise.all([
+      supabaseClient.from('inventory_movements').select('product_id,movement_type,quantity,created_at,notes,products(name,unit,cost_price)').gte('created_at',weekISO).order('created_at',{ascending:false}),
+      supabaseClient.from('orders').select('id,total,order_type,payment_method,payment_status,status,created_at').gte('created_at',start)
+    ]);
+    const movements=mov||[];
+    const kitchenUsed=movements.filter(m=>String(m.movement_type||'').toLowerCase()==='kitchen_used'||String(m.notes||'').toUpperCase().startsWith('KITCHEN_USED'));
+    const issued=movements.filter(m=>String(m.movement_type||'').toLowerCase()==='transfer_to_kitchen');
+    const purchases=movements.filter(m=>String(m.movement_type||'').toLowerCase()==='purchase');
+    const cost=m=>Math.abs(Number(m.quantity)||0)*Number(m.products?.cost_price||0);
+    const usedCostToday=kitchenUsed.filter(m=>new Date(m.created_at)>=new Date(start)).reduce((a,m)=>a+cost(m),0);
+    const issuedCostWeek=issued.reduce((a,m)=>a+cost(m),0);
+    const purchasedCostWeek=purchases.reduce((a,m)=>a+cost(m),0);
+    const kitchenSales=(orders||[]).filter(o=>String(o.order_type||'').toLowerCase()!=='butchery'&&String(o.payment_method||'').toLowerCase()!=='credit'&&(o.payment_status==='completed'||o.status==='paid'||o.status==='completed')).reduce((a,o)=>a+Number(o.total||0),0);
+    const gross=kitchenSales-usedCostToday;
+    const margin=kitchenSales?gross/kitchenSales*100:0;
+    const store={};
+    kitchenUsed.forEach(m=>{const id=m.product_id;if(!store[id])store[id]={name:m.products?.name||'Unknown',unit:m.products?.unit||'',qty:0,cost:0};store[id].qty+=Math.abs(Number(m.quantity)||0);store[id].cost+=cost(m)});
+    const kitchenStock=getLocal('viewpoint_kitchen_stock_v2',{});
+    let stockValue=0;
+    for(const id in kitchenStock){ const qty=Number(kitchenStock[id]||0); const mv=movements.find(m=>m.product_id===id&&m.products); stockValue+=qty*Number(mv?.products?.cost_price||0); }
+    const set=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v};
+    set('kitchenSalesToday',money(kitchenSales));set('kitchenIngredientCostToday',money(usedCostToday));set('kitchenGrossProfitToday',money(gross));set('kitchenGrossMarginToday',margin.toFixed(1)+'%');set('kitchenPurchasedCostWeek',money(purchasedCostWeek));set('kitchenIssuedCostWeek',money(issuedCostWeek));set('kitchenUsedCostToday',money(usedCostToday));set('kitchenStockValue',money(stockValue));
+    const box=document.getElementById('kitchenIngredientTable');
+    const rows=Object.values(store).sort((a,b)=>b.cost-a.cost);
+    box.innerHTML=rows.length?`<div class="table-wrapper"><table class="data-table"><thead><tr><th>Ingredient</th><th>Used Today/Week</th><th>Unit</th><th>Estimated Cost</th></tr></thead><tbody>${rows.map(r=>`<tr><td><strong>${esc2(r.name)}</strong></td><td>${r.qty.toFixed(3)}</td><td>${esc2(r.unit)}</td><td>${money(r.cost)}</td></tr>`).join('')}</tbody></table></div>`:`<div class="empty-state" style="padding:20px"><p>No kitchen usage recorded yet.</p></div>`;
+  }catch(e){console.warn('Kitchen cost/profit:',e);const box=document.getElementById('kitchenIngredientTable');if(box)box.innerHTML='<div class="empty-state"><p>Could not load kitchen cost data.</p></div>'; }
+}
+
+async function enhanceDashboard(){try{const start=dayStart(now()).toISOString();const {data:orders}=await supabaseClient.from('orders').select('*').gte('created_at',start);let but=0,kitch=0,credit=0,settled=0;(orders||[]).forEach(o=>{const n=Number(o.total||0);if(o.payment_method==='credit'){credit+=o.payment_status==='completed'?0:n;settled+=o.payment_status==='completed'?n:0}});const paidOrders=(orders||[]).filter(o=>o.payment_method!=='credit'&&(o.payment_status==='completed'||o.status==='paid'||o.status==='completed'));try{const ids=paidOrders.map(o=>o.id);if(ids.length){const {data:oi}=await supabaseClient.from('order_items').select('order_id,quantity,unit_price,total,products(cost_price)').in('order_id',ids);(oi||[]).forEach(x=>{const rev=Number(x.total||0),cost=Number(x.products?.cost_price||0)*Number(x.quantity||0),profit=rev-cost;const o=paidOrders.find(z=>z.id===x.order_id);if(o?.order_type==='butchery')but+=profit;else kitch+=profit})}}catch(e){paidOrders.forEach(o=>{if(o.order_type==='butchery')but+=Number(o.total||0);else kitch+=Number(o.total||0)})}setText2('dashboardCreditOutstanding',money2(credit));setText2('dashboardCreditCustomers',new Set((orders||[]).filter(o=>o.payment_method==='credit'&&o.payment_status!=='completed').map(o=>o.customer_phone||o.id)).size);setText2('dashboardCreditSettled',money2(settled));setText2('dashboardButcheryProfit',money2(but));setText2('dashboardKitchenProfit',money2(kitch));const {data:m}=await supabaseClient.from('inventory_movements').select('*').gte('created_at',start);const ku=(m||[]).filter(x=>String(x.movement_type||'').toLowerCase()==='kitchen_used'||String(x.notes||'').toUpperCase().startsWith('KITCHEN_USED')).reduce((a,x)=>a+Math.abs(Number(x.quantity)||0),0);setText2('dashboardKitchenUsed',ku);await loadKitchenCostProfit()}catch(e){console.warn('BI dashboard:',e)}}
   const oldLoadDashboard=window.loadDashboard; window.loadDashboard=async function(){if(typeof oldLoadDashboard==='function')await oldLoadDashboard();enhanceDashboard()};
   // FINAL POS PAYMENT ROUTER: one cart, one payment engine.
   window.completeUltimateSale=async function(){
