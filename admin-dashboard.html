@@ -2441,18 +2441,7 @@ async function loadPOSProducts(type) {
                 <button class="btn btn-danger" onclick="clearCartPOS()"><i class="fas fa-trash"></i> Clear</button>
                 <button class="btn btn-primary" onclick="importProducts()"><i class="fas fa-upload"></i> Import</button>
             </div>
-            <div style="background:var(--bg);border-radius:var(--radius-sm);padding:14px;">
-                <h4 style="margin-bottom:6px;">🛒 Current Order</h4>
-                <div id="posCartItems"><div class="empty-state" style="padding:8px;"><p>No items in cart</p></div></div>
-                <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;padding-top:8px;border-top:2px solid var(--border);">
-                    <span style="font-weight:700;font-size:18px;">Total: <span id="posTotal" style="color:var(--primary);">KES 0.00</span></span>
-                </div>
-                <div style="display:flex;gap:10px;margin-top:10px;">
-                    <input type="tel" id="posPhone" placeholder="📱 07XXXXXXXX" style="flex:1;padding:8px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg);color:var(--text-primary);">
-                    <button class="btn btn-primary" onclick="processPaymentPOS('mpesa')"><i class="fas fa-mobile-alt"></i> M-Pesa</button>
-                    <button class="btn btn-success" onclick="processPaymentPOS('cash')"><i class="fas fa-money-bill"></i> Cash</button>
-                </div>
-            </div>
+            <!-- Cart is rendered in the dedicated Current Sale panel on the right. -->
         `;
         container.innerHTML = html;
         const qtyEl = document.getElementById('posQty');
