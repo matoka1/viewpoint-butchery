@@ -451,6 +451,29 @@
         .shift-banner{display:flex;align-items:center;justify-content:space-between;gap:12px;background:linear-gradient(135deg,rgba(108,60,225,.12),rgba(139,92,246,.05));border:1px solid rgba(108,60,225,.2);padding:13px 16px;border-radius:12px;margin-bottom:16px}
         @media(max-width:900px){.pos-shell{grid-template-columns:1fr}.cart-card{position:static}.dashboard-alerts{grid-template-columns:1fr}}
         @media(max-width:600px){.quick-actions{grid-template-columns:1fr 1fr}.pos-product-grid{grid-template-columns:repeat(2,1fr)}.checkout-grid{grid-template-columns:1fr 1fr}}
+
+        /* ===== VIEWPOINT UNIFIED VISUAL SYSTEM ===== */
+        :root{
+            --vp-purple:#6C3CE1;--vp-purple-light:#8B5CF6;--vp-purple-dark:#5B21B6;
+            --vp-navy:#1E293B;--vp-green:#10B981;--vp-orange:#F59E0B;--vp-blue:#3B82F6;--vp-red:#EF4444;
+            --vp-pink:#EC4899;--vp-surface:#FFFFFF;--vp-soft:#F6F5FF;
+        }
+        .main-content .card,.main-content .stat-card,.main-content .alert-box,.main-content .quick-action,.main-content .module-stat{border-color:rgba(108,60,225,.10);box-shadow:0 8px 28px rgba(30,41,59,.05)}
+        .main-content .card-header h3{color:var(--text-primary)}
+        .btn-primary,.btn.btn-primary{background:linear-gradient(135deg,var(--vp-purple),var(--vp-purple-light));border-color:var(--vp-purple);box-shadow:0 5px 14px rgba(108,60,225,.18)}
+        .btn-primary:hover{background:linear-gradient(135deg,var(--vp-purple-dark),var(--vp-purple));transform:translateY(-1px)}
+        .btn-success{background:linear-gradient(135deg,#059669,var(--vp-green));border-color:var(--vp-green)}
+        .btn-outline:hover{border-color:var(--vp-purple);color:var(--vp-purple);background:rgba(108,60,225,.05)}
+        .stat-card{position:relative;overflow:hidden}.stat-card:after{content:"";position:absolute;right:-28px;bottom:-35px;width:100px;height:100px;border-radius:50%;background:rgba(108,60,225,.05)}
+        .stat-icon.purple{background:rgba(108,60,225,.12);color:var(--vp-purple)}.stat-icon.green{background:rgba(16,185,129,.12);color:var(--vp-green)}.stat-icon.orange{background:rgba(245,158,11,.13);color:var(--vp-orange)}.stat-icon.blue{background:rgba(59,130,246,.12);color:var(--vp-blue)}.stat-icon.red{background:rgba(239,68,68,.12);color:var(--vp-red)}.stat-icon.pink{background:rgba(236,72,153,.12);color:var(--vp-pink)}
+        .dashboard-alerts .alert-box:first-child{border-top:3px solid var(--vp-orange)}.dashboard-alerts .alert-box:last-child{border-top:3px solid var(--vp-purple)}
+        .analytics-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin:16px 0}.analytics-grid .card{min-height:310px}.analytics-grid canvas{width:100%!important;max-height:245px}
+        .dashboard-section-title{display:flex;align-items:center;justify-content:space-between;margin:22px 0 12px}.dashboard-section-title h3{font-size:16px}.dashboard-section-title span{font-size:12px;color:var(--text-muted)}
+        .kpi-strip{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:16px 0}.kpi-mini{background:linear-gradient(135deg,rgba(108,60,225,.08),rgba(139,92,246,.02));border:1px solid rgba(108,60,225,.12);border-radius:14px;padding:14px}.kpi-mini .label{font-size:11px;color:var(--text-muted)}.kpi-mini .value{font-size:20px;font-weight:800;margin-top:4px;color:var(--vp-purple-dark)}
+        .payment-method[data-method="mpesa"].active{border-color:var(--vp-green);background:rgba(16,185,129,.10);color:#047857}.payment-method[data-method="card"].active{border-color:var(--vp-blue);background:rgba(59,130,246,.09);color:#1D4ED8}.payment-method[data-method="credit"].active{border-color:var(--vp-orange);background:rgba(245,158,11,.10);color:#B45309}.payment-method[data-method="cash"].active{border-color:var(--vp-purple);background:rgba(108,60,225,.08);color:var(--vp-purple)}
+        .cart-summary .summary-line.total{background:linear-gradient(135deg,rgba(108,60,225,.10),rgba(139,92,246,.04));padding:13px 12px;border-radius:10px;margin-top:6px}
+        @media(max-width:900px){.analytics-grid{grid-template-columns:1fr}.kpi-strip{grid-template-columns:1fr 1fr}}
+        @media(max-width:600px){.kpi-strip{grid-template-columns:1fr}}
     </style>
 </head>
 <body>
@@ -528,9 +551,21 @@
         <div class="alert-box"><h4>⚠️ Stock Alerts <button class="card-action" style="float:right" onclick="navigateTo('inventory')">View Inventory</button></h4><div class="alert-list" id="dashboardStockAlerts"><div class="alert-item"><span>Checking stock...</span><span class="badge warning">...</span></div></div></div>
         <div class="alert-box"><h4>🔥 Live Operations <button class="card-action" style="float:right" onclick="navigateTo('kitchen')">Open Kitchen</button></h4><div class="alert-list" id="dashboardLiveOps"><div class="alert-item"><span>Pending kitchen orders</span><strong id="liveKitchenCount">0</strong></div><div class="alert-item"><span>Held sales</span><strong id="liveHeldCount">0</strong></div><div class="alert-item"><span>Open shift</span><strong id="liveShiftState">No</strong></div></div></div>
     </div>
+    <div class="kpi-strip">
+        <div class="kpi-mini"><div class="label">TRANSACTIONS TODAY</div><div class="value" id="todayTransactions">0</div></div>
+        <div class="kpi-mini"><div class="label">AVERAGE ORDER VALUE</div><div class="value" id="averageOrderValue">KES 0.00</div></div>
+        <div class="kpi-mini"><div class="label">CASH SALES TODAY</div><div class="value" id="cashSalesToday">KES 0.00</div></div>
+    </div>
     <div class="grid-2">
         <div class="card"><div class="card-header"><h3>📈 Sales Overview</h3><button class="card-action" onclick="refreshAll()"><i class="fas fa-sync-alt"></i> Refresh</button></div><canvas id="salesChart" height="200"></canvas></div>
         <div class="card"><div class="card-header"><h3>🏆 Top Products</h3></div><div id="topProductsList"><div class="empty-state"><p>Loading...</p></div></div></div>
+    </div>
+    <div class="dashboard-section-title"><h3>Business Intelligence</h3><span>Live view from today's order data</span></div>
+    <div class="analytics-grid">
+        <div class="card"><div class="card-header"><h3>⏱️ Sales by Hour</h3></div><canvas id="hourlySalesChart"></canvas></div>
+        <div class="card"><div class="card-header"><h3>💳 Payment Mix</h3></div><canvas id="paymentMixChart"></canvas></div>
+        <div class="card"><div class="card-header"><h3>🏪 Sales by Department</h3></div><canvas id="departmentSalesChart"></canvas></div>
+        <div class="card"><div class="card-header"><h3>📊 Order Status</h3></div><canvas id="orderStatusChart"></canvas></div>
     </div>
     <div class="card"><div class="card-header"><h3>📋 Recent Orders</h3><button class="card-action" onclick="navigateTo('orders')">View All →</button></div><div id="recentOrdersTable"><div class="empty-state"><p>Loading orders...</p></div></div></div>
 </section>
@@ -2237,6 +2272,7 @@ async function loadDashboard() {
         await loadRecentOrders();
         await loadTopProducts();
         await createSalesChart(orders || []);
+        await loadEnhancedDashboardCharts(orders || []);
         
         // ✅ Load Profit & Loss data for dashboard
         await loadProfitData();
@@ -2250,6 +2286,29 @@ async function loadDashboard() {
         console.error('Dashboard error:', e);
     }
 }
+
+let hourlySalesChart=null,paymentMixChart=null,departmentSalesChart=null,orderStatusChart=null;
+function destroyChart(c){if(c&&typeof c.destroy==='function')c.destroy();return null}
+async function loadEnhancedDashboardCharts(orders){
+    try{
+        const paid=(orders||[]).filter(o=>o.status==='paid'||o.status==='completed');
+        const money=v=>`KES ${Number(v||0).toLocaleString('en-KE',{minimumFractionDigits:2,maximumFractionDigits:2})}`;
+        const tx=document.getElementById('todayTransactions'); if(tx)tx.textContent=paid.length;
+        const aov=document.getElementById('averageOrderValue'); if(aov)aov.textContent=money(paid.length?paid.reduce((a,o)=>a+Number(o.total||0),0)/paid.length:0);
+        const cash=document.getElementById('cashSalesToday'); if(cash)cash.textContent=money(paid.filter(o=>(o.payment_method||'').toLowerCase()==='cash').reduce((a,o)=>a+Number(o.total||0),0));
+        const base={responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{usePointStyle:true,boxWidth:8}}}};
+        const hourly=Array.from({length:24},(_,h)=>({h,label:`${String(h).padStart(2,'0')}:00`,value:0}));
+        paid.forEach(o=>{const h=new Date(o.created_at).getHours();if(hourly[h])hourly[h].value+=Number(o.total||0)});
+        const hc=document.getElementById('hourlySalesChart'); if(hc){hourlySalesChart=destroyChart(hourlySalesChart);hourlySalesChart=new Chart(hc,{type:'line',data:{labels:hourly.map(x=>x.label),datasets:[{label:'Sales',data:hourly.map(x=>x.value),borderColor:'#6C3CE1',backgroundColor:'rgba(108,60,225,.10)',fill:true,tension:.35,pointRadius:2}]},options:{...base,scales:{y:{beginAtZero:true,ticks:{callback:v=>'KES '+Number(v).toLocaleString()}}}}});}
+        const payment={cash:0,mpesa:0,card:0,credit:0}; paid.forEach(o=>{const k=(o.payment_method||'cash').toLowerCase();if(payment[k]===undefined)payment[k]=0;payment[k]+=Number(o.total||0)});
+        const pc=document.getElementById('paymentMixChart'); if(pc){paymentMixChart=destroyChart(paymentMixChart);paymentMixChart=new Chart(pc,{type:'doughnut',data:{labels:['Cash','M-Pesa','Card','Credit'],datasets:[{data:[payment.cash,payment.mpesa,payment.card,payment.credit],backgroundColor:['#6C3CE1','#10B981','#3B82F6','#F59E0B'],borderWidth:0}]},options:{...base,cutout:'65%'}});}
+        const dept={butchery:0,restaurant:0}; paid.forEach(o=>{const k=(o.order_type||'restaurant').toLowerCase();if(dept[k]===undefined)dept[k]=0;dept[k]+=Number(o.total||0)});
+        const dc=document.getElementById('departmentSalesChart'); if(dc){departmentSalesChart=destroyChart(departmentSalesChart);departmentSalesChart=new Chart(dc,{type:'bar',data:{labels:['Butchery','Restaurant'],datasets:[{label:'Sales',data:[dept.butchery||0,dept.restaurant||0],backgroundColor:['#10B981','#F59E0B'],borderRadius:8}]},options:{...base,indexAxis:'y',scales:{x:{beginAtZero:true,ticks:{callback:v=>'KES '+Number(v).toLocaleString()}}},plugins:{legend:{display:false}}}});}
+        const status={pending:0,paid:0,preparing:0,ready:0,completed:0,cancelled:0};(orders||[]).forEach(o=>{const k=(o.status||'pending').toLowerCase();if(status[k]!==undefined)status[k]++});
+        const sc=document.getElementById('orderStatusChart'); if(sc){orderStatusChart=destroyChart(orderStatusChart);orderStatusChart=new Chart(sc,{type:'bar',data:{labels:['Pending','Paid','Preparing','Ready','Completed','Cancelled'],datasets:[{label:'Orders',data:[status.pending,status.paid,status.preparing,status.ready,status.completed,status.cancelled],backgroundColor:['#F59E0B','#6C3CE1','#3B82F6','#10B981','#059669','#EF4444'],borderRadius:7}]},options:{...base,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{precision:0}}}}});}
+    }catch(e){console.error('Enhanced dashboard charts error:',e)}
+}
+
 async function loadRecentOrders() {
     try {
         const { data: orders } = await supabaseClient.from('orders').select('*').order('created_at', { ascending: false }).limit(8);
