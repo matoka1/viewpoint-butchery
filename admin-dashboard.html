@@ -1132,7 +1132,7 @@ body{background:var(--vp-bg)!important;color:var(--vp-text)}
             <div id="receiptContent" class="receipt-content"></div>
             <div style="display:flex;gap:10px;margin-top:16px;">
                 <button class="btn btn-primary" style="flex:1;" onclick="printReceipt()">
-                    <i class="fas fa-print"></i> Print
+                    <i class="fas fa-print"></i> Print Receipt
                 </button>
                 <button class="btn btn-outline" style="flex:1;" onclick="closeModal('receiptModal')">
                     <i class="fas fa-times"></i> Close
@@ -4362,15 +4362,14 @@ async function generateAdminReceipt(orderId) {
         const orderNumber = order.order_number || order.id.slice(0,8).toUpperCase();
         
         // Get business settings
-        const businessName = '🏪 VIEWPOINT BUTCHERY & RESTAURANT';
-        const businessPhone = '+254 700 000 000';
-        const businessEmail = 'info@viewpoint.com';
-        const businessLocation = 'Nairobi, Kenya';
+        const businessName = 'VIEWPOINT BUTCHERY & RESTAURANT';
+        const businessPhone = '';
+        const businessEmail = '';
+        const businessLocation = 'Kenya';
         const receiptFooter = 'Thank you for shopping with Viewpoint! 🙏';
         
         // Calculate totals
         let subtotal = 0;
-        let tax = 0;
         let discount = 0;
         let total = order.total || 0;
         
@@ -4378,17 +4377,13 @@ async function generateAdminReceipt(orderId) {
             subtotal += item.total || 0;
         });
         
-        // Calculate tax (16% VAT if applicable)
-        tax = subtotal * 0.16;
-        const grandTotal = subtotal + tax - discount;
+        const grandTotal = subtotal - discount;
 
         let receipt = `
 ╔══════════════════════════════════════════╗
 ║                                          ║
 ║          ${businessName}          ║
 ║                                          ║
-║     📞 ${businessPhone}                    ║
-║     ✉️ ${businessEmail}                    ║
 ║     📍 ${businessLocation}                 ║
 ║                                          ║
 ╠══════════════════════════════════════════╣
@@ -4425,13 +4420,12 @@ async function generateAdminReceipt(orderId) {
 ║  💰 PAYMENT SUMMARY                      ║
 ║                                          ║
 ║  Subtotal:                    KES ${subtotal.toFixed(2).padStart(10)} ║
-║  Tax (16% VAT):               KES ${tax.toFixed(2).padStart(10)} ║
 ║  Discount:                    KES ${discount.toFixed(2).padStart(10)} ║
 ║  ──────────────────────────────────────   ║
 ║  TOTAL:                       KES ${grandTotal.toFixed(2).padStart(10)} ║
 ║                                          ║
 ║  💳 Payment Method: ${(order.payment_method || 'N/A').toUpperCase().padEnd(17)} ║
-║  ✅ Status: PAID                          ║
+║  ✅ Status: ${(order.payment_status || order.status || 'COMPLETED').toUpperCase().padEnd(20)} ║
 ║                                          ║
 ╠══════════════════════════════════════════╣
 ║                                          ║
@@ -4439,7 +4433,6 @@ async function generateAdminReceipt(orderId) {
 ║                                          ║
 ║      ⭐⭐⭐ Thank You! ⭐⭐⭐          ║
 ║                                          ║
-║    🔗 https://lipwa.link/11408           ║
 ║                                          ║
 ╚══════════════════════════════════════════╝`;
 
@@ -4457,173 +4450,44 @@ async function generateAdminReceipt(orderId) {
 }
 
 // ============================================================
-//  PRINT RECEIPT - IMPROVED
+//  PRINT RECEIPT - 80MM THERMAL PRINTER READY
 // ============================================================
-function printReceipt() {
+function printReceipt(autoPrint = false) {
     const content = document.getElementById('receiptContent');
-    if (!content || !content.textContent) {
+    if (!content || !content.textContent.trim()) {
         showToast('❌ No receipt to print', 'error');
         return;
     }
     const receiptText = content.textContent;
-    const win = window.open('', '_blank');
-    if (win) {
-        win.document.write(`
-            <html>
-                <head>
-                    <title>🧾 Viewpoint Receipt</title>
-                    <style>
-                        * { margin: 0; padding: 0; box-sizing: border-box; }
-                        body {
-                            font-family: 'Courier New', monospace;
-                            font-size: 12px;
-                            padding: 20px;
-                            max-width: 350px;
-                            margin: 0 auto;
-                            background: #ffffff;
-                            color: #000000;
-                            line-height: 1.6;
-                        }
-                        .receipt-container {
-                            border: 1px solid #ddd;
-                            padding: 16px;
-                            border-radius: 8px;
-                            background: #ffffff;
-                        }
-                        .receipt-header {
-                            text-align: center;
-                            border-bottom: 2px dashed #333;
-                            padding-bottom: 10px;
-                            margin-bottom: 10px;
-                        }
-                        .receipt-header h2 {
-                            font-size: 16px;
-                            letter-spacing: 1px;
-                            color: #2563EB;
-                        }
-                        .receipt-header p {
-                            font-size: 11px;
-                            color: #666;
-                            margin: 2px 0;
-                        }
-                        .receipt-items {
-                            margin: 10px 0;
-                        }
-                        .receipt-item {
-                            display: flex;
-                            justify-content: space-between;
-                            padding: 2px 0;
-                            border-bottom: 1px dotted #eee;
-                            font-size: 11px;
-                        }
-                        .receipt-item .item-name {
-                            flex: 1;
-                        }
-                        .receipt-item .item-qty {
-                            margin: 0 8px;
-                            text-align: center;
-                        }
-                        .receipt-item .item-price {
-                            text-align: right;
-                            font-weight: bold;
-                        }
-                        .receipt-totals {
-                            border-top: 2px dashed #333;
-                            padding-top: 8px;
-                            margin-top: 8px;
-                        }
-                        .receipt-total-line {
-                            display: flex;
-                            justify-content: space-between;
-                            padding: 2px 0;
-                            font-size: 12px;
-                        }
-                        .receipt-total-line.grand-total {
-                            font-size: 16px;
-                            font-weight: bold;
-                            border-top: 1px solid #333;
-                            padding-top: 6px;
-                            margin-top: 4px;
-                            color: #2563EB;
-                        }
-                        .receipt-footer {
-                            text-align: center;
-                            border-top: 2px dashed #333;
-                            padding-top: 10px;
-                            margin-top: 10px;
-                            font-size: 11px;
-                            color: #666;
-                        }
-                        .receipt-footer .thank-you {
-                            font-size: 14px;
-                            font-weight: bold;
-                            color: #2563EB;
-                        }
-                        .no-print {
-                            text-align: center;
-                            margin-top: 20px;
-                            padding-top: 16px;
-                            border-top: 1px solid #ddd;
-                        }
-                        .no-print button {
-                            padding: 10px 24px;
-                            margin: 0 6px;
-                            cursor: pointer;
-                            border: none;
-                            border-radius: 8px;
-                            font-size: 14px;
-                            font-weight: 600;
-                            transition: all 0.3s ease;
-                        }
-                        .no-print button:hover {
-                            transform: translateY(-2px);
-                            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-                        }
-                        .btn-print {
-                            background: #2563EB;
-                            color: white;
-                        }
-                        .btn-close {
-                            background: #EF4444;
-                            color: white;
-                        }
-                        @media print {
-                            .no-print { display: none !important; }
-                            body { padding: 10px; background: white; }
-                            .receipt-container { border: none; padding: 0; }
-                        }
-                        @media (max-width: 400px) {
-                            body { padding: 10px; }
-                            .receipt-container { padding: 10px; }
-                        }
-                    </style>
-                <style id="viewpoint-navy-emerald-theme">
-:root{--vp-navy:#0F172A;--vp-navy-2:#1E293B;--vp-blue:#2563EB;--vp-blue-2:#1D4ED8;--vp-green:#10B981;--vp-amber:#F59E0B;--vp-red:#EF4444;--vp-bg:#F8FAFC;--vp-text:#0F172A;--vp-muted:#64748B}
-.sidebar,.side-nav,.sidebar-header{background:var(--vp-navy)!important}
-body{background:var(--vp-bg)!important;color:var(--vp-text)}
-</style></head>
-                <body>
-                    <div class="receipt-container">
-                        <pre style="white-space: pre-wrap; font-family: inherit; margin: 0; font-size: 12px; line-height: 1.6;">${receiptText}</pre>
-                    </div>
-                    <div class="no-print">
-                        <button class="btn-print" onclick="window.print()">🖨️ Print</button>
-                        <button class="btn-close" onclick="window.close()">✖ Close</button>
-                    </div>
-                
-
-</body>
-            </html>
-        `);
-        win.document.close();
-        setTimeout(() => win.print(), 500);
+    const win = window.open('', '_blank', 'width=420,height=700');
+    if (!win) {
+        showToast('Please allow pop-ups to print receipts', 'warning');
+        return;
+    }
+    win.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Viewpoint Receipt</title>
+<style>
+@page{size:80mm auto;margin:0}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;background:#fff;color:#000}
+body{width:80mm;font-family:"Courier New",monospace;font-size:11px;line-height:1.35}
+.receipt{width:72mm;margin:0 auto;padding:4mm 0;text-align:left;white-space:pre-wrap;overflow-wrap:anywhere}
+.center{text-align:center}.no-print{text-align:center;margin:10px 0 20px;font-family:Arial,sans-serif}
+.no-print button{padding:9px 16px;border:0;border-radius:6px;background:#2563eb;color:white;font-weight:700;cursor:pointer}
+@media print{.no-print{display:none!important}.receipt{width:72mm;padding:2mm 0}}
+</style></head><body>
+<div class="receipt">${escapeReceiptHtml(receiptText)}</div>
+<div class="no-print"><button onclick="window.print()">🖨️ Print Receipt</button></div>
+<script>window.onload=function(){setTimeout(function(){window.print()},350)};<\/script>
+</body></html>`);
+    win.document.close();
+    if (autoPrint) {
+        showToast('🖨️ Receipt sent to the print dialog', 'success');
     }
 }
 
-// ============================================================
-//  PROCESS PAYMENT POS - FULLY FIXED (FOR ADMIN & CASHIER)
-//  WITH USER AUTH CHECK, REAL STK PUSH, CANCELLATION HANDLING
-// ============================================================
+function escapeReceiptHtml(value) {
+    return String(value).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
 
 async function processPaymentPOS(method) {
     // ============================================================
