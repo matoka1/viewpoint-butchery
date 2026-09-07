@@ -5015,6 +5015,7 @@ async function processPaymentPOS(method) {
                         modal.classList.remove('active');
                         generateAdminReceipt(order.id);
                         cart = [];
+                        if(typeof window.clearUltimatePOSCart==='function') window.clearUltimatePOSCart();
                         updateCartDisplayPOS();
                         const phoneInput = document.getElementById('posPhone');
                         if (phoneInput) phoneInput.value = '';
@@ -5060,6 +5061,7 @@ async function processPaymentPOS(method) {
                     setTimeout(() => {
                         modal.classList.remove('active');
                         cart = [];
+                        if(typeof window.clearUltimatePOSCart==='function') window.clearUltimatePOSCart();
                         updateCartDisplayPOS();
                     }, 3000);
 
@@ -5179,6 +5181,7 @@ async function processPaymentPOS(method) {
                 modal.classList.remove('active');
                 generateAdminReceipt(order.id);
                 cart = [];
+                if(typeof window.clearUltimatePOSCart==='function') window.clearUltimatePOSCart();
                 updateCartDisplayPOS();
                 const phoneInput = document.getElementById('posPhone');
                 if (phoneInput) phoneInput.value = '';
@@ -5502,6 +5505,7 @@ window.refreshProfitData = refreshProfitData;
       let state={cart:[],held:[],expenses:[],shift:null,paymentMethod:'cash',tables:[]};
        window.ultimatePOSState=state;
       try{state={...state,...JSON.parse(localStorage.getItem(UKEY)||'{}')}}catch(e){}
+      window.ultimatePOSState=state;
       const save=()=>localStorage.setItem(UKEY,JSON.stringify(state));
       const money=n=>'KES '+Number(n||0).toLocaleString('en-KE',{minimumFractionDigits:2,maximumFractionDigits:2});
       const esc=x=>String(x??'').replace(/[&<>'"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[m]));
@@ -5675,23 +5679,23 @@ async function recordCreditSettlement(u,amount,method){try{let remaining=amount;
   function setText2(id,v){const e=document.getElementById(id);if(e)e.textContent=v}
   async function enhanceDashboard(){try{const start=dayStart(now()).toISOString();const {data:orders}=await supabaseClient.from('orders').select('*').gte('created_at',start);let but=0,kitch=0,credit=0,settled=0;(orders||[]).forEach(o=>{const n=Number(o.total||0);if(o.payment_method==='credit'){credit+=o.payment_status==='completed'?0:n;settled+=o.payment_status==='completed'?n:0}});const paidOrders=(orders||[]).filter(o=>o.payment_method!=='credit'&&(o.payment_status==='completed'||o.status==='paid'||o.status==='completed'));try{const ids=paidOrders.map(o=>o.id);if(ids.length){const {data:oi}=await supabaseClient.from('order_items').select('order_id,quantity,unit_price,total,products(cost_price)').in('order_id',ids);(oi||[]).forEach(x=>{const rev=Number(x.total||0),cost=Number(x.products?.cost_price||0)*Number(x.quantity||0),profit=rev-cost;const o=paidOrders.find(z=>z.id===x.order_id);if(o?.order_type==='butchery')but+=profit;else kitch+=profit})}}catch(e){paidOrders.forEach(o=>{if(o.order_type==='butchery')but+=Number(o.total||0);else kitch+=Number(o.total||0)})}setText2('dashboardCreditOutstanding',money2(credit));setText2('dashboardCreditCustomers',new Set((orders||[]).filter(o=>o.payment_method==='credit'&&o.payment_status!=='completed').map(o=>o.customer_phone||o.id)).size);setText2('dashboardCreditSettled',money2(settled));setText2('dashboardButcheryProfit',money2(but));setText2('dashboardKitchenProfit',money2(kitch));const {data:m}=await supabaseClient.from('inventory_movements').select('*').gte('created_at',start);const ku=(m||[]).filter(x=>String(x.movement_type||'').toLowerCase()==='kitchen_used'||String(x.notes||'').toUpperCase().startsWith('KITCHEN_USED')).reduce((a,x)=>a+Math.abs(Number(x.quantity)||0),0);setText2('dashboardKitchenUsed',ku)}catch(e){console.warn('BI dashboard:',e)}}
   const oldLoadDashboard=window.loadDashboard; window.loadDashboard=async function(){if(typeof oldLoadDashboard==='function')await oldLoadDashboard();enhanceDashboard()};
-  // Ensure POS customer is loaded and make the credit option use the real order/payment pipeline.
-  const oldUltimate=window.completeUltimateSale; window.completeUltimateSale=async function(){
-    const posState=window.ultimatePOSState;if(!posState?.cart?.length)return toast('Add items to the cart first','warning');
-    if(posState.paymentMethod==='credit'){
-      const sel=document.getElementById('posCustomer'), phone=sel?.selectedOptions?.[0]?.dataset?.phone||document.getElementById('mpesaPhone')?.value?.trim()||'';const name=sel?.selectedOptions?.[0]?.textContent?.trim()||'';
-      if(!phone||!name||name.toLowerCase().includes('walk-in'))return toast('Select a registered Credit User before completing a credit sale','warning');
-      const total=Math.max(0,window.ultimateCartTotal()-Math.min(Number(document.getElementById('posDiscount')?.value||0),window.ultimateCartTotal()));
-      // Convert the modern cart into the legacy cart format used by the real order pipeline.
-      cart=posState.cart.map(x=>({product_id:x.product_id||x.id,quantity:Number(x.qty||x.quantity||1),unit_price:Number(x.price||x.unit_price||0),total:Number(x.price||x.unit_price||0)*Number(x.qty||x.quantity||1),name:x.name,emoji:x.emoji}));
-      const original=window.processPaymentPOS;
-      if(typeof original!=='function')return toast('Payment engine is unavailable','error');
-      // Temporarily use credit as the method; the override below handles it without recording revenue as paid.
-      return processCreditOrder(phone,total,cart);
-    }
-    return typeof oldUltimate==='function'?oldUltimate():toast('Payment engine unavailable','error');
+  // FINAL POS PAYMENT ROUTER: one cart, one payment engine.
+  window.completeUltimateSale=async function(){
+    const posState=window.ultimatePOSState;
+    if(!posState || !Array.isArray(posState.cart) || !posState.cart.length) return showToast('Add items to the cart first','warning');
+    const method=String(posState.paymentMethod||'cash').toLowerCase();
+    const subtotal=posState.cart.reduce((sum,x)=>sum+(Number(x.price||x.unit_price)||0)*(Number(x.qty||x.quantity)||0),0);
+    const discount=Math.min(Number(document.getElementById('posDiscount')?.value||0),subtotal);
+    const total=Math.max(0,subtotal-discount);
+    if(method==='cash'){const received=Number(document.getElementById('cashReceived')?.value||0);if(received<total)return showToast('Cash received is less than the total','warning');}
+    if(method==='mpesa'){const phone=document.getElementById('mpesaPhone')?.value?.trim()||'';const legacyPhone=document.getElementById('posPhone');if(legacyPhone)legacyPhone.value=phone;if(!phone)return showToast('Enter the M-Pesa phone number','warning');}
+    cart=posState.cart.map(x=>({product_id:x.product_id||x.id,name:x.name,quantity:Number(x.qty||x.quantity||1),unit_price:Number(x.price||x.unit_price||0),total:Number(x.price||x.unit_price||0)*Number(x.qty||x.quantity||1),emoji:x.emoji}));
+    if(!cart.length)return showToast('Add items to the cart first','warning');
+    if(method==='credit'){const sel=document.getElementById('posCustomer');const opt=sel?.selectedOptions?.[0];const phone=opt?.dataset?.phone||'';const name=opt?.textContent?.replace(/•\s*CREDIT/i,'').trim()||'';if(!phone||!name||name.toLowerCase().includes('walk-in'))return showToast('Select a registered Credit User before completing a credit sale','warning');return processCreditOrder(phone,total,cart);}
+    if(typeof window.processPaymentPOS!=='function')return showToast('Payment engine is unavailable','error');
+    return window.processPaymentPOS(method);
   };
-  async function processCreditOrder(phone,total,items){try{const userId=currentUser?.id||JSON.parse(localStorage.getItem('viewpoint_session')||'{}')?.user?.id;if(!userId)return toast('Please login again','error');const {data:o,error}=await supabaseClient.from('orders').insert({order_type:typeof posMode!=='undefined'?posMode:'butchery',user_id:userId,customer_phone:phone,subtotal:total,total,status:'completed',payment_status:'pending',payment_method:'credit'}).select().single();if(error)throw error;const rows=items.map(x=>({order_id:o.id,product_id:x.product_id,quantity:x.quantity,unit_price:x.unit_price,total:x.total}));const ir=await supabaseClient.from('order_items').insert(rows);if(ir.error)throw ir.error;for(const x of items){const {data:p}=await supabaseClient.from('products').select('stock_quantity').eq('id',x.product_id).single();if(p){const ns=Number(p.stock_quantity||0)-Number(x.quantity||0);await supabaseClient.from('products').update({stock_quantity:ns}).eq('id',x.product_id);await supabaseClient.from('inventory_movements').insert({product_id:x.product_id,movement_type:'sale',quantity:-Number(x.quantity||0),previous_stock:p.stock_quantity,new_stock:ns,created_by:userId,notes:'SALE | CREDIT SALE'});}}showToast(`Credit sale recorded: ${money2(total)}. Not added to today's paid sales.` ,'success');posState.cart=[];localStorage.setItem(UKEY,JSON.stringify(posState));renderCart();loadPOSProducts(posMode);loadDashboard();loadCreditUsers();loadWeeklyOrders()}catch(e){console.error(e);showToast('Credit sale failed: '+e.message,'error')}}
+  async function processCreditOrder(phone,total,items){try{const userId=currentUser?.id||JSON.parse(localStorage.getItem('viewpoint_session')||'{}')?.user?.id;if(!userId)return toast('Please login again','error');const {data:o,error}=await supabaseClient.from('orders').insert({order_type:typeof posMode!=='undefined'?posMode:'butchery',user_id:userId,customer_phone:phone,subtotal:total,total,status:'completed',payment_status:'pending',payment_method:'credit'}).select().single();if(error)throw error;const rows=items.map(x=>({order_id:o.id,product_id:x.product_id,quantity:x.quantity,unit_price:x.unit_price,total:x.total}));const ir=await supabaseClient.from('order_items').insert(rows);if(ir.error)throw ir.error;for(const x of items){const {data:p}=await supabaseClient.from('products').select('stock_quantity').eq('id',x.product_id).single();if(p){const ns=Number(p.stock_quantity||0)-Number(x.quantity||0);await supabaseClient.from('products').update({stock_quantity:ns}).eq('id',x.product_id);await supabaseClient.from('inventory_movements').insert({product_id:x.product_id,movement_type:'sale',quantity:-Number(x.quantity||0),previous_stock:p.stock_quantity,new_stock:ns,created_by:userId,notes:'SALE | CREDIT SALE'});}}showToast(`Credit sale recorded: ${money2(total)}. Not added to today's paid sales.` ,'success');if(typeof window.clearUltimatePOSCart==='function')window.clearUltimatePOSCart();loadPOSProducts(posMode);loadDashboard();loadCreditUsers();loadWeeklyOrders()}catch(e){console.error(e);showToast('Credit sale failed: '+e.message,'error')}}
   // Populate POS customer dropdown from registered customers + credit users.
   async function populatePOSCustomers(){const sel=document.getElementById('posCustomer');if(!sel)return;try{const {data}=await supabaseClient.from('customers').select('id,name,phone').order('name');const credit=getLocal(CK,[]);const map=new Map();(data||[]).forEach(c=>map.set(c.phone,c));credit.forEach(c=>map.set(c.phone,c));sel.innerHTML='<option value="">Walk-in Customer</option>'+[...map.values()].map(c=>`<option value="${esc2(c.id||c.phone)}" data-phone="${esc2(c.phone)}">${esc2(c.name)}${credit.some(x=>x.phone===c.phone)?' • CREDIT':''}</option>`).join('')}catch(e){}}
   const oldNavigate=window.navigateTo; window.navigateTo=function(section){if(typeof oldNavigate==='function')oldNavigate(section);if(section==='creditusers')loadCreditUsers();if(section==='weeklyorders')loadWeeklyOrders();if(section==='stockmovements')loadStockMovementLedger();if(section==='dashboard')enhanceDashboard()};
