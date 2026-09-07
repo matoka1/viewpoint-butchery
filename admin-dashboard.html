@@ -4633,7 +4633,7 @@ async function processPaymentPOS(method) {
         return;
     }
 
-    const phone = document.getElementById('posPhone')?.value || '';
+    const phone = (document.getElementById('posPhone')?.value || document.getElementById('mpesaPhone')?.value || '').trim();
     if (method === 'mpesa' && !phone) {
         showToast('Enter customer phone number', 'error');
         return;
@@ -4975,7 +4975,9 @@ async function processPaymentPOS(method) {
                         cart = [];
                         updateCartDisplayPOS();
                         const phoneInput = document.getElementById('posPhone');
+                        const mpesaPhoneInput = document.getElementById('mpesaPhone');
                         if (phoneInput) phoneInput.value = '';
+                        if (mpesaPhoneInput) mpesaPhoneInput.value = '';
                         loadPOSProducts(posMode);
                         loadDashboard();
                         resetSessionTimer();
@@ -5139,7 +5141,9 @@ async function processPaymentPOS(method) {
                 cart = [];
                 updateCartDisplayPOS();
                 const phoneInput = document.getElementById('posPhone');
+                const mpesaPhoneInput = document.getElementById('mpesaPhone');
                 if (phoneInput) phoneInput.value = '';
+                if (mpesaPhoneInput) mpesaPhoneInput.value = '';
                 loadPOSProducts(posMode);
                 loadDashboard();
                 resetSessionTimer();
