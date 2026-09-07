@@ -5,7 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="robots" content="noindex, nofollow">
-    <title>Viewpoint POS - Login</title>
+    <title>Viewpoint POS | Secure Login</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 64 64%27%3E%3Crect width=%2764%27 height=%2764%27 rx=%2716%27 fill=%27%230F172A%27/%3E%3Cpath d=%27M8 32s9-17 24-17 24 17 24 17-9 17-24 17S8 32 8 32Z%27 fill=%27none%27 stroke=%27%232563EB%27 stroke-width=%275%27/%3E%3Ccircle cx=%2732%27 cy=%2732%27 r=%279%27 fill=%27%2310B981%27/%3E%3Ccircle cx=%2732%27 cy=%2732%27 r=%274%27 fill=%27white%27/%3E%3C/svg%3E">
+    <meta name="theme-color" content="#0F172A">
 
     <!-- Preconnect for performance -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -639,7 +641,13 @@
                 padding: 8px 12px;
             }
         }
-    </style>
+    
+    /* Viewpoint brand polish */
+    .brand-logo, .logo, .brand-icon { border-radius: 18px !important; }
+    .brand-logo svg, .logo svg, .brand-icon svg { filter: drop-shadow(0 8px 18px rgba(37,99,235,.22)); }
+    .brand-panel::after { content: "SMART POS • SECURE • REAL-TIME"; display:block; margin-top:18px; font-size:11px; font-weight:800; letter-spacing:1.4px; opacity:.72; }
+
+</style>
 
     <style id="viewpoint-login-polish">
         :root { --vp-purple:#7C3AED; --vp-purple-2:#A78BFA; --vp-green:#10B981; }
