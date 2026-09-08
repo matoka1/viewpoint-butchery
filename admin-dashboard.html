@@ -50,7 +50,7 @@
         /* ===== SIDEBAR ===== */
         .sidebar { position: fixed; top: 0; left: 0; width: 250px; height: 100vh; background: var(--secondary); padding: 24px 16px; overflow-y: auto; z-index: 1000; transition: var(--transition); }
         .sidebar-brand { display: flex; align-items: center; gap: 12px; padding: 0 8px 20px; border-bottom: 1px solid rgba(255,255,255,0.08); margin-bottom: 20px; }
-        .sidebar-brand .logo-icon { width: 44px; height: 44px; background: var(--primary-gradient); border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; font-size: 22px; color: #fff; flex-shrink: 0; box-shadow: 0 4px 12px rgba(108,60,225,0.3); }
+        .sidebar-brand .logo-icon { width: 44px; height: 44px; background: var(--primary-gradient); border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; font-size: 22px; color: #fff; flex-shrink: 0; box-shadow: 0 4px 12px rgba(37,99,235,0.3); }
         .sidebar-brand .brand-text { font-size: 20px; font-weight: 800; color: #fff; }
         .sidebar-brand .brand-sub { font-size: 11px; color: rgba(255,255,255,0.5); display: block; }
         .sidebar-menu { list-style: none; }
@@ -58,7 +58,7 @@
         .sidebar-menu li { padding: 10px 14px; margin: 2px 0; border-radius: var(--radius-sm); cursor: pointer; transition: var(--transition); display: flex; align-items: center; gap: 14px; font-size: 14px; font-weight: 500; color: rgba(255,255,255,0.6); }
         .sidebar-menu li i { width: 20px; font-size: 16px; }
         .sidebar-menu li:hover { background: rgba(255,255,255,0.06); color: #fff; }
-        .sidebar-menu li.active { background: var(--primary-gradient); color: #fff; box-shadow: 0 4px 16px rgba(108,60,225,0.3); }
+        .sidebar-menu li.active { background: var(--primary-gradient); color: #fff; box-shadow: 0 4px 16px rgba(37,99,235,0.3); }
         .sidebar-menu li .badge { margin-left: auto; background: rgba(255,255,255,0.2); color: #fff; padding: 0 10px; border-radius: var(--radius-full); font-size: 11px; font-weight: 600; }
         .sidebar-menu .logout-btn { margin-top: 16px; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 16px; color: rgba(255,255,255,0.5); }
         .sidebar-menu .logout-btn:hover { background: var(--danger); color: #fff; }
@@ -82,7 +82,7 @@
         .theme-toggle { width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--border); background: var(--bg-card); color: var(--text-secondary); cursor: pointer; transition: var(--transition); display: flex; align-items: center; justify-content: center; font-size: 18px; }
         .theme-toggle:hover { border-color: var(--primary); color: var(--primary); }
         .user-profile { display: flex; align-items: center; gap: 12px; padding-left: 16px; border-left: 1px solid var(--border); }
-        .user-profile .avatar { width: 40px; height: 40px; border-radius: 50%; background: var(--primary-gradient); color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 16px; box-shadow: 0 4px 12px rgba(108,60,225,0.3); }
+        .user-profile .avatar { width: 40px; height: 40px; border-radius: 50%; background: var(--primary-gradient); color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 16px; box-shadow: 0 4px 12px rgba(37,99,235,0.3); }
         .user-profile .user-name { font-size: 14px; font-weight: 600; transition: var(--transition); }
         .user-profile .user-role { font-size: 12px; color: var(--text-muted); transition: var(--transition); }
 
@@ -91,7 +91,7 @@
         .stat-card { background: var(--bg-card); border-radius: var(--radius); padding: 20px 22px; border: 1px solid var(--border); transition: var(--transition); position: relative; overflow: hidden; }
         .stat-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); }
         .stat-card .stat-icon { width: 44px; height: 44px; border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; font-size: 18px; margin-bottom: 10px; }
-        .stat-card .stat-icon.purple { background: rgba(108,60,225,0.12); color: var(--primary); }
+        .stat-card .stat-icon.purple { background: rgba(37,99,235,0.12); color: var(--primary); }
         .stat-card .stat-icon.green { background: rgba(16,185,129,0.12); color: var(--success); }
         .stat-card .stat-icon.orange { background: rgba(245,158,11,0.12); color: var(--warning); }
         .stat-card .stat-icon.blue { background: rgba(59,130,246,0.12); color: var(--info); }
@@ -123,7 +123,7 @@
 
         /* ===== BADGES ===== */
         .badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 12px; border-radius: var(--radius-full); font-size: 12px; font-weight: 600; }
-        .badge.primary { background: rgba(108,60,225,0.12); color: var(--primary); }
+        .badge.primary { background: rgba(37,99,235,0.12); color: var(--primary); }
         .badge.success { background: rgba(16,185,129,0.12); color: var(--success); }
         .badge.danger { background: rgba(239,68,68,0.12); color: var(--danger); }
         .badge.warning { background: rgba(245,158,11,0.12); color: var(--warning); }
@@ -144,8 +144,8 @@
 
         /* ===== BUTTONS ===== */
         .btn { display: inline-flex; align-items: center; gap: 8px; padding: 9px 18px; border: none; border-radius: var(--radius-sm); font-weight: 600; font-size: 14px; cursor: pointer; transition: var(--transition); font-family: var(--font); }
-        .btn-primary { background: var(--primary-gradient); color: #fff; box-shadow: 0 4px 12px rgba(108,60,225,0.3); }
-        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(108,60,225,0.4); }
+        .btn-primary { background: var(--primary-gradient); color: #fff; box-shadow: 0 4px 12px rgba(37,99,235,0.3); }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(37,99,235,0.4); }
         .btn-success { background: var(--success); color: #fff; box-shadow: 0 4px 12px rgba(16,185,129,0.3); }
         .btn-success:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(16,185,129,0.4); }
         .btn-danger { background: var(--danger); color: #fff; box-shadow: 0 4px 12px rgba(239,68,68,0.3); }
@@ -168,7 +168,7 @@
         .form-group { margin-bottom: 14px; }
         .form-group label { display: block; font-weight: 600; font-size: 13px; color: var(--text-secondary); margin-bottom: 4px; }
         .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 10px 14px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 14px; font-family: var(--font); background: var(--bg); color: var(--text-primary); transition: var(--transition); }
-        .form-group input:focus, .form-group select:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 4px rgba(108,60,225,0.1); }
+        .form-group input:focus, .form-group select:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 4px rgba(37,99,235,0.1); }
 
        /* ===== EMOJI PICKER ===== */
 .emoji-picker {
@@ -407,7 +407,7 @@
         .product-grid::-webkit-scrollbar-thumb { background: var(--primary); border-radius: var(--radius-full); }
         .product-card { background: var(--bg-card); border: 2px solid var(--border); border-radius: var(--radius-sm); padding: 14px 10px; text-align: center; cursor: pointer; transition: var(--transition); }
         .product-card:hover { border-color: var(--primary); transform: translateY(-2px); }
-        .product-card.selected { border-color: var(--primary); background: rgba(108,60,225,0.05); }
+        .product-card.selected { border-color: var(--primary); background: rgba(37,99,235,0.05); }
         .product-card .product-emoji { font-size: 32px; display: block; margin-bottom: 4px; }
         .product-card .product-name { font-weight: 600; font-size: 13px; }
         .product-card .product-price { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
@@ -447,37 +447,37 @@
         .pos-categories{display:flex;gap:7px;overflow:auto;padding-bottom:5px;margin-bottom:12px}.pos-cat{white-space:nowrap;border:1px solid var(--border);background:var(--bg-card);color:var(--text-secondary);padding:8px 13px;border-radius:999px;cursor:pointer;font-weight:600}.pos-cat.active{background:var(--primary);border-color:var(--primary);color:#fff}
         .pos-product-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(135px,1fr));gap:10px;max-height:560px;overflow:auto;padding:2px}
         .pos-product{border:1px solid var(--border);background:var(--bg-card);border-radius:12px;padding:10px;cursor:pointer;text-align:left;transition:var(--transition);position:relative}.pos-product:hover{border-color:var(--primary);transform:translateY(-2px);box-shadow:var(--shadow)}
-        .pos-product .pic{height:78px;border-radius:9px;background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:34px;margin-bottom:8px;overflow:hidden}.pos-product .pic img{width:100%;height:100%;object-fit:cover}.pos-product .pname{font-weight:700;font-size:13px}.pos-product .pprice{font-size:13px;color:var(--primary);font-weight:700;margin-top:3px}.pos-product .pstock{font-size:11px;color:var(--text-muted);margin-top:2px}.pos-product .weight-tag{position:absolute;right:7px;top:7px;background:rgba(108,60,225,.1);color:var(--primary);font-size:10px;padding:3px 6px;border-radius:999px}
+        .pos-product .pic{height:78px;border-radius:9px;background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:34px;margin-bottom:8px;overflow:hidden}.pos-product .pic img{width:100%;height:100%;object-fit:cover}.pos-product .pname{font-weight:700;font-size:13px}.pos-product .pprice{font-size:13px;color:var(--primary);font-weight:700;margin-top:3px}.pos-product .pstock{font-size:11px;color:var(--text-muted);margin-top:2px}.pos-product .weight-tag{position:absolute;right:7px;top:7px;background:rgba(37,99,235,.1);color:var(--primary);font-size:10px;padding:3px 6px;border-radius:999px}
         .cart-card{position:sticky;top:20px}.cart-items{max-height:330px;overflow:auto}.cart-row{display:grid;grid-template-columns:1fr auto;gap:8px;padding:10px 0;border-bottom:1px solid var(--border)}.cart-row .name{font-weight:650;font-size:13px}.cart-row .meta{font-size:11px;color:var(--text-muted);margin-top:2px}.qty-control{display:flex;align-items:center;gap:6px}.qty-control button{width:27px;height:27px;border:1px solid var(--border);border-radius:7px;background:var(--bg);cursor:pointer}.qty-control span{min-width:28px;text-align:center;font-weight:700}
-        .cart-summary{margin-top:14px;border-top:1px solid var(--border);padding-top:12px}.summary-line{display:flex;justify-content:space-between;padding:4px 0;font-size:13px}.summary-line.total{font-size:20px;font-weight:800;color:var(--primary);padding-top:10px}.checkout-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}.payment-method{padding:11px;border:1px solid var(--border);background:var(--bg-card);border-radius:10px;cursor:pointer;font-weight:700}.payment-method.active{border-color:var(--primary);background:rgba(108,60,225,.08);color:var(--primary)}
+        .cart-summary{margin-top:14px;border-top:1px solid var(--border);padding-top:12px}.summary-line{display:flex;justify-content:space-between;padding:4px 0;font-size:13px}.summary-line.total{font-size:20px;font-weight:800;color:var(--primary);padding-top:10px}.checkout-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}.payment-method{padding:11px;border:1px solid var(--border);background:var(--bg-card);border-radius:10px;cursor:pointer;font-weight:700}.payment-method.active{border-color:var(--primary);background:rgba(37,99,235,.08);color:var(--primary)}
         .quick-actions{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:18px}.quick-action{padding:13px 8px;border:1px solid var(--border);background:var(--bg-card);border-radius:12px;text-align:center;cursor:pointer;font-weight:650}.quick-action i{display:block;font-size:19px;color:var(--primary);margin-bottom:5px}
         .dashboard-alerts{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px}.alert-box{border:1px solid var(--border);background:var(--bg-card);border-radius:var(--radius);padding:16px}.alert-box h4{font-size:14px;margin-bottom:10px}.alert-list{display:flex;flex-direction:column;gap:7px}.alert-item{display:flex;justify-content:space-between;gap:10px;padding:8px 10px;border-radius:8px;background:var(--bg)}
         .module-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:16px}.module-stat{background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:16px}.module-stat .v{font-size:22px;font-weight:800;margin-top:5px}.module-stat .l{font-size:12px;color:var(--text-muted)}
         .table-toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}.table-toolbar input,.table-toolbar select{padding:9px 12px;border:1px solid var(--border);border-radius:9px;background:var(--bg);color:var(--text-primary)}
-        .shift-banner{display:flex;align-items:center;justify-content:space-between;gap:12px;background:linear-gradient(135deg,rgba(108,60,225,.12),rgba(139,92,246,.05));border:1px solid rgba(108,60,225,.2);padding:13px 16px;border-radius:12px;margin-bottom:16px}
+        .shift-banner{display:flex;align-items:center;justify-content:space-between;gap:12px;background:linear-gradient(135deg,rgba(37,99,235,.12),rgba(59,130,246,.05));border:1px solid rgba(37,99,235,.2);padding:13px 16px;border-radius:12px;margin-bottom:16px}
         @media(max-width:900px){.pos-shell{grid-template-columns:1fr}.cart-card{position:static}.dashboard-alerts{grid-template-columns:1fr}}
         @media(max-width:600px){.quick-actions{grid-template-columns:1fr 1fr}.pos-product-grid{grid-template-columns:repeat(2,1fr)}.checkout-grid{grid-template-columns:1fr 1fr}}
 
         /* ===== VIEWPOINT UNIFIED VISUAL SYSTEM ===== */
         :root{
-            --vp-purple:#2563EB;--vp-purple-light:#3B82F6;--vp-purple-dark:#1D4ED8;
+            --vp-primary:#2563EB;--vp-primary-light:#3B82F6;--vp-primary-dark:#1D4ED8;
             --vp-navy:#1E293B;--vp-green:#10B981;--vp-orange:#F59E0B;--vp-blue:#3B82F6;--vp-red:#EF4444;
-            --vp-pink:#EC4899;--vp-surface:#FFFFFF;--vp-soft:#F6F5FF;
+            --vp-pink:#EC4899;--vp-surface:#FFFFFF;--vp-soft:#EFF6FF;
         }
-        .main-content .card,.main-content .stat-card,.main-content .alert-box,.main-content .quick-action,.main-content .module-stat{border-color:rgba(108,60,225,.10);box-shadow:0 8px 28px rgba(30,41,59,.05)}
+        .main-content .card,.main-content .stat-card,.main-content .alert-box,.main-content .quick-action,.main-content .module-stat{border-color:rgba(37,99,235,.10);box-shadow:0 8px 28px rgba(30,41,59,.05)}
         .main-content .card-header h3{color:var(--text-primary)}
-        .btn-primary,.btn.btn-primary{background:linear-gradient(135deg,var(--vp-purple),var(--vp-purple-light));border-color:var(--vp-purple);box-shadow:0 5px 14px rgba(108,60,225,.18)}
-        .btn-primary:hover{background:linear-gradient(135deg,var(--vp-purple-dark),var(--vp-purple));transform:translateY(-1px)}
+        .btn-primary,.btn.btn-primary{background:linear-gradient(135deg,var(--vp-primary),var(--vp-primary-light));border-color:var(--vp-primary);box-shadow:0 5px 14px rgba(37,99,235,.18)}
+        .btn-primary:hover{background:linear-gradient(135deg,var(--vp-primary-dark),var(--vp-primary));transform:translateY(-1px)}
         .btn-success{background:linear-gradient(135deg,#059669,var(--vp-green));border-color:var(--vp-green)}
-        .btn-outline:hover{border-color:var(--vp-purple);color:var(--vp-purple);background:rgba(108,60,225,.05)}
-        .stat-card{position:relative;overflow:hidden}.stat-card:after{content:"";position:absolute;right:-28px;bottom:-35px;width:100px;height:100px;border-radius:50%;background:rgba(108,60,225,.05)}
-        .stat-icon.purple{background:rgba(108,60,225,.12);color:var(--vp-purple)}.stat-icon.green{background:rgba(16,185,129,.12);color:var(--vp-green)}.stat-icon.orange{background:rgba(245,158,11,.13);color:var(--vp-orange)}.stat-icon.blue{background:rgba(59,130,246,.12);color:var(--vp-blue)}.stat-icon.red{background:rgba(239,68,68,.12);color:var(--vp-red)}.stat-icon.pink{background:rgba(236,72,153,.12);color:var(--vp-pink)}
-        .dashboard-alerts .alert-box:first-child{border-top:3px solid var(--vp-orange)}.dashboard-alerts .alert-box:last-child{border-top:3px solid var(--vp-purple)}
+        .btn-outline:hover{border-color:var(--vp-primary);color:var(--vp-primary);background:rgba(37,99,235,.05)}
+        .stat-card{position:relative;overflow:hidden}.stat-card:after{content:"";position:absolute;right:-28px;bottom:-35px;width:100px;height:100px;border-radius:50%;background:rgba(37,99,235,.05)}
+        .stat-icon.purple{background:rgba(37,99,235,.12);color:var(--vp-primary)}.stat-icon.green{background:rgba(16,185,129,.12);color:var(--vp-green)}.stat-icon.orange{background:rgba(245,158,11,.13);color:var(--vp-orange)}.stat-icon.blue{background:rgba(59,130,246,.12);color:var(--vp-blue)}.stat-icon.red{background:rgba(239,68,68,.12);color:var(--vp-red)}.stat-icon.pink{background:rgba(236,72,153,.12);color:var(--vp-pink)}
+        .dashboard-alerts .alert-box:first-child{border-top:3px solid var(--vp-orange)}.dashboard-alerts .alert-box:last-child{border-top:3px solid var(--vp-primary)}
         .analytics-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin:16px 0}.analytics-grid .card{min-height:310px}.analytics-grid canvas{width:100%!important;max-height:245px}
         .dashboard-section-title{display:flex;align-items:center;justify-content:space-between;margin:22px 0 12px}.dashboard-section-title h3{font-size:16px}.dashboard-section-title span{font-size:12px;color:var(--text-muted)}
-        .kpi-strip{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:16px 0}.kpi-mini{background:linear-gradient(135deg,rgba(108,60,225,.08),rgba(139,92,246,.02));border:1px solid rgba(108,60,225,.12);border-radius:14px;padding:14px}.kpi-mini .label{font-size:11px;color:var(--text-muted)}.kpi-mini .value{font-size:20px;font-weight:800;margin-top:4px;color:var(--vp-purple-dark)}
-        .payment-method[data-method="mpesa"].active{border-color:var(--vp-green);background:rgba(16,185,129,.10);color:#047857}.payment-method[data-method="card"].active{border-color:var(--vp-blue);background:rgba(59,130,246,.09);color:#1D4ED8}.payment-method[data-method="credit"].active{border-color:var(--vp-orange);background:rgba(245,158,11,.10);color:#B45309}.payment-method[data-method="cash"].active{border-color:var(--vp-purple);background:rgba(108,60,225,.08);color:var(--vp-purple)}
-        .cart-summary .summary-line.total{background:linear-gradient(135deg,rgba(108,60,225,.10),rgba(139,92,246,.04));padding:13px 12px;border-radius:10px;margin-top:6px}
+        .kpi-strip{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:16px 0}.kpi-mini{background:linear-gradient(135deg,rgba(37,99,235,.08),rgba(59,130,246,.02));border:1px solid rgba(37,99,235,.12);border-radius:14px;padding:14px}.kpi-mini .label{font-size:11px;color:var(--text-muted)}.kpi-mini .value{font-size:20px;font-weight:800;margin-top:4px;color:var(--vp-primary-dark)}
+        .payment-method[data-method="mpesa"].active{border-color:var(--vp-green);background:rgba(16,185,129,.10);color:#047857}.payment-method[data-method="card"].active{border-color:var(--vp-blue);background:rgba(59,130,246,.09);color:#1D4ED8}.payment-method[data-method="credit"].active{border-color:var(--vp-orange);background:rgba(245,158,11,.10);color:#B45309}.payment-method[data-method="cash"].active{border-color:var(--vp-primary);background:rgba(37,99,235,.08);color:var(--vp-primary)}
+        .cart-summary .summary-line.total{background:linear-gradient(135deg,rgba(37,99,235,.10),rgba(59,130,246,.04));padding:13px 12px;border-radius:10px;margin-top:6px}
         @media(max-width:900px){.analytics-grid{grid-template-columns:1fr}.kpi-strip{grid-template-columns:1fr 1fr}}
         @media(max-width:600px){.kpi-strip{grid-template-columns:1fr}}
     </style>
@@ -1152,14 +1152,15 @@ const SUPABASE_CONFIG = {
 };
 const supabaseClient = supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.anonKey);
 // ===== PAYHERO CONFIGURATION =====
+// PayHero secrets MUST NOT be stored in browser JavaScript.
+// The Supabase Edge Function `payhero` owns the credentials and calls PayHero securely.
 const PAYHERO_CONFIG = {
     accountId: '11408',
-    username: 'UTx8RzRfHqW9b59aGlwj',
-    password: 'PI4mUW7vopRQ4T91hvHqgR3L9iphnFpJSxckaEtY',
-    basicAuth: 'Basic VVR4OFJ6UmZIcVc5YjU5YUdsd2o6UEk0bVVXN3ZvcFJRNFQ5MWh2SHFnUjNMOWlwaG5GcEpTeGNrYUV0WQ==',
     lipwaLink: 'https://lipwa.link/11408',
-    baseUrl: 'https://api.payhero.co.ke',
+    edgeFunction: 'payhero'
 };
+// SECURITY: PayHero username/password/basicAuth are intentionally absent from this file.
+// Configure them as Supabase Edge Function secrets instead. Rotate any credentials previously exposed here.
 // ===== STATE =====
 let currentUser = null;
 let salesChart = null;
@@ -1632,7 +1633,7 @@ function selectEmoji(emoji) {
         el.classList.toggle('selected', el.dataset.emoji === emoji);
         if (el.dataset.emoji === emoji) {
             el.style.borderColor = 'var(--primary)';
-            el.style.background = 'rgba(108,60,225,0.1)';
+            el.style.background = 'rgba(37,99,235,0.1)';
         } else {
             el.style.borderColor = 'transparent';
             el.style.background = 'transparent';
@@ -1706,7 +1707,7 @@ function renderNotifications() {
              onclick="${n.link ? `navigateTo('${n.link}')` : ''}"
              style="padding:10px 14px;border-bottom:1px solid var(--border);
                     cursor:${n.link ? 'pointer' : 'default'};
-                    background:${n.read ? 'transparent' : 'rgba(108,60,225,0.05)'};
+                    background:${n.read ? 'transparent' : 'rgba(37,99,235,0.05)'};
                     transition:var(--transition);">
             <div style="display:flex;align-items:center;gap:8px;">
                 <span style="font-size:18px;">${n.type === 'success' ? '✅' : n.type === 'error' ? '❌' : n.type === 'warning' ? '⚠️' : 'ℹ️'}</span>
@@ -2312,7 +2313,7 @@ async function loadEnhancedDashboardCharts(orders){
         const base={responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{usePointStyle:true,boxWidth:8}}}};
         const hourly=Array.from({length:24},(_,h)=>({h,label:`${String(h).padStart(2,'0')}:00`,value:0}));
         paid.forEach(o=>{const h=new Date(o.created_at).getHours();if(hourly[h])hourly[h].value+=Number(o.total||0)});
-        const hc=document.getElementById('hourlySalesChart'); if(hc){hourlySalesChart=destroyChart(hourlySalesChart);hourlySalesChart=new Chart(hc,{type:'line',data:{labels:hourly.map(x=>x.label),datasets:[{label:'Sales',data:hourly.map(x=>x.value),borderColor:'#2563EB',backgroundColor:'rgba(108,60,225,.10)',fill:true,tension:.35,pointRadius:2}]},options:{...base,scales:{y:{beginAtZero:true,ticks:{callback:v=>'KES '+Number(v).toLocaleString()}}}}});}
+        const hc=document.getElementById('hourlySalesChart'); if(hc){hourlySalesChart=destroyChart(hourlySalesChart);hourlySalesChart=new Chart(hc,{type:'line',data:{labels:hourly.map(x=>x.label),datasets:[{label:'Sales',data:hourly.map(x=>x.value),borderColor:'#2563EB',backgroundColor:'rgba(37,99,235,.10)',fill:true,tension:.35,pointRadius:2}]},options:{...base,scales:{y:{beginAtZero:true,ticks:{callback:v=>'KES '+Number(v).toLocaleString()}}}}});}
         const payment={cash:0,mpesa:0,card:0,credit:0}; paid.forEach(o=>{const k=(o.payment_method||'cash').toLowerCase();if(payment[k]===undefined)payment[k]=0;payment[k]+=Number(o.total||0)});
         const pc=document.getElementById('paymentMixChart'); if(pc){paymentMixChart=destroyChart(paymentMixChart);paymentMixChart=new Chart(pc,{type:'doughnut',data:{labels:['Cash','M-Pesa','Card','Credit'],datasets:[{data:[payment.cash,payment.mpesa,payment.card,payment.credit],backgroundColor:['#2563EB','#10B981','#3B82F6','#F59E0B'],borderWidth:0}]},options:{...base,cutout:'65%'}});}
         const dept={butchery:0,restaurant:0}; paid.forEach(o=>{const k=(o.order_type||'restaurant').toLowerCase();if(dept[k]===undefined)dept[k]=0;dept[k]+=Number(o.total||0)});
@@ -2419,7 +2420,7 @@ async function createSalesChart(orders) {
                     label: 'Sales (KES)',
                     data: Object.values(daily).length ? Object.values(daily) : [0],
                     borderColor: '#2563EB',
-                    backgroundColor: 'rgba(108,60,225,0.08)',
+                    backgroundColor: 'rgba(37,99,235,0.08)',
                     fill: true,
                     tension: 0.4,
                     pointBackgroundColor: '#2563EB',
@@ -3577,7 +3578,7 @@ async function createProfitChart(revenue, cost, profit) {
                     backgroundColor: [
                         '#10B981',  // Green - Revenue
                         '#EF4444',  // Red - Cost
-                        '#2563EB'   // Purple - Profit
+                        '#2563EB'   // Blue - Profit
                     ],
                     borderColor: [
                         '#059669',
@@ -4061,44 +4062,8 @@ async function exportAuditLogs() {
 
 // ============================================================
 //  LOG USER ACTIVITY - TRACKS EVERYTHING
-// ============================================================
+// Duplicate logUserActivity removed: the primary implementation above is used.
 
-async function logUserActivity(action, details = '', entityType = '', entityId = '', newValue = null, oldValue = null) {
-    try {
-        if (!currentUser) return;
-        
-        // Get user IP
-        let ip = 'unknown';
-        try {
-            const response = await fetch('https://api.ipify.org?format=json');
-            const data = await response.json();
-            ip = data.ip;
-        } catch (e) {}
-        
-        // Log the activity
-        const { error } = await supabaseClient
-            .from('audit_logs')
-            .insert({
-                user_id: currentUser.id,
-                action: action,
-                details: details,
-                entity_type: entityType,
-                entity_id: entityId,
-                new_value: newValue,
-                old_value: oldValue,
-                ip_address: ip,
-                user_agent: navigator.userAgent,
-                created_at: new Date().toISOString()
-            });
-            
-        if (error) {
-            console.error('Audit log error:', error);
-        }
-        
-    } catch (e) {
-        console.log('Audit log skipped:', e.message);
-    }
-}
 
 // ============================================================
 //  REPORTS
@@ -4316,12 +4281,12 @@ async function generateAdminReceipt(orderId) {
         const now = new Date();
         const orderNumber = order.order_number || order.id.slice(0,8).toUpperCase();
         
-        // Get business settings
-        const businessName = '🏪 VIEWPOINT BUTCHERY & RESTAURANT';
-        const businessPhone = '+254 700 000 000';
-        const businessEmail = 'info@viewpoint.com';
-        const businessLocation = 'Nairobi, Kenya';
-        const receiptFooter = 'Thank you for shopping with Viewpoint! 🙏';
+        // Get business settings from the Settings page; use sensible fallbacks when not configured.
+        const businessName = document.getElementById('businessName')?.value?.trim() || '🏪 VIEWPOINT BUTCHERY & RESTAURANT';
+        const businessPhone = document.getElementById('businessPhone')?.value?.trim() || '';
+        const businessEmail = document.getElementById('businessEmail')?.value?.trim() || '';
+        const businessLocation = document.getElementById('businessLocation')?.value?.trim() || 'Kenya';
+        const receiptFooter = document.getElementById('receiptFooter')?.value?.trim() || 'Thank you for shopping with Viewpoint! 🙏';
         
         // Calculate totals
         let subtotal = 0;
@@ -5428,90 +5393,6 @@ window.refreshProfitData = refreshProfitData;
     })();
     </script>
     
-    <!-- Auth Check -->
-    <script>
-        (function() {
-            'use strict';
-            
-            const SESSION_KEY = 'viewpoint_session';
-            const LOGIN_URL = 'index.html';
-            
-            function checkAuth() {
-                try {
-                    const stored = localStorage.getItem(SESSION_KEY);
-                    if (!stored) {
-                        console.log('No session found, redirecting to login...');
-                        window.location.href = LOGIN_URL;
-                        return;
-                    }
-                    
-                    const session = JSON.parse(stored);
-                    if (!session || !session.user) {
-                        localStorage.removeItem(SESSION_KEY);
-                        window.location.href = LOGIN_URL;
-                        return;
-                    }
-                    
-                    const maxAge = 24 * 60 * 60 * 1000;
-                    if (Date.now() - session.loginTime > maxAge) {
-                        localStorage.removeItem(SESSION_KEY);
-                        window.location.href = LOGIN_URL;
-                        return;
-                    }
-                    
-                    console.log('✅ Authenticated as:', session.user.email);
-                    
-                    const userNameEl = document.getElementById('userName');
-                    const userRoleEl = document.querySelector('.user-role');
-                    const userAvatar = document.getElementById('userAvatar');
-                    
-                    if (userNameEl) {
-                        userNameEl.textContent = session.user.full_name || session.user.email.split('@')[0];
-                    }
-                    
-                    if (userRoleEl) {
-                        userRoleEl.textContent = session.user.roles?.name || 'Cashier';
-                    }
-                    
-                    if (userAvatar) {
-                        const name = session.user.full_name || session.user.email || 'User';
-                        userAvatar.textContent = name.charAt(0).toUpperCase();
-                    }
-                    
-                } catch (e) {
-                    console.error('Auth check error:', e);
-                    localStorage.removeItem(SESSION_KEY);
-                    window.location.href = LOGIN_URL;
-                }
-            }
-            
-            window.logout = function() {
-                localStorage.removeItem(SESSION_KEY);
-                if (typeof supabase !== 'undefined' && supabase.auth) {
-                    supabase.auth.signOut().catch(() => {});
-                }
-                window.location.href = LOGIN_URL;
-            };
-            
-            if (document.readyState === 'loading') {
-                document.addEventListener('DOMContentLoaded', checkAuth);
-            } else {
-                checkAuth();
-            }
-            
-            document.addEventListener('DOMContentLoaded', function() {
-                const logoutBtn = document.getElementById('logoutBtn');
-                if (logoutBtn) {
-                    logoutBtn.addEventListener('click', function(e) {
-                        e.preventDefault();
-                        if (confirm('Are you sure you want to logout?')) {
-                            window.logout();
-                        }
-                    });
-                }
-            });
-            
-        })();
-    </script>
+    <!-- Authentication is handled by the primary dashboard auth implementation above. -->
 </body>
 </html>
