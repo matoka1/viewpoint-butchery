@@ -1133,7 +1133,7 @@ body{background:var(--vp-bg)!important;color:var(--vp-text)}
 
     <!-- Toast Container -->
     <div class="toast-container" id="toastContainer"></div>
-
+<script src="js/protection.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
 /* ============================================================
@@ -1150,6 +1150,12 @@ const SUPABASE_CONFIG = {
     url: 'https://sipgnykshaxrxwdeswfc.supabase.co',
     anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNpcGdueWtzaGF4cnh3ZGVzd2ZjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY4OTA2MzMsImV4cCI6MjEwMjQ2NjYzM30.xJtq_3jNMLnXCyVSurdIuUnrlmZEyMWNO1-Azk_4k2E'
 };
+
+        // Hides the .html extension in the URL
+if (window.location.pathname.endsWith('.html')) {
+    const cleanPath = window.location.pathname.replace(/\.html$/, '');
+    window.history.replaceState({}, '', cleanPath);
+}
 const supabaseClient = supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.anonKey);
 // ===== PAYHERO CONFIGURATION =====
 // PayHero secrets MUST NOT be stored in browser JavaScript.
