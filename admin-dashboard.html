@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Viewpoint POS - Ultimate Admin Dashboard</title>
+    <title>Viewpoint POS — Admin Dashboard</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -480,7 +480,25 @@
         .cart-summary .summary-line.total{background:linear-gradient(135deg,rgba(37,99,235,.10),rgba(59,130,246,.04));padding:13px 12px;border-radius:10px;margin-top:6px}
         @media(max-width:900px){.analytics-grid{grid-template-columns:1fr}.kpi-strip{grid-template-columns:1fr 1fr}}
         @media(max-width:600px){.kpi-strip{grid-template-columns:1fr}}
-    </style>
+    
+        /* ===== FINAL VIEWPOINT POS POLISH ===== */
+        :root{--vp-navy:#0F172A;--vp-navy-2:#111827;--vp-emerald:#10B981;--vp-emerald-dark:#047857;--vp-emerald-soft:rgba(16,185,129,.12)}
+        .sidebar{background:linear-gradient(180deg,var(--vp-navy),#111827)}
+        .sidebar-brand .logo-icon,.sidebar-menu li.active,.btn-primary{background:linear-gradient(135deg,var(--vp-emerald-dark),var(--vp-emerald))!important}
+        .sidebar-menu li.active{box-shadow:0 6px 18px rgba(16,185,129,.22)!important}
+        .top-bar .page-title h1{background:linear-gradient(135deg,var(--vp-navy),var(--vp-emerald-dark));-webkit-background-clip:text;background-clip:text}
+        .btn-primary{border-color:var(--vp-emerald-dark)!important;box-shadow:0 5px 14px rgba(16,185,129,.2)!important}
+        .btn-primary:hover{background:linear-gradient(135deg,#065f46,var(--vp-emerald))!important}
+        .payment-method.active{border-color:var(--vp-emerald)!important;background:var(--vp-emerald-soft)!important;color:var(--vp-emerald-dark)!important}
+        .cart-summary .summary-line.total{background:var(--vp-emerald-soft)!important}
+        .stat-card .stat-icon.purple,.badge.primary{background:var(--vp-emerald-soft)!important;color:var(--vp-emerald-dark)!important}
+        .stat-card .stat-glow{background:linear-gradient(135deg,var(--vp-navy),var(--vp-emerald))!important}
+        .form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:var(--vp-emerald)!important;box-shadow:0 0 0 4px rgba(16,185,129,.10)!important}
+        .btn-outline:hover{border-color:var(--vp-emerald)!important;color:var(--vp-emerald-dark)!important}
+        .mobile-menu-btn{background:var(--vp-navy)!important}
+        .pos-product .pprice{color:var(--vp-emerald-dark)!important}
+        @media(max-width:768px){.main-content{margin-left:0;padding-left:14px;padding-right:14px}.top-bar{margin-top:4px}.user-profile .user-name,.user-profile .user-role{display:none}}
+</style>
 <style id="viewpoint-navy-emerald-theme">
 :root{--vp-navy:#0F172A;--vp-navy-2:#1E293B;--vp-blue:#2563EB;--vp-blue-2:#1D4ED8;--vp-green:#10B981;--vp-amber:#F59E0B;--vp-red:#EF4444;--vp-bg:#F8FAFC;--vp-text:#0F172A;--vp-muted:#64748B}
 .sidebar,.side-nav,.sidebar-header{background:var(--vp-navy)!important}
@@ -1133,7 +1151,7 @@ body{background:var(--vp-bg)!important;color:var(--vp-text)}
 
     <!-- Toast Container -->
     <div class="toast-container" id="toastContainer"></div>
-<script src="js/protection.js"></script>
+
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
 /* ============================================================
@@ -1150,12 +1168,6 @@ const SUPABASE_CONFIG = {
     url: 'https://sipgnykshaxrxwdeswfc.supabase.co',
     anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNpcGdueWtzaGF4cnh3ZGVzd2ZjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY4OTA2MzMsImV4cCI6MjEwMjQ2NjYzM30.xJtq_3jNMLnXCyVSurdIuUnrlmZEyMWNO1-Azk_4k2E'
 };
-
-        // Hides the .html extension in the URL
-if (window.location.pathname.endsWith('.html')) {
-    const cleanPath = window.location.pathname.replace(/\.html$/, '');
-    window.history.replaceState({}, '', cleanPath);
-}
 const supabaseClient = supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.anonKey);
 // ===== PAYHERO CONFIGURATION =====
 // PayHero secrets MUST NOT be stored in browser JavaScript.
@@ -1763,82 +1775,76 @@ function resetSessionTimer() {
 //  AUTH - FIXED FOR PIN LOGIN
 // ============================================================
 async function checkAuth() {
-    try {
-        const stored = localStorage.getItem('viewpoint_session');
-        if (!stored) {
-            console.log('❌ No session found');
-            window.location.href = 'index.html';
-            return null;
-        }
+    const SESSION_KEY = 'viewpoint_session';
+    const LOGIN_URL = 'index.html';
+    const MAX_AGE = 24 * 60 * 60 * 1000;
 
-        let sessionData;
+    const readSession = () => {
         try {
-            sessionData = JSON.parse(stored);
-        } catch (e) {
-            localStorage.removeItem('viewpoint_session');
-            window.location.href = 'index.html';
-            return null;
+            const raw = localStorage.getItem(SESSION_KEY);
+            if (!raw) return null;
+            const data = JSON.parse(raw);
+            if (!data || !data.user) return null;
+            if (data.loginTime && (Date.now() - Number(data.loginTime) > MAX_AGE)) return null;
+            return data;
+        } catch (_) { return null; }
+    };
+
+    // Allow a very short hand-off window for the login page to finish writing
+    // the local session before this page evaluates authentication.
+    let sessionData = readSession();
+    if (!sessionData) {
+        for (let i = 0; i < 10 && !sessionData; i++) {
+            await new Promise(resolve => setTimeout(resolve, 150));
+            sessionData = readSession();
         }
+    }
 
-        const { user, loginMethod, loginTime } = sessionData;
-
-        if (!user) {
-            localStorage.removeItem('viewpoint_session');
-            window.location.href = 'index.html';
-            return null;
-        }
-
-        const maxAge = 24 * 60 * 60 * 1000;
-        if (loginTime && Date.now() - loginTime > maxAge) {
-            localStorage.removeItem('viewpoint_session');
-            window.location.href = 'index.html';
-            return null;
-        }
-
-        console.log('✅ User authenticated:', user.email);
-        console.log('🔑 Login method:', loginMethod || 'email');
-
-        // ✅ Set current user
-        currentUser = user;
-        
-        // ✅ Update UI with user info
-        updateUI(user);
-        resetSessionTimer();
-
-        // ✅ If PIN login, verify user is still active in database
-        if (loginMethod === 'pin') {
-            try {
-                const { data: dbUser, error } = await supabaseClient
-                    .from('users')
-                    .select('id, email, full_name, role_id, status, pin_enabled')
-                    .eq('id', user.id)
-                    .single();
-                
-                if (error || !dbUser || dbUser.status !== 'active') {
-                    console.log('❌ User no longer active or not found');
-                    localStorage.removeItem('viewpoint_session');
-                    window.location.href = 'index.html';
-                    return null;
-                }
-                
-                // ✅ Update current user with fresh data
-                currentUser = { ...user, ...dbUser };
-                
-            } catch (e) {
-                // If we can't verify, keep the session but log it
-                console.log('⚠️ Could not verify user in database, but session is valid');
-            }
-        }
-
-        return currentUser;
-
-    } catch (error) {
-        console.error('❌ Auth error:', error);
-        localStorage.removeItem('viewpoint_session');
-        window.location.href = 'index.html';
+    if (!sessionData) {
+        console.warn('No valid Viewpoint session found; redirecting to login.');
+        localStorage.removeItem(SESSION_KEY);
+        window.location.href = LOGIN_URL;
         return null;
     }
+
+    const { user, loginMethod, loginTime } = sessionData;
+    currentUser = user;
+
+    // Always update the interface immediately from the signed-in local session.
+    updateUI(currentUser);
+    resetSessionTimer();
+
+    // PIN sessions are backed by the users table. Re-check that account status
+    // is still active, but do not unnecessarily destroy a valid session if a
+    // temporary network error occurs.
+    if (loginMethod === 'pin' && user.id) {
+        try {
+            const { data: dbUser, error } = await supabaseClient
+                .from('users')
+                .select('id, email, full_name, role_id, status, pin_enabled')
+                .eq('id', user.id)
+                .single();
+
+            if (!error && dbUser) {
+                if (dbUser.status && dbUser.status !== 'active') {
+                    localStorage.removeItem(SESSION_KEY);
+                    window.location.href = LOGIN_URL;
+                    return null;
+                }
+                currentUser = { ...user, ...dbUser };
+                updateUI(currentUser);
+            } else if (error) {
+                console.warn('Could not refresh PIN user from database; retaining valid local session.', error.message);
+            }
+        } catch (e) {
+            console.warn('User refresh failed; retaining valid local session.');
+        }
+    }
+
+    console.log('Authenticated:', currentUser.email || currentUser.full_name || 'User', loginTime ? new Date(loginTime).toISOString() : '');
+    return currentUser;
 }
+
 function updateUI(user) {
     const avatar = document.getElementById('userAvatar');
     const userName = document.getElementById('userName');
@@ -5381,10 +5387,25 @@ window.refreshProfitData = refreshProfitData;
       function renderCloseSummary(){const o=state.shift||{};document.getElementById('shiftCloseSummary').innerHTML=`<div class="alert-box" style="margin-bottom:12px"><div class="summary-line"><span>Opening cash</span><strong>${money(o.openingCash)}</strong></div><div class="summary-line"><span>Recorded sales</span><strong>${money(o.sales||0)}</strong></div><div class="summary-line"><span>Expected cash</span><strong>${money((o.openingCash||0)+(o.cashSales||0))}</strong></div></div>`}
       window.closeUltimateShift=e=>{e.preventDefault();if(!state.shift)return;state.shift.closedAt=new Date().toISOString();state.shift.actualCash=Number(document.getElementById('actualCash').value);state.shift.note=document.getElementById('closingNote').value;state.shift=null;save();closeModal('cashCloseModal');renderShift();toast('Shift closed','success')};
       window.completeUltimateSale=()=>{
-        // Keep the original database/payment workflow. The adapter only manages the new UI.
-        if(!state.cart.length && !cart.length)return toast('Add items to the cart first','warning');
-        const total=Math.max(0,cartTotal()-Math.min(Number(document.getElementById('posDiscount')?.value||0),cartTotal()));
-        if(state.paymentMethod==='cash'&&Number(document.getElementById('cashReceived')?.value||0)<total)return toast('Cash received is less than the total','warning');
+        // Bridge the enhanced POS cart into the original database/payment workflow.
+        if(state.cart.length){
+          cart=state.cart.map(x=>({
+            product_id:x.product_id ?? x.id,
+            name:x.name,
+            quantity:Number(x.qty ?? x.quantity ?? 1),
+            unit_price:Number(x.unit_price ?? x.price ?? 0),
+            total:Number(x.total ?? ((Number(x.qty ?? x.quantity ?? 1))*(Number(x.unit_price ?? x.price ?? 0)))),
+            unit:x.unit,
+            product_type:x.product_type,
+            emoji:x.emoji,
+            stock_quantity:x.stock_quantity
+          }));
+        }
+        if(!cart.length)return toast('Add items to the cart first','warning');
+        const total=cart.reduce((sum,x)=>sum+Number(x.total||0),0);
+        const discount=Math.min(Number(document.getElementById('posDiscount')?.value||0),total);
+        const payable=Math.max(0,total-discount);
+        if(state.paymentMethod==='cash'&&Number(document.getElementById('cashReceived')?.value||0)<payable)return toast('Cash received is less than the total','warning');
         if(typeof window.processPaymentPOS==='function')return window.processPaymentPOS(state.paymentMethod);
         return toast('Payment handler is not available','error');
       };
