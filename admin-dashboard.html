@@ -1,9 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <link rel="icon" type="image/png" href="viewpoint-favicon.png">
-    <link rel="apple-touch-icon" href="viewpoint-favicon.png">
-
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Viewpoint POS - Ultimate Admin Dashboard</title>
@@ -65,7 +62,13 @@
         .sidebar-menu li .badge { margin-left: auto; background: rgba(255,255,255,0.2); color: #fff; padding: 0 10px; border-radius: var(--radius-full); font-size: 11px; font-weight: 600; }
         .sidebar-menu .logout-btn { margin-top: 16px; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 16px; color: rgba(255,255,255,0.5); }
         .sidebar-menu .logout-btn:hover { background: var(--danger); color: #fff; }
-        .sidebar-toggle { display: none; position: fixed; bottom: 24px; right: 24px; z-index: 999; width: 56px; height: 56px; border-radius: 50%; background: var(--primary-gradient); color: #fff; border: none; font-size: 22px; box-shadow: 0 8px 24px rgba(108,60,225,0.4); cursor: pointer; transition: var(--transition); }
+        .sidebar-toggle{display:none}
+        .mobile-menu-btn{display:none;position:fixed;top:14px;left:14px;z-index:1201;height:44px;padding:0 14px;border:1px solid rgba(255,255,255,.14);border-radius:12px;background:var(--vp-navy,#0F172A);color:#fff;align-items:center;gap:9px;font-size:14px;font-weight:700;box-shadow:0 8px 24px rgba(15,23,42,.22);cursor:pointer}
+        .mobile-menu-btn i{font-size:18px}
+        .mobile-menu-btn:active{transform:scale(.97)}
+        .mobile-sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(2,6,23,.5);backdrop-filter:blur(2px);z-index:1099;opacity:0;transition:opacity .2s ease}
+        .mobile-sidebar-overlay.show{display:block;opacity:1}
+        @media (max-width:768px){.mobile-menu-btn{display:flex}.main-content{padding-top:68px}.sidebar{z-index:1100;box-shadow:10px 0 35px rgba(15,23,42,.28)}.sidebar.open + .mobile-sidebar-overlay{display:block;opacity:1}}
 
         /* ===== MAIN CONTENT ===== */
         .main-content { margin-left: 250px; padding: 20px 28px 40px; min-height: 100vh; transition: var(--transition); }
@@ -498,18 +501,18 @@ body{background:var(--vp-bg)!important;color:var(--vp-text)}
             <li data-section="orders"><i class="fas fa-clipboard-list"></i> Orders <span class="badge" id="orderBadge">0</span></li>
             <li class="menu-label">Management</li>
             <li data-section="products"><i class="fas fa-boxes"></i> Products</li>
-            <li data-section="inventory"><i class="fas fa-warehouse"></i> Inventory</li><li data-section="stockmovements"><i class="fas fa-right-left"></i> Stock Movements</li>
+            <li data-section="inventory"><i class="fas fa-warehouse"></i> Inventory</li>
             <li data-section="users"><i class="fas fa-users"></i> Users</li>
             <li class="menu-label">Advanced</li>
             <li data-section="customers"><i class="fas fa-user-friends"></i> Customers</li>
             <li data-section="suppliers"><i class="fas fa-truck"></i> Suppliers</li>
             <li data-section="expenses"><i class="fas fa-receipt"></i> Expenses</li>
             <li data-section="shifts"><i class="fas fa-cash-register"></i> Cashier Shifts</li>
-            <li data-section="creditusers"><i class="fas fa-user-clock"></i> Credit Users</li><li data-section="credit"><i class="fas fa-file-invoice-dollar"></i> Credit & Debts</li>
+            <li data-section="credit"><i class="fas fa-file-invoice-dollar"></i> Credit & Debts</li>
             <li data-section="tables"><i class="fas fa-chair"></i> Restaurant Tables</li>
             <li data-section="kitchen"><i class="fas fa-utensils"></i> Kitchen Display</li>
             <li class="menu-label">Analytics</li>
-            <li data-section="reports"><i class="fas fa-chart-bar"></i> Reports</li><li data-section="weeklyorders"><i class="fas fa-calendar-week"></i> Weekly Orders</li>
+            <li data-section="reports"><i class="fas fa-chart-bar"></i> Reports</li>
             <li data-section="profit"><i class="fas fa-coins"></i> Profit/Loss</li>
             <li data-section="audit"><i class="fas fa-history"></i> Audit Trail</li>
             <li data-section="settings"><i class="fas fa-cog"></i> Settings</li>
@@ -517,7 +520,10 @@ body{background:var(--vp-bg)!important;color:var(--vp-text)}
         </ul>
     </nav>
 
-    <button class="sidebar-toggle" id="sidebarToggle"><i class="fas fa-bars"></i></button>
+    <div class="mobile-sidebar-overlay" id="mobileSidebarOverlay" aria-hidden="true"></div>
+    <button class="mobile-menu-btn" id="sidebarToggle" type="button" aria-label="Open navigation menu" aria-expanded="false">
+        <i class="fas fa-bars"></i><span>Menu</span>
+    </button>
 
     <!-- ===== MAIN CONTENT ===== -->
     <div class="main-content">
@@ -558,20 +564,10 @@ body{background:var(--vp-bg)!important;color:var(--vp-text)}
         <div class="alert-box"><h4>⚠️ Stock Alerts <button class="card-action" style="float:right" onclick="navigateTo('inventory')">View Inventory</button></h4><div class="alert-list" id="dashboardStockAlerts"><div class="alert-item"><span>Checking stock...</span><span class="badge warning">...</span></div></div></div>
         <div class="alert-box"><h4>🔥 Live Operations <button class="card-action" style="float:right" onclick="navigateTo('kitchen')">Open Kitchen</button></h4><div class="alert-list" id="dashboardLiveOps"><div class="alert-item"><span>Pending kitchen orders</span><strong id="liveKitchenCount">0</strong></div><div class="alert-item"><span>Held sales</span><strong id="liveHeldCount">0</strong></div><div class="alert-item"><span>Open shift</span><strong id="liveShiftState">No</strong></div></div></div>
     </div>
-    <div class="credit-kpi-grid">
-        <div class="credit-kpi"><span>💳 Outstanding Credit</span><strong id="dashboardCreditOutstanding">KES 0.00</strong><small>Amount still owed</small></div>
-        <div class="credit-kpi"><span>👥 Credit Customers</span><strong id="dashboardCreditCustomers">0</strong><small>Customers with balances</small></div>
-        <div class="credit-kpi"><span>✅ Credit Settled Today</span><strong id="dashboardCreditSettled">KES 0.00</strong><small>Payments received today</small></div>
-        <div class="credit-kpi"><span>📦 Kitchen Used Today</span><strong id="dashboardKitchenUsed">0</strong><small>Recorded stock units</small></div>
-    </div>
     <div class="kpi-strip">
         <div class="kpi-mini"><div class="label">TRANSACTIONS TODAY</div><div class="value" id="todayTransactions">0</div></div>
         <div class="kpi-mini"><div class="label">AVERAGE ORDER VALUE</div><div class="value" id="averageOrderValue">KES 0.00</div></div>
         <div class="kpi-mini"><div class="label">CASH SALES TODAY</div><div class="value" id="cashSalesToday">KES 0.00</div></div>
-    </div>
-    <div class="profit-split-grid">
-        <div class="profit-split butchery"><div><span>🥩 Butchery</span><small>Gross profit (paid sales − item cost)</small></div><strong id="dashboardButcheryProfit">KES 0.00</strong></div>
-        <div class="profit-split kitchen"><div><span>🍳 Kitchen</span><small>Gross profit (paid sales − item cost)</small></div><strong id="dashboardKitchenProfit">KES 0.00</strong></div>
     </div>
     <div class="grid-2">
         <div class="card"><div class="card-header"><h3>📈 Sales Overview</h3><button class="card-action" onclick="refreshAll()"><i class="fas fa-sync-alt"></i> Refresh</button></div><canvas id="salesChart" height="200"></canvas></div>
@@ -606,7 +602,7 @@ body{background:var(--vp-bg)!important;color:var(--vp-text)}
                     <div class="card-header"><h3>🧾 Current Sale</h3><button class="card-action" onclick="holdCurrentSale()">Hold Sale</button></div>
                     <div class="form-group"><label>Customer</label><select id="posCustomer"><option value="">Walk-in Customer</option></select></div>
                     <div class="cart-items" id="ultimateCartItems"><div class="empty-state" style="padding:25px 10px;"><i class="fas fa-shopping-basket"></i><p>Cart is empty</p></div></div>
-                    <div class="cart-summary"><div class="summary-line"><span>Subtotal</span><strong id="cartSubtotal">KES 0.00</strong></div><div class="summary-line"><span>Discount</span><strong id="cartDiscount">KES 0.00</strong></div><div class="summary-line"><span>Charges</span><strong id="cartTax">KES 0.00</strong></div><div class="summary-line total"><span>Total</span><span id="cartTotal">KES 0.00</span></div>
+                    <div class="cart-summary"><div class="summary-line"><span>Subtotal</span><strong id="cartSubtotal">KES 0.00</strong></div><div class="summary-line"><span>Discount</span><strong id="cartDiscount">KES 0.00</strong></div><div class="summary-line"><span>Tax / Charges</span><strong id="cartTax">KES 0.00</strong></div><div class="summary-line total"><span>Total</span><span id="cartTotal">KES 0.00</span></div>
                     <div class="form-group" style="margin-top:10px;"><label>Discount (KES)</label><input type="number" id="posDiscount" min="0" step="0.01" value="0" oninput="updateUltimateCart()"></div>
                     <label style="font-size:13px;font-weight:650;color:var(--text-secondary);">Payment Method</label><div class="checkout-grid"><button class="payment-method active" data-method="cash" onclick="selectPaymentMethod('cash',this)">💵 Cash</button><button class="payment-method" data-method="mpesa" onclick="selectPaymentMethod('mpesa',this)">📱 M-Pesa</button><button class="payment-method" data-method="card" onclick="selectPaymentMethod('card',this)">💳 Card</button><button class="payment-method" data-method="credit" onclick="selectPaymentMethod('credit',this)">📝 Credit</button></div>
                     <div id="cashTenderBox" class="form-group" style="margin-top:10px;"><label>Cash Received</label><input type="number" id="cashReceived" min="0" step="0.01" oninput="updateChangeDue()"><div style="display:flex;justify-content:space-between;margin-top:5px;font-size:12px;color:var(--text-muted);"><span>Change</span><strong id="changeDue">KES 0.00</strong></div></div>
@@ -642,37 +638,6 @@ body{background:var(--vp-bg)!important;color:var(--vp-text)}
             <div class="grid-2">
                 <div class="card"><div class="card-header"><h3>🏪 Inventory</h3><button class="btn btn-warning btn-sm" onclick="openModal('stockModal')"><i class="fas fa-edit"></i> Adjust Stock</button></div><div id="inventoryTable"><div class="empty-state"><p>Loading inventory...</p></div></div></div>
                 <div class="card"><div class="card-header"><h3>📊 Stock Movements</h3></div><div id="stockMovementsTable"><div class="empty-state"><p>No movements</p></div></div></div>
-            </div>
-        </section>
-
-        <!-- ===== STOCK MOVEMENTS ===== -->
-        <section id="stockmovementsSection" class="section-page">
-            <div class="module-grid">
-                <div class="module-stat"><div class="l">Purchases This Week</div><div class="v" id="weeklyPurchasedQty">0</div></div>
-                <div class="module-stat"><div class="l">Kitchen Issued This Week</div><div class="v" id="weeklyKitchenIssuedQty">0</div></div>
-                <div class="module-stat"><div class="l">Kitchen Used Today</div><div class="v" id="dailyKitchenUsedQty">0</div></div>
-                <div class="module-stat"><div class="l">Sales Stock Out This Week</div><div class="v" id="weeklySalesStockQty">0</div></div>
-            </div>
-            <div class="card" style="margin-top:18px">
-                <div class="card-header"><h3>🔄 Stock Movement Ledger</h3><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn btn-success" onclick="openStockFlowModal('purchase')">➕ Receive Stock</button><button class="btn btn-primary" onclick="openStockFlowModal('kitchen_issue')">🍳 Issue to Kitchen</button><button class="btn btn-warning" onclick="openStockFlowModal('kitchen_use')">🧑‍🍳 Record Kitchen Use</button></div></div>
-                <div class="form-group"><label>Movement period</label><select id="stockMovementPeriod" onchange="loadStockMovementLedger()"><option value="today">Today</option><option value="week" selected>This Week</option><option value="all">All</option></select></div>
-                <div id="stockMovementLedger"><div class="empty-state"><p>Loading stock movements...</p></div></div>
-            </div>
-            <div class="card" style="margin-top:18px">
-                <div class="card-header"><h3>🍳 Kitchen Cost & Profit Control</h3><button class="card-action" onclick="loadKitchenCostProfit()"><i class="fas fa-sync-alt"></i> Refresh</button></div>
-                <div class="kitchen-profit-kpis">
-                    <div><span>Kitchen Sales Today</span><strong id="kitchenSalesToday">KES 0.00</strong></div>
-                    <div><span>Ingredient Cost Used</span><strong id="kitchenIngredientCostToday">KES 0.00</strong></div>
-                    <div><span>Kitchen Gross Profit</span><strong id="kitchenGrossProfitToday">KES 0.00</strong></div>
-                    <div><span>Gross Margin</span><strong id="kitchenGrossMarginToday">0.0%</strong></div>
-                </div>
-                <div class="kitchen-flow-summary">
-                    <div><b>Purchased This Week</b><span id="kitchenPurchasedCostWeek">KES 0.00</span></div>
-                    <div><b>Issued to Kitchen This Week</b><span id="kitchenIssuedCostWeek">KES 0.00</span></div>
-                    <div><b>Used by Kitchen Today</b><span id="kitchenUsedCostToday">KES 0.00</span></div>
-                    <div><b>Kitchen Stock on Hand</b><span id="kitchenStockValue">KES 0.00</span></div>
-                </div>
-                <div id="kitchenIngredientTable"><div class="empty-state"><p>Loading kitchen ingredient movement...</p></div></div>
             </div>
         </section>
 
@@ -912,27 +877,6 @@ body{background:var(--vp-bg)!important;color:var(--vp-text)}
             <div class="card"><div class="card-header"><h3>💵 Cashier Shifts</h3><button class="btn btn-primary" onclick="openShiftModal()">Open Shift</button></div><div id="currentShiftPanel" class="module-grid" style="margin-bottom:16px"></div><div id="shiftsTable"><div class="empty-state"><p>No shift history</p></div></div></div>
         </section>
 
-        <!-- ===== CREDIT USERS ===== -->
-        <section id="creditusersSection" class="section-page">
-            <div class="module-grid">
-                <div class="module-stat"><div class="l">Outstanding</div><div class="v" id="creditUsersOutstanding">KES 0.00</div></div>
-                <div class="module-stat"><div class="l">Credit Users</div><div class="v" id="creditUsersCount">0</div></div>
-                <div class="module-stat"><div class="l">Settled Today</div><div class="v" id="creditUsersSettled">KES 0.00</div></div>
-            </div>
-            <div class="card" style="margin-top:18px"><div class="card-header"><h3>👤 Credit Users</h3><button class="btn btn-primary" onclick="openCreditUserModal()">➕ Add Credit User</button></div><div id="creditUsersTable"><div class="empty-state"><p>Loading credit users...</p></div></div></div>
-        </section>
-
-        <!-- ===== WEEKLY ORDERS ===== -->
-        <section id="weeklyordersSection" class="section-page">
-            <div class="module-grid">
-                <div class="module-stat"><div class="l">Weekly Paid Sales</div><div class="v" id="weeklyPaidSales">KES 0.00</div></div>
-                <div class="module-stat"><div class="l">Weekly Credit Issued</div><div class="v" id="weeklyCreditIssued">KES 0.00</div></div>
-                <div class="module-stat"><div class="l">Weekly Credit Settled</div><div class="v" id="weeklyCreditSettled">KES 0.00</div></div>
-                <div class="module-stat"><div class="l">Weekly Orders</div><div class="v" id="weeklyOrderCount">0</div></div>
-            </div>
-            <div class="card" style="margin-top:18px"><div class="card-header"><h3>📅 Weekly Orders & Credit</h3></div><div id="weeklyOrdersTable"><div class="empty-state"><p>Loading weekly orders...</p></div></div></div>
-        </section>
-
         <!-- ===== CREDIT & DEBTS ===== -->
         <section id="creditSection" class="section-page">
             <div class="module-grid"><div class="module-stat"><div class="l">Outstanding Credit</div><div class="v" id="creditOutstanding">KES 0.00</div></div><div class="module-stat"><div class="l">Customers Owing</div><div class="v" id="creditCustomers">0</div></div><div class="module-stat"><div class="l">Paid Today</div><div class="v" id="creditPaidToday">KES 0.00</div></div></div>
@@ -1151,7 +1095,7 @@ body{background:var(--vp-bg)!important;color:var(--vp-text)}
             <div id="receiptContent" class="receipt-content"></div>
             <div style="display:flex;gap:10px;margin-top:16px;">
                 <button class="btn btn-primary" style="flex:1;" onclick="printReceipt()">
-                    <i class="fas fa-print"></i> Print Receipt
+                    <i class="fas fa-print"></i> Print
                 </button>
                 <button class="btn btn-outline" style="flex:1;" onclick="closeModal('receiptModal')">
                     <i class="fas fa-times"></i> Close
@@ -1726,9 +1670,6 @@ function showToast(message, type = 'success') {
     }, 3500);
 }
 
-// Backward-compatible toast alias used by newer POS modules.
-window.toast = showToast;
-
 // ============================================================
 //  NOTIFICATION SYSTEM
 // ============================================================
@@ -1987,14 +1928,11 @@ function navigateTo(section) {
         orders: ['📋 Orders', 'Manage all customer orders'],
         products: ['📦 Products', 'Manage your product catalog'],
         inventory: ['🏪 Inventory', 'Track stock levels'],
-        stockmovements: ['🔄 Stock Movements', 'Track purchases, kitchen issues, usage and sales'],
         users: ['👥 Users', 'Manage system users'],
         customers: ['👤 Customers', 'Manage customer database'],
-        creditusers: ['👤 Credit Users', 'Manage customers who pay later'],
         suppliers: ['🚚 Suppliers', 'Manage suppliers'],
         kitchen: ['🍳 Kitchen Display', 'Real-time kitchen orders'],
         reports: ['📊 Reports', 'Sales and performance reports'],
-        weeklyorders: ['📅 Weekly Orders', 'Weekly sales, credit and order movement'],
         profit: ['💰 Profit & Loss', 'Track your profitability'],
         audit: ['📜 Audit Trail', 'Complete activity log'],
         settings: ['⚙️ Settings', 'System configuration']
@@ -2009,16 +1947,13 @@ function navigateTo(section) {
         pos: () => loadPOSProducts('butchery'),
         orders: () => loadOrders(),
         inventory: () => loadInventory(),
-        stockmovements: () => { loadStockMovementLedger(); },
         users: () => loadUsers(),
         products: () => loadProducts(),
         customers: () => loadCustomers(),
-        creditusers: () => loadCreditUsers(),
         suppliers: () => loadSuppliers(),
         kitchen: () => loadKitchenOrders(),
         dashboard: () => loadDashboard(),
         profit: () => loadProfitData(),
-        weeklyorders: () => loadWeeklyOrders(),
         audit: () => loadAuditLogs()
     };
     if (loaders[section]) loaders[section]();
@@ -2324,7 +2259,7 @@ async function loadDashboard() {
 
         let total = 0, butchery = 0, restaurant = 0, mpesa = 0, pending = 0;
         orders?.forEach(o => {
-            if ((o.status === 'paid' || o.status === 'completed') && !(String(o.payment_method || '').toLowerCase() === 'credit' && String(o.payment_status || '').toLowerCase() !== 'completed')) {
+            if (o.status === 'paid' || o.status === 'completed') {
                 total += o.total || 0;
                 if (o.order_type === 'butchery') butchery += o.total || 0;
                 else restaurant += o.total || 0;
@@ -2369,7 +2304,7 @@ let hourlySalesChart=null,paymentMixChart=null,departmentSalesChart=null,orderSt
 function destroyChart(c){if(c&&typeof c.destroy==='function')c.destroy();return null}
 async function loadEnhancedDashboardCharts(orders){
     try{
-        const paid=(orders||[]).filter(o=>(o.status==='paid'||o.status==='completed') && !(String(o.payment_method||'').toLowerCase()==='credit' && String(o.payment_status||'').toLowerCase()!=='completed'));
+        const paid=(orders||[]).filter(o=>o.status==='paid'||o.status==='completed');
         const money=v=>`KES ${Number(v||0).toLocaleString('en-KE',{minimumFractionDigits:2,maximumFractionDigits:2})}`;
         const tx=document.getElementById('todayTransactions'); if(tx)tx.textContent=paid.length;
         const aov=document.getElementById('averageOrderValue'); if(aov)aov.textContent=money(paid.length?paid.reduce((a,o)=>a+Number(o.total||0),0)/paid.length:0);
@@ -4381,14 +4316,15 @@ async function generateAdminReceipt(orderId) {
         const orderNumber = order.order_number || order.id.slice(0,8).toUpperCase();
         
         // Get business settings
-        const businessName = 'VIEWPOINT BUTCHERY & RESTAURANT';
-        const businessPhone = '';
-        const businessEmail = '';
-        const businessLocation = 'Kenya';
+        const businessName = '🏪 VIEWPOINT BUTCHERY & RESTAURANT';
+        const businessPhone = '+254 700 000 000';
+        const businessEmail = 'info@viewpoint.com';
+        const businessLocation = 'Nairobi, Kenya';
         const receiptFooter = 'Thank you for shopping with Viewpoint! 🙏';
         
         // Calculate totals
         let subtotal = 0;
+        let tax = 0;
         let discount = 0;
         let total = order.total || 0;
         
@@ -4396,13 +4332,17 @@ async function generateAdminReceipt(orderId) {
             subtotal += item.total || 0;
         });
         
-        const grandTotal = subtotal - discount;
+        // Calculate tax (16% VAT if applicable)
+        tax = subtotal * 0.16;
+        const grandTotal = subtotal + tax - discount;
 
         let receipt = `
 ╔══════════════════════════════════════════╗
 ║                                          ║
 ║          ${businessName}          ║
 ║                                          ║
+║     📞 ${businessPhone}                    ║
+║     ✉️ ${businessEmail}                    ║
 ║     📍 ${businessLocation}                 ║
 ║                                          ║
 ╠══════════════════════════════════════════╣
@@ -4439,12 +4379,13 @@ async function generateAdminReceipt(orderId) {
 ║  💰 PAYMENT SUMMARY                      ║
 ║                                          ║
 ║  Subtotal:                    KES ${subtotal.toFixed(2).padStart(10)} ║
+║  Tax (16% VAT):               KES ${tax.toFixed(2).padStart(10)} ║
 ║  Discount:                    KES ${discount.toFixed(2).padStart(10)} ║
 ║  ──────────────────────────────────────   ║
 ║  TOTAL:                       KES ${grandTotal.toFixed(2).padStart(10)} ║
 ║                                          ║
 ║  💳 Payment Method: ${(order.payment_method || 'N/A').toUpperCase().padEnd(17)} ║
-║  ✅ Status: ${(order.payment_status || order.status || 'COMPLETED').toUpperCase().padEnd(20)} ║
+║  ✅ Status: PAID                          ║
 ║                                          ║
 ╠══════════════════════════════════════════╣
 ║                                          ║
@@ -4452,6 +4393,7 @@ async function generateAdminReceipt(orderId) {
 ║                                          ║
 ║      ⭐⭐⭐ Thank You! ⭐⭐⭐          ║
 ║                                          ║
+║    🔗 https://lipwa.link/11408           ║
 ║                                          ║
 ╚══════════════════════════════════════════╝`;
 
@@ -4469,48 +4411,171 @@ async function generateAdminReceipt(orderId) {
 }
 
 // ============================================================
-//  PRINT RECEIPT - 80MM THERMAL PRINTER READY
+//  PRINT RECEIPT - IMPROVED
 // ============================================================
-function printReceipt(autoPrint = false) {
+function printReceipt() {
     const content = document.getElementById('receiptContent');
-    if (!content || !content.textContent.trim()) {
+    if (!content || !content.textContent) {
         showToast('❌ No receipt to print', 'error');
         return;
     }
     const receiptText = content.textContent;
-    const win = window.open('', '_blank', 'width=420,height=700');
-    if (!win) {
-        showToast('Please allow pop-ups to print receipts', 'warning');
-        return;
-    }
-    win.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Viewpoint Receipt</title>
-<style>
-@page{size:80mm auto;margin:0}
-*{box-sizing:border-box}
-html,body{margin:0;padding:0;background:#fff;color:#000}
-body{width:80mm;font-family:"Courier New",monospace;font-size:11px;line-height:1.35}
-.receipt{width:72mm;margin:0 auto;padding:4mm 0;text-align:left;white-space:pre-wrap;overflow-wrap:anywhere}
-.center{text-align:center}.no-print{text-align:center;margin:10px 0 20px;font-family:Arial,sans-serif}
-.no-print button{padding:9px 16px;border:0;border-radius:6px;background:#2563eb;color:white;font-weight:700;cursor:pointer}
-@media print{.no-print{display:none!important}.receipt{width:72mm;padding:2mm 0}}
-</style></head><body>
-<div class="receipt">${escapeReceiptHtml(receiptText)}</div>
-<div class="no-print"><button onclick="window.print()">🖨️ Print Receipt</button></div>
-<script>window.onload=function(){setTimeout(function(){window.print()},350)};<\/script>
-
-<style id="viewpoint-kitchen-cost-profit-css">
-.kitchen-profit-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:14px 0}.kitchen-profit-kpis>div{background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:14px}.kitchen-profit-kpis span{display:block;color:#64748b;font-size:12px;font-weight:700}.kitchen-profit-kpis strong{display:block;color:#0f172a;font-size:20px;margin-top:7px}.kitchen-flow-summary{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:12px 0 18px}.kitchen-flow-summary>div{padding:12px;border-left:3px solid #10b981;background:#f8fafc;border-radius:8px}.kitchen-flow-summary b{display:block;font-size:12px;color:#475569}.kitchen-flow-summary span{display:block;font-weight:800;margin-top:5px;color:#0f172a}@media(max-width:1000px){.kitchen-profit-kpis,.kitchen-flow-summary{grid-template-columns:1fr 1fr}}@media(max-width:600px){.kitchen-profit-kpis,.kitchen-flow-summary{grid-template-columns:1fr}}
-</style>
-</body></html>`);
-    win.document.close();
-    if (autoPrint) {
-        showToast('🖨️ Receipt sent to the print dialog', 'success');
+    const win = window.open('', '_blank');
+    if (win) {
+        win.document.write(`
+            <html>
+                <head>
+                    <title>🧾 Viewpoint Receipt</title>
+                    <style>
+                        * { margin: 0; padding: 0; box-sizing: border-box; }
+                        body {
+                            font-family: 'Courier New', monospace;
+                            font-size: 12px;
+                            padding: 20px;
+                            max-width: 350px;
+                            margin: 0 auto;
+                            background: #ffffff;
+                            color: #000000;
+                            line-height: 1.6;
+                        }
+                        .receipt-container {
+                            border: 1px solid #ddd;
+                            padding: 16px;
+                            border-radius: 8px;
+                            background: #ffffff;
+                        }
+                        .receipt-header {
+                            text-align: center;
+                            border-bottom: 2px dashed #333;
+                            padding-bottom: 10px;
+                            margin-bottom: 10px;
+                        }
+                        .receipt-header h2 {
+                            font-size: 16px;
+                            letter-spacing: 1px;
+                            color: #2563EB;
+                        }
+                        .receipt-header p {
+                            font-size: 11px;
+                            color: #666;
+                            margin: 2px 0;
+                        }
+                        .receipt-items {
+                            margin: 10px 0;
+                        }
+                        .receipt-item {
+                            display: flex;
+                            justify-content: space-between;
+                            padding: 2px 0;
+                            border-bottom: 1px dotted #eee;
+                            font-size: 11px;
+                        }
+                        .receipt-item .item-name {
+                            flex: 1;
+                        }
+                        .receipt-item .item-qty {
+                            margin: 0 8px;
+                            text-align: center;
+                        }
+                        .receipt-item .item-price {
+                            text-align: right;
+                            font-weight: bold;
+                        }
+                        .receipt-totals {
+                            border-top: 2px dashed #333;
+                            padding-top: 8px;
+                            margin-top: 8px;
+                        }
+                        .receipt-total-line {
+                            display: flex;
+                            justify-content: space-between;
+                            padding: 2px 0;
+                            font-size: 12px;
+                        }
+                        .receipt-total-line.grand-total {
+                            font-size: 16px;
+                            font-weight: bold;
+                            border-top: 1px solid #333;
+                            padding-top: 6px;
+                            margin-top: 4px;
+                            color: #2563EB;
+                        }
+                        .receipt-footer {
+                            text-align: center;
+                            border-top: 2px dashed #333;
+                            padding-top: 10px;
+                            margin-top: 10px;
+                            font-size: 11px;
+                            color: #666;
+                        }
+                        .receipt-footer .thank-you {
+                            font-size: 14px;
+                            font-weight: bold;
+                            color: #2563EB;
+                        }
+                        .no-print {
+                            text-align: center;
+                            margin-top: 20px;
+                            padding-top: 16px;
+                            border-top: 1px solid #ddd;
+                        }
+                        .no-print button {
+                            padding: 10px 24px;
+                            margin: 0 6px;
+                            cursor: pointer;
+                            border: none;
+                            border-radius: 8px;
+                            font-size: 14px;
+                            font-weight: 600;
+                            transition: all 0.3s ease;
+                        }
+                        .no-print button:hover {
+                            transform: translateY(-2px);
+                            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                        }
+                        .btn-print {
+                            background: #2563EB;
+                            color: white;
+                        }
+                        .btn-close {
+                            background: #EF4444;
+                            color: white;
+                        }
+                        @media print {
+                            .no-print { display: none !important; }
+                            body { padding: 10px; background: white; }
+                            .receipt-container { border: none; padding: 0; }
+                        }
+                        @media (max-width: 400px) {
+                            body { padding: 10px; }
+                            .receipt-container { padding: 10px; }
+                        }
+                    </style>
+                <style id="viewpoint-navy-emerald-theme">
+:root{--vp-navy:#0F172A;--vp-navy-2:#1E293B;--vp-blue:#2563EB;--vp-blue-2:#1D4ED8;--vp-green:#10B981;--vp-amber:#F59E0B;--vp-red:#EF4444;--vp-bg:#F8FAFC;--vp-text:#0F172A;--vp-muted:#64748B}
+.sidebar,.side-nav,.sidebar-header{background:var(--vp-navy)!important}
+body{background:var(--vp-bg)!important;color:var(--vp-text)}
+</style></head>
+                <body>
+                    <div class="receipt-container">
+                        <pre style="white-space: pre-wrap; font-family: inherit; margin: 0; font-size: 12px; line-height: 1.6;">${receiptText}</pre>
+                    </div>
+                    <div class="no-print">
+                        <button class="btn-print" onclick="window.print()">🖨️ Print</button>
+                        <button class="btn-close" onclick="window.close()">✖ Close</button>
+                    </div>
+                </body>
+            </html>
+        `);
+        win.document.close();
+        setTimeout(() => win.print(), 500);
     }
 }
 
-function escapeReceiptHtml(value) {
-    return String(value).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-}
+// ============================================================
+//  PROCESS PAYMENT POS - FULLY FIXED (FOR ADMIN & CASHIER)
+//  WITH USER AUTH CHECK, REAL STK PUSH, CANCELLATION HANDLING
+// ============================================================
 
 async function processPaymentPOS(method) {
     // ============================================================
@@ -4555,37 +4620,14 @@ async function processPaymentPOS(method) {
     console.log('✅ User Name:', userFullName);
 
     // ============================================================
-    //  STEP 2: SYNC THE AUTHORITATIVE ULTIMATE POS CART
-    //  The modern POS UI stores its cart in window.ultimatePOSState.
-    //  Always copy that cart into the original payment engine before
-    //  validation so Cash, M-Pesa, Card and Credit use the same sale.
-    // ============================================================
-    const ultimateState = window.ultimatePOSState;
-    if (ultimateState && Array.isArray(ultimateState.cart)) {
-        cart = ultimateState.cart.map(item => ({
-            product_id: item.product_id || item.id,
-            id: item.id || item.product_id,
-            name: item.name || item.product_name || 'Product',
-            quantity: Number(item.qty || item.quantity || 1),
-            qty: Number(item.qty || item.quantity || 1),
-            unit_price: Number(item.price || item.unit_price || 0),
-            price: Number(item.price || item.unit_price || 0),
-            total: Number(item.price || item.unit_price || 0) * Number(item.qty || item.quantity || 1),
-            emoji: item.emoji || '🛒'
-        }));
-    }
-
-    // ============================================================
     //  STEP 2: VALIDATE CART
     // ============================================================
-    if (!Array.isArray(cart) || !cart.length) {
+    if (!cart.length) {
         showToast('Cart is empty!', 'error');
         return;
     }
 
-    // M-Pesa phone: the current POS uses mpesaPhone. Keep legacy
-    // posPhone support only as a fallback for older screens.
-    const phone = (document.getElementById('mpesaPhone')?.value || document.getElementById('posPhone')?.value || '').trim();
+    const phone = document.getElementById('posPhone')?.value || '';
     if (method === 'mpesa' && !phone) {
         showToast('Enter customer phone number', 'error');
         return;
@@ -4925,7 +4967,6 @@ async function processPaymentPOS(method) {
                         modal.classList.remove('active');
                         generateAdminReceipt(order.id);
                         cart = [];
-                        if(typeof window.clearUltimatePOSCart==='function') window.clearUltimatePOSCart();
                         updateCartDisplayPOS();
                         const phoneInput = document.getElementById('posPhone');
                         if (phoneInput) phoneInput.value = '';
@@ -4971,7 +5012,6 @@ async function processPaymentPOS(method) {
                     setTimeout(() => {
                         modal.classList.remove('active');
                         cart = [];
-                        if(typeof window.clearUltimatePOSCart==='function') window.clearUltimatePOSCart();
                         updateCartDisplayPOS();
                     }, 3000);
 
@@ -5091,7 +5131,6 @@ async function processPaymentPOS(method) {
                 modal.classList.remove('active');
                 generateAdminReceipt(order.id);
                 cart = [];
-                if(typeof window.clearUltimatePOSCart==='function') window.clearUltimatePOSCart();
                 updateCartDisplayPOS();
                 const phoneInput = document.getElementById('posPhone');
                 if (phoneInput) phoneInput.value = '';
@@ -5151,12 +5190,21 @@ function initSidebar() {
         const newToggleBtn = toggleBtn.cloneNode(true);
         toggleBtn.parentNode.replaceChild(newToggleBtn, toggleBtn);
         
+        const overlay = document.getElementById('mobileSidebarOverlay');
+        const setSidebar = function(open) {
+            if (window.innerWidth <= 768) {
+                sidebar.classList.toggle('open', open);
+                if (overlay) overlay.classList.toggle('show', open);
+                newToggleBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+                newToggleBtn.innerHTML = open ? '<i class="fas fa-times"></i><span>Close</span>' : '<i class="fas fa-bars"></i><span>Menu</span>';
+            }
+        };
         newToggleBtn.addEventListener('click', function(e) {
             e.preventDefault();
             e.stopPropagation();
-            sidebar.classList.toggle('open');
-            console.log('Sidebar toggled:', sidebar.classList.contains('open'));
+            setSidebar(!sidebar.classList.contains('open'));
         });
+        if (overlay) overlay.addEventListener('click', function(){ setSidebar(false); });
     }
     
     // Sidebar menu items
@@ -5210,6 +5258,8 @@ function initSidebar() {
             const sidebarEl = document.getElementById('sidebar');
             if (sidebarEl && window.innerWidth <= 768) {
                 sidebarEl.classList.remove('open');
+                const ov = document.getElementById('mobileSidebarOverlay'); if (ov) ov.classList.remove('show');
+                const mb = document.getElementById('sidebarToggle'); if (mb) { mb.setAttribute('aria-expanded','false'); mb.innerHTML='<i class="fas fa-bars"></i><span>Menu</span>'; }
             }
             
             // Load section data
@@ -5247,6 +5297,7 @@ function initSidebarOutsideClick() {
         mainContent.addEventListener('click', function(e) {
             if (window.innerWidth <= 768 && sidebar.classList.contains('open')) {
                 sidebar.classList.remove('open');
+                const ov = document.getElementById('mobileSidebarOverlay'); if (ov) ov.classList.remove('show');
             }
         });
     }
@@ -5261,6 +5312,7 @@ function initSidebarResponsive() {
         const sidebar = document.getElementById('sidebar');
         if (window.innerWidth > 768 && sidebar) {
             sidebar.classList.remove('open');
+            const ov = document.getElementById('mobileSidebarOverlay'); if (ov) ov.classList.remove('show');
         }
     });
 }
@@ -5413,9 +5465,7 @@ window.refreshProfitData = refreshProfitData;
       'use strict';
       const UKEY='viewpoint_ultimate_pos_state_v1';
       let state={cart:[],held:[],expenses:[],shift:null,paymentMethod:'cash',tables:[]};
-       window.ultimatePOSState=state;
       try{state={...state,...JSON.parse(localStorage.getItem(UKEY)||'{}')}}catch(e){}
-      window.ultimatePOSState=state;
       const save=()=>localStorage.setItem(UKEY,JSON.stringify(state));
       const money=n=>'KES '+Number(n||0).toLocaleString('en-KE',{minimumFractionDigits:2,maximumFractionDigits:2});
       const esc=x=>String(x??'').replace(/[&<>'"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[m]));
@@ -5423,31 +5473,10 @@ window.refreshProfitData = refreshProfitData;
       window.openBarcodePrompt=()=>{openModal('barcodeModal');setTimeout(()=>document.getElementById('barcodeInput')?.focus(),50)};
       window.openHeldSales=()=>{renderHeld();openModal('heldSalesModal')};
       window.clearPOSCart=()=>{if(state.cart.length&&!confirm('Clear the current sale?'))return;state.cart=[];save();renderCart()};
-      // AUTHORITATIVE POST-SALE CART RESET: clears the modern POS cart and
-      // the original payment engine cart together. Payment logic itself is
-      // intentionally left unchanged.
-      window.clearUltimatePOSCart=()=>{
-        try{
-          state.cart=[];
-          save();
-          renderCart();
-        }catch(e){console.warn('Ultimate cart clear:',e)}
-        try{
-          if(Array.isArray(window.cart)) window.cart=[];
-          if(typeof updateCartDisplayPOS==='function') updateCartDisplayPOS();
-        }catch(e){console.warn('Legacy cart clear:',e)}
-        try{
-          const discount=document.getElementById('posDiscount'); if(discount) discount.value='0';
-          const cash=document.getElementById('cashReceived'); if(cash) cash.value='';
-          const phone=document.getElementById('mpesaPhone'); if(phone) phone.value='';
-          if(typeof window.updateUltimateCart==='function') window.updateUltimateCart();
-        }catch(e){console.warn('Payment field reset:',e)}
-      };
       window.selectPaymentMethod=m=>{state.paymentMethod=m;document.querySelectorAll('.payment-method').forEach(b=>b.classList.toggle('active',b.dataset.method===m));document.getElementById('cashTenderBox').style.display=m==='cash'?'block':'none';document.getElementById('mpesaPhoneBox').style.display=m==='mpesa'?'block':'none'};
       window.setPOSCategory=(cat,el)=>{document.querySelectorAll('.pos-cat').forEach(x=>x.classList.remove('active'));el?.classList.add('active'); if(typeof window.switchPOS==='function')window.switchPOS(cat==='all'?'butchery':cat);};
       window.filterPOSProducts=q=>{if(typeof window.filterProducts==='function')return window.filterProducts(q); document.querySelectorAll('.pos-product').forEach(c=>c.style.display=c.innerText.toLowerCase().includes(q.toLowerCase())?'':'none')};
       function cartTotal(){return state.cart.reduce((a,x)=>a+(Number(x.price)||0)*(Number(x.qty)||0),0)}
-       window.ultimateCartTotal=cartTotal;
       window.addUltimateCartItem=p=>{let i=state.cart.findIndex(x=>String(x.id)===String(p.id));if(i>=0)state.cart[i].qty=Number(state.cart[i].qty)+1;else state.cart.push({...p,qty:1});save();renderCart()};
       window.changeCartQty=(id,d)=>{let i=state.cart.findIndex(x=>String(x.id)===String(id));if(i<0)return;state.cart[i].qty=Number(state.cart[i].qty)+d;if(state.cart[i].qty<=0)state.cart.splice(i,1);save();renderCart()};
       function renderCart(){const box=document.getElementById('ultimateCartItems');if(!box)return; if(!state.cart.length){box.innerHTML='<div class="empty-state" style="padding:25px 10px"><i class="fas fa-shopping-basket"></i><p>Cart is empty</p></div>'}else box.innerHTML=state.cart.map(x=>`<div class="cart-row"><div><div class="name">${esc(x.name)}</div><div class="meta">${money(x.price)} × ${x.qty}</div></div><div class="qty-control"><button onclick="changeCartQty('${esc(x.id)}',-1)">−</button><span>${x.qty}</span><button onclick="changeCartQty('${esc(x.id)}',1)">+</button></div></div>`).join('');updateUltimateCart()}
@@ -5463,7 +5492,7 @@ window.refreshProfitData = refreshProfitData;
       function renderShift(){const open=state.shift;document.getElementById('shiftStatusText').textContent=open?'Open · '+open.till:'No active shift';document.getElementById('shiftActionBtn').textContent=open?'Close Shift':'Open Shift';document.getElementById('liveShiftState').textContent=open?'Yes':'No';const p=document.getElementById('currentShiftPanel');if(p)p.innerHTML=open?`<div class="module-stat"><div class="l">Opening Cash</div><div class="v">${money(open.openingCash)}</div></div><div class="module-stat"><div class="l">Shift Sales</div><div class="v">${money(open.sales||0)}</div></div><div class="module-stat"><div class="l">Opened</div><div class="v" style="font-size:15px">${new Date(open.openedAt).toLocaleString()}</div></div>`:'<div class="module-stat"><div class="l">Status</div><div class="v">Closed</div></div>';}
       function renderCloseSummary(){const o=state.shift||{};document.getElementById('shiftCloseSummary').innerHTML=`<div class="alert-box" style="margin-bottom:12px"><div class="summary-line"><span>Opening cash</span><strong>${money(o.openingCash)}</strong></div><div class="summary-line"><span>Recorded sales</span><strong>${money(o.sales||0)}</strong></div><div class="summary-line"><span>Expected cash</span><strong>${money((o.openingCash||0)+(o.cashSales||0))}</strong></div></div>`}
       window.closeUltimateShift=e=>{e.preventDefault();if(!state.shift)return;state.shift.closedAt=new Date().toISOString();state.shift.actualCash=Number(document.getElementById('actualCash').value);state.shift.note=document.getElementById('closingNote').value;state.shift=null;save();closeModal('cashCloseModal');renderShift();toast('Shift closed','success')};
-      window.completeUltimateSale=()=>{if(!state.cart.length)return toast('Add items to the cart first','warning');const total=Math.max(0,window.ultimateCartTotal()-Math.min(Number(document.getElementById('posDiscount')?.value||0),window.ultimateCartTotal()));if(state.paymentMethod==='cash'&&Number(document.getElementById('cashReceived')?.value||0)<total)return toast('Cash received is less than the total','warning');if(state.paymentMethod==='mpesa'){const phone=document.getElementById('mpesaPhone')?.value.trim();if(!phone)return toast('Enter the M-Pesa phone number','warning'); if(typeof window.initiateSTKPush==='function')return window.initiateSTKPush(phone,total,state.cart); if(typeof window.processMpesaPayment==='function')return window.processMpesaPayment(phone,total,state.cart);return toast('M-Pesa handler is not connected in admin-ultimate.js','warning')}; if(typeof window.completeSale==='function')return window.completeSale(); if(typeof window.processPayment==='function')return window.processPayment(state.paymentMethod,total,state.cart); if(state.shift)state.shift.sales=(state.shift.sales||0)+total; state.cart=[];save();renderCart();toast('Sale completed','success')};
+      window.completeUltimateSale=()=>{if(!state.cart.length)return toast('Add items to the cart first','warning');const total=Math.max(0,cartTotal()-Math.min(Number(document.getElementById('posDiscount')?.value||0),cartTotal()));if(state.paymentMethod==='cash'&&Number(document.getElementById('cashReceived')?.value||0)<total)return toast('Cash received is less than the total','warning');if(state.paymentMethod==='mpesa'){const phone=document.getElementById('mpesaPhone')?.value.trim();if(!phone)return toast('Enter the M-Pesa phone number','warning'); if(typeof window.initiateSTKPush==='function')return window.initiateSTKPush(phone,total,state.cart); if(typeof window.processMpesaPayment==='function')return window.processMpesaPayment(phone,total,state.cart);return toast('M-Pesa handler is not connected in admin-ultimate.js','warning')}; if(typeof window.completeSale==='function')return window.completeSale(); if(typeof window.processPayment==='function')return window.processPayment(state.paymentMethod,total,state.cart); if(state.shift)state.shift.sales=(state.shift.sales||0)+total; state.cart=[];save();renderCart();toast('Sale completed','success')};
       window.findBarcodeProduct=()=>{const q=document.getElementById('barcodeInput').value.trim();if(!q)return;if(typeof window.searchProductByBarcode==='function')return window.searchProductByBarcode(q);const cards=[...document.querySelectorAll('.pos-product')];const hit=cards.find(x=>x.dataset.barcode===q||x.innerText.includes(q));if(hit){hit.click();closeModal('barcodeModal')}else toast('Product not found','warning')};
       window.openCustomerQuick=()=>{if(typeof window.openModal==='function')openModal('customerModal')};
       window.refreshCredit=()=>toast('Credit records refresh is delegated to the backend','info');
@@ -5560,114 +5589,5 @@ window.refreshProfitData = refreshProfitData;
             
         })();
     </script>
-<script id="viewpoint-business-intelligence-v2">
-(function(){
-  const CK='viewpoint_credit_users_v2', SK='viewpoint_stock_flow_v2';
-  const esc2=v=>String(v??'').replace(/[&<>'"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[m]));
-  const money2=n=>'KES '+Number(n||0).toLocaleString('en-KE',{minimumFractionDigits:2,maximumFractionDigits:2});
-  const getLocal=(k,d)=>{try{return JSON.parse(localStorage.getItem(k)||JSON.stringify(d))}catch(e){return d}};
-  const putLocal=(k,v)=>localStorage.setItem(k,JSON.stringify(v));
-  const now=()=>new Date();
-  const dayStart=d=>{const x=new Date(d);x.setHours(0,0,0,0);return x};
-  const weekStart=()=>{const d=dayStart(now()), n=d.getDay()||7; d.setDate(d.getDate()-n+1);return d};
-
-  window.openStockFlowModal=function(type){
-    let modal=document.getElementById('stockFlowModal');
-    if(!modal){
-      modal=document.createElement('div'); modal.id='stockFlowModal'; modal.className='modal-overlay';
-      modal.innerHTML=`<div class="modal" style="max-width:520px"><div class="modal-header"><h3 id="stockFlowTitle">Stock Movement</h3><button class="modal-close" onclick="closeModal('stockFlowModal')">×</button></div><form id="stockFlowForm"><input type="hidden" id="stockFlowType"><div class="form-group"><label>Product</label><select id="stockFlowProduct" required></select></div><div class="form-group"><label>Quantity</label><input id="stockFlowQty" type="number" min="0.01" step="0.01" required></div><div class="form-group"><label>Note / Reference</label><input id="stockFlowNote" placeholder="e.g. Purchase invoice or kitchen usage"></div><button class="btn btn-primary btn-block">Save Movement</button></form></div>`;
-      document.body.appendChild(modal); document.getElementById('stockFlowForm').addEventListener('submit',saveStockFlow);
-    }
-    document.getElementById('stockFlowType').value=type;
-    document.getElementById('stockFlowTitle').textContent=type==='purchase'?'➕ Receive Stock':type==='kitchen_issue'?'🍳 Issue Stock to Kitchen':'🧑‍🍳 Record Kitchen Usage';
-    loadStockFlowProducts(); openModal('stockFlowModal');
-  };
-  async function loadStockFlowProducts(){const sel=document.getElementById('stockFlowProduct');if(!sel)return;try{const {data}=await supabaseClient.from('products').select('id,name,emoji,stock_quantity,unit').order('name');sel.innerHTML=(data||[]).map(p=>`<option value="${p.id}">${p.emoji||'📦'} ${esc2(p.name)} (Stock: ${p.stock_quantity||0} ${p.unit||''})</option>`).join('')}catch(e){sel.innerHTML='<option value="">Unable to load products</option>'}}
-  async function saveStockFlow(e){e.preventDefault();const type=document.getElementById('stockFlowType').value,pid=document.getElementById('stockFlowProduct').value,qty=Number(document.getElementById('stockFlowQty').value||0),note=document.getElementById('stockFlowNote').value.trim();if(!pid||qty<=0)return;
-    try{const {data:p,error}=await supabaseClient.from('products').select('stock_quantity').eq('id',pid).single();if(error)throw error;const old=Number(p.stock_quantity||0);const kitchen=getLocal('viewpoint_kitchen_stock_v2',{});if(type==='kitchen_use'){const available=Number(kitchen[pid]||0);if(available<qty){showToast(`Kitchen stock is only ${available}. Issue stock to kitchen first.`,'warning');return}kitchen[pid]=available-qty;putLocal('viewpoint_kitchen_stock_v2',kitchen)}const delta=type==='purchase'||type==='kitchen_issue'?qty:0;if(type==='kitchen_issue'){if(old<qty){showToast('Not enough store stock to issue to kitchen','error');return}kitchen[pid]=Number(kitchen[pid]||0)+qty;putLocal('viewpoint_kitchen_stock_v2',kitchen)}const newStock=old+ (type==='purchase'?qty:type==='kitchen_issue'?-qty:0);if(newStock<0){showToast('Not enough stock for this movement','error');return}if(newStock!==old)await supabaseClient.from('products').update({stock_quantity:newStock}).eq('id',pid);
-      const mt=type==='purchase'?'purchase':type==='kitchen_issue'?'transfer_to_kitchen':'kitchen_used';
-      const movementQty=type==='purchase'?qty:type==='kitchen_issue'?-qty:-qty;
-      const notes=`${mt.toUpperCase()}${note?' | '+note:''}`;
-      const ins=await supabaseClient.from('inventory_movements').insert({product_id:pid,movement_type:mt,quantity:movementQty,previous_stock:old,new_stock:newStock,created_by:currentUser?.id,notes});
-      if(ins.error) console.warn('Movement ledger insert:',ins.error);
-      showToast('Stock movement recorded','success');closeModal('stockFlowModal');loadInventory();loadStockMovementLedger();loadDashboard();
-    }catch(err){showToast('Could not record movement: '+err.message,'error')}
-  }
-  window.loadStockMovementLedger=async function(){const box=document.getElementById('stockMovementLedger');if(!box)return;try{let q=supabaseClient.from('inventory_movements').select('*, products(name,emoji,unit)').order('created_at',{ascending:false});const period=document.getElementById('stockMovementPeriod')?.value||'week';if(period==='today')q=q.gte('created_at',dayStart(now()).toISOString());if(period==='week')q=q.gte('created_at',weekStart().toISOString());const {data,error}=await q.limit(500);if(error)throw error;const rows=data||[];let purchase=0,issue=0,use=0,sale=0;rows.forEach(m=>{const n=String(m.notes||'').toUpperCase(), t=String(m.movement_type||'').toLowerCase();if(t==='purchase'||t==='restock'||n.startsWith('PURCHASE'))purchase+=Math.abs(Number(m.quantity)||0);if(t==='transfer_to_kitchen'||n.startsWith('TRANSFER_TO_KITCHEN'))issue+=Math.abs(Number(m.quantity)||0);if(t==='kitchen_used'||n.startsWith('KITCHEN_USED'))use+=Math.abs(Number(m.quantity)||0);if(t==='sale'||n.startsWith('SALE'))sale+=Math.abs(Number(m.quantity)||0)});setText2('weeklyPurchasedQty',purchase);setText2('weeklyKitchenIssuedQty',issue);setText2('dailyKitchenUsedQty',rows.filter(m=>new Date(m.created_at)>=dayStart(now())&&(String(m.movement_type).toLowerCase()==='kitchen_used'||String(m.notes||'').toUpperCase().startsWith('KITCHEN_USED'))).reduce((a,m)=>a+Math.abs(Number(m.quantity)||0),0));setText2('weeklySalesStockQty',sale);
-      if(!rows.length){box.innerHTML='<div class="empty-state"><p>No stock movements for this period</p></div>';return}box.innerHTML='<div class="table-wrapper"><table class="data-table"><thead><tr><th>Product</th><th>Movement</th><th>Quantity</th><th>Stock After</th><th>Notes</th><th>Date</th></tr></thead><tbody>'+rows.map(m=>{const t=String(m.movement_type||'').toLowerCase(), n=String(m.notes||'');let label=t==='purchase'||t==='restock'?'PURCHASE':t==='transfer_to_kitchen'?'TO KITCHEN':t==='kitchen_used'?'KITCHEN USED':t==='sale'?'SALE':t.toUpperCase();return `<tr><td>${m.products?.emoji||'📦'} ${esc2(m.products?.name||'Unknown')}</td><td><span class="badge ${label==='SALE'||label==='KITCHEN USED'?'danger':label==='TO KITCHEN'?'warning':'success'}">${label}</span></td><td>${Number(m.quantity||0)>0?'+':''}${Number(m.quantity||0)} ${m.products?.unit||''}</td><td>${m.new_stock??'—'}</td><td>${esc2(n.replace(/^[A-Z_ ]+( \| )?/,'')||'—')}</td><td>${new Date(m.created_at).toLocaleString()}</td></tr>`}).join('')+'</tbody></table></div>';
-    }catch(e){box.innerHTML='<div class="empty-state"><p>Stock movement table is unavailable.</p></div>';console.error(e)}};
-
-  window.openCreditUserModal=function(){let m=document.getElementById('creditUserModal');if(!m){m=document.createElement('div');m.id='creditUserModal';m.className='modal-overlay';m.innerHTML=`<div class="modal" style="max-width:500px"><div class="modal-header"><h3>👤 Add Credit User</h3><button class="modal-close" onclick="closeModal('creditUserModal')">×</button></div><form id="creditUserForm"><div class="form-group"><label>Full Name</label><input id="cuName" required></div><div class="form-group"><label>Phone</label><input id="cuPhone" required></div><div class="form-group"><label>Credit Limit (KES)</label><input id="cuLimit" type="number" min="0" value="0"></div><div class="form-group"><label>Notes</label><textarea id="cuNotes"></textarea></div><button class="btn btn-primary btn-block">Save Credit User</button></form></div>`;document.body.appendChild(m);document.getElementById('creditUserForm').addEventListener('submit',async e=>{e.preventDefault();const a=getLocal(CK,[]);a.push({id:'cu_'+Date.now(),name:document.getElementById('cuName').value.trim(),phone:document.getElementById('cuPhone').value.trim(),limit:Number(document.getElementById('cuLimit').value||0),notes:document.getElementById('cuNotes').value.trim(),created_at:new Date().toISOString()});putLocal(CK,a);try{const {data:existing}=await supabaseClient.from('customers').select('id').eq('phone',document.getElementById('cuPhone').value.trim()).maybeSingle();if(!existing)await supabaseClient.from('customers').insert({name:document.getElementById('cuName').value.trim(),phone:document.getElementById('cuPhone').value.trim(),loyalty_points:0})}catch(dbErr){console.warn('Customer sync:',dbErr)}closeModal('creditUserModal');loadCreditUsers();});}openModal('creditUserModal')};
-  window.loadCreditUsers=async function(){const box=document.getElementById('creditUsersTable');if(!box)return;const local=getLocal(CK,[]);const usersMap=new Map(local.map(u=>[u.phone,u]));let orders=[],payments=[];try{const {data:o}=await supabaseClient.from('orders').select('id,total,customer_phone,payment_status,created_at').eq('payment_method','credit');orders=o||[];const ids=orders.map(x=>x.id);if(ids.length){const {data:p}=await supabaseClient.from('payments').select('order_id,amount,status,created_at').in('order_id',ids);payments=p||[]}}catch(e){console.warn('Credit load:',e)}orders.forEach(o=>{if(o.customer_phone&&!usersMap.has(o.customer_phone))usersMap.set(o.customer_phone,{id:'db_'+o.customer_phone,name:o.customer_phone,phone:o.customer_phone,limit:0,notes:'Credit customer',created_at:o.created_at})});const users=[...usersMap.values()];const balances={};orders.forEach(o=>{const paid=payments.filter(p=>p.order_id===o.id&&p.status==='completed').reduce((a,p)=>a+Number(p.amount||0),0);balances[o.customer_phone]=(balances[o.customer_phone]||0)+Math.max(0,Number(o.total||0)-paid)});let outstanding=0;users.forEach(u=>outstanding+=balances[u.phone]||0);setText2('creditUsersOutstanding',money2(outstanding));setText2('creditUsersCount',users.filter(u=>(balances[u.phone]||0)>0).length);setText2('creditUsersSettled',money2(payments.filter(p=>p.status==='completed'&&new Date(p.created_at||0)>=dayStart(now())).reduce((a,p)=>a+Number(p.amount||0),0)));if(!users.length){box.innerHTML='<div class="empty-state"><p>No credit users yet. Add customers who are allowed to pay later.</p></div>';return}box.innerHTML='<div class="table-wrapper"><table class="data-table"><thead><tr><th>Name</th><th>Phone</th><th>Outstanding</th><th>Limit</th><th>Actions</th></tr></thead><tbody>'+users.map(u=>{const bal=balances[u.phone]||0;return `<tr><td><strong>${esc2(u.name)}</strong></td><td>${esc2(u.phone)}</td><td><strong>${money2(bal)}</strong></td><td>${money2(u.limit)}</td><td><button class="btn btn-sm btn-success" onclick="settleCredit('${u.id}')">💰 Settle</button> <button class="btn btn-sm btn-primary" onclick="creditSTK('${u.id}')">📱 STK Push</button></td></tr>`}).join('')+'</tbody></table></div>'};
-window.settleCredit=async function(id){const u=getLocal(CK,[]).find(x=>x.id===id);if(!u)return;const bal=await creditBalance(u.phone);if(bal<=0)return showToast('This user has no outstanding credit','info');const amount=Number(prompt(`Outstanding credit for ${u.name}: ${money2(bal)}\nEnter amount to settle:`,bal));if(!amount||amount<=0)return;await recordCreditSettlement(u,amount,'cash');loadCreditUsers();loadWeeklyOrders();loadDashboard()};
-  window.creditSTK=async function(id){const u=getLocal(CK,[]).find(x=>x.id===id);if(!u)return;const bal=await creditBalance(u.phone);if(bal<=0)return showToast('No outstanding credit','info');const amount=Number(prompt(`Outstanding credit: ${money2(bal)}\nEnter amount for STK Push:`,bal));if(!amount||amount<=0)return;if(amount>bal)return showToast('Amount exceeds outstanding credit','warning');let phone=String(u.phone||'').replace(/\s/g,'');if(phone.startsWith('0'))phone='254'+phone.slice(1);if(phone.startsWith('+254'))phone=phone.slice(1);try{const {data:stk,error}=await supabaseClient.functions.invoke('payhero',{body:{action:'stk_push',phone,amount:Math.round(amount),description:`Credit settlement - ${u.name}`,account_id:PAYHERO_CONFIG.accountId}});if(error)throw error;if(!stk?.success)throw new Error(stk?.message||'STK Push failed');showToast('STK Push sent. Waiting for confirmation...','info');let confirmed=null;for(let n=0;n<30;n++){await new Promise(r=>setTimeout(r,2000));const {data:st}=await supabaseClient.functions.invoke('payhero',{body:{action:'status',transaction_id:stk.transaction_id}});if(st?.status==='completed'){confirmed=st;break}if(st?.status==='failed'||st?.status==='cancelled')break}if(confirmed){await recordCreditSettlement(u,amount,'mpesa');showToast(`M-Pesa credit settlement confirmed for ${u.name}`,'success');loadCreditUsers();loadDashboard();loadWeeklyOrders()}else showToast('STK Push was not confirmed. Credit remains outstanding.','warning')}catch(e){console.error(e);showToast('STK Push failed: '+e.message,'error')}};
-  async function creditBalance(phone){try{const {data:os}=await supabaseClient.from('orders').select('id,total').eq('payment_method','credit').eq('customer_phone',phone);const ids=(os||[]).map(o=>o.id);if(!ids.length)return 0;const {data:ps}=await supabaseClient.from('payments').select('order_id,amount,status').in('order_id',ids);return (os||[]).reduce((a,o)=>a+Math.max(0,Number(o.total||0)-(ps||[]).filter(p=>p.order_id===o.id&&p.status==='completed').reduce((x,p)=>x+Number(p.amount||0),0)),0)}catch(e){return 0}}
-async function recordCreditSettlement(u,amount,method){try{let remaining=amount;const {data:os,error}=await supabaseClient.from('orders').select('id,total').eq('payment_method','credit').eq('customer_phone',u.phone).neq('payment_status','completed').order('created_at',{ascending:true});if(error)throw error;for(const o of (os||[])){if(remaining<=0)break;const due=Number(o.total||0),pay=Math.min(remaining,due);const {data:pp,error:pe}=await supabaseClient.from('payments').insert({order_id:o.id,payment_method:method,amount:pay,status:'completed',completed_at:new Date().toISOString()}).select().single();if(pe)throw pe;const newDue=due-pay;if(newDue<=0.009){await supabaseClient.from('orders').update({payment_status:'completed',status:'paid',completed_at:new Date().toISOString()}).eq('id',o.id)}remaining-=pay}if(remaining>0.009)throw new Error('Settlement exceeds outstanding credit');showToast(`Credit settlement of ${money2(amount)} recorded for ${u.name}`,'success')}catch(e){showToast('Could not settle credit: '+e.message,'error')}}
-
-  window.loadWeeklyOrders=async function(){const box=document.getElementById('weeklyOrdersTable');if(!box)return;try{const {data:orders,error}=await supabaseClient.from('orders').select('*').gte('created_at',weekStart().toISOString()).order('created_at',{ascending:false});if(error)throw error;let paid=0,credit=0,settled=0;(orders||[]).forEach(o=>{const n=Number(o.total||0);if(o.payment_method==='credit'){credit+=n;if(o.payment_status==='completed')settled+=n}else if(o.payment_status==='completed'||o.status==='paid'||o.status==='completed')paid+=n});setText2('weeklyPaidSales',money2(paid));setText2('weeklyCreditIssued',money2(credit));setText2('weeklyCreditSettled',money2(settled));setText2('weeklyOrderCount',(orders||[]).length);if(!orders?.length){box.innerHTML='<div class="empty-state"><p>No orders this week</p></div>';return}box.innerHTML='<div class="table-wrapper"><table class="data-table"><thead><tr><th>Order</th><th>Type</th><th>Payment</th><th>Amount</th><th>Status</th><th>Date</th></tr></thead><tbody>'+orders.map(o=>`<tr><td>#${esc2(o.order_number||String(o.id).slice(0,8))}</td><td>${esc2(o.order_type||'—')}</td><td>${esc2(o.payment_method||'—')}</td><td>${money2(o.total)}</td><td>${esc2(o.payment_status||o.status||'—')}</td><td>${new Date(o.created_at).toLocaleString()}</td></tr>`).join('')+'</tbody></table></div>'}catch(e){box.innerHTML='<div class="empty-state"><p>Weekly orders unavailable.</p></div>'}};
-
-  function setText2(id,v){const e=document.getElementById(id);if(e)e.textContent=v}
-  async function loadKitchenCostProfit(){
-  try{
-    const start=dayStart(now()).toISOString();
-    const weekStart=new Date(now()); weekStart.setHours(0,0,0,0); weekStart.setDate(weekStart.getDate()-weekStart.getDay());
-    const weekISO=weekStart.toISOString();
-    const money=v=>`KES ${Number(v||0).toLocaleString('en-KE',{minimumFractionDigits:2,maximumFractionDigits:2})}`;
-    const [{data:mov},{data:orders}]=await Promise.all([
-      supabaseClient.from('inventory_movements').select('product_id,movement_type,quantity,created_at,notes,products(name,unit,cost_price)').gte('created_at',weekISO).order('created_at',{ascending:false}),
-      supabaseClient.from('orders').select('id,total,order_type,payment_method,payment_status,status,created_at').gte('created_at',start)
-    ]);
-    const movements=mov||[];
-    const kitchenUsed=movements.filter(m=>String(m.movement_type||'').toLowerCase()==='kitchen_used'||String(m.notes||'').toUpperCase().startsWith('KITCHEN_USED'));
-    const issued=movements.filter(m=>String(m.movement_type||'').toLowerCase()==='transfer_to_kitchen');
-    const purchases=movements.filter(m=>String(m.movement_type||'').toLowerCase()==='purchase');
-    const cost=m=>Math.abs(Number(m.quantity)||0)*Number(m.products?.cost_price||0);
-    const usedCostToday=kitchenUsed.filter(m=>new Date(m.created_at)>=new Date(start)).reduce((a,m)=>a+cost(m),0);
-    const issuedCostWeek=issued.reduce((a,m)=>a+cost(m),0);
-    const purchasedCostWeek=purchases.reduce((a,m)=>a+cost(m),0);
-    const kitchenSales=(orders||[]).filter(o=>String(o.order_type||'').toLowerCase()!=='butchery'&&String(o.payment_method||'').toLowerCase()!=='credit'&&(o.payment_status==='completed'||o.status==='paid'||o.status==='completed')).reduce((a,o)=>a+Number(o.total||0),0);
-    const gross=kitchenSales-usedCostToday;
-    const margin=kitchenSales?gross/kitchenSales*100:0;
-    const store={};
-    kitchenUsed.forEach(m=>{const id=m.product_id;if(!store[id])store[id]={name:m.products?.name||'Unknown',unit:m.products?.unit||'',qty:0,cost:0};store[id].qty+=Math.abs(Number(m.quantity)||0);store[id].cost+=cost(m)});
-    const kitchenStock=getLocal('viewpoint_kitchen_stock_v2',{});
-    let stockValue=0;
-    for(const id in kitchenStock){ const qty=Number(kitchenStock[id]||0); const mv=movements.find(m=>m.product_id===id&&m.products); stockValue+=qty*Number(mv?.products?.cost_price||0); }
-    const set=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v};
-    set('kitchenSalesToday',money(kitchenSales));set('kitchenIngredientCostToday',money(usedCostToday));set('kitchenGrossProfitToday',money(gross));set('kitchenGrossMarginToday',margin.toFixed(1)+'%');set('kitchenPurchasedCostWeek',money(purchasedCostWeek));set('kitchenIssuedCostWeek',money(issuedCostWeek));set('kitchenUsedCostToday',money(usedCostToday));set('kitchenStockValue',money(stockValue));
-    const box=document.getElementById('kitchenIngredientTable');
-    const rows=Object.values(store).sort((a,b)=>b.cost-a.cost);
-    box.innerHTML=rows.length?`<div class="table-wrapper"><table class="data-table"><thead><tr><th>Ingredient</th><th>Used Today/Week</th><th>Unit</th><th>Estimated Cost</th></tr></thead><tbody>${rows.map(r=>`<tr><td><strong>${esc2(r.name)}</strong></td><td>${r.qty.toFixed(3)}</td><td>${esc2(r.unit)}</td><td>${money(r.cost)}</td></tr>`).join('')}</tbody></table></div>`:`<div class="empty-state" style="padding:20px"><p>No kitchen usage recorded yet.</p></div>`;
-  }catch(e){console.warn('Kitchen cost/profit:',e);const box=document.getElementById('kitchenIngredientTable');if(box)box.innerHTML='<div class="empty-state"><p>Could not load kitchen cost data.</p></div>'; }
-}
-
-async function enhanceDashboard(){try{const start=dayStart(now()).toISOString();const {data:orders}=await supabaseClient.from('orders').select('*').gte('created_at',start);let but=0,kitch=0,credit=0,settled=0;(orders||[]).forEach(o=>{const n=Number(o.total||0);if(o.payment_method==='credit'){credit+=o.payment_status==='completed'?0:n;settled+=o.payment_status==='completed'?n:0}});const paidOrders=(orders||[]).filter(o=>o.payment_method!=='credit'&&(o.payment_status==='completed'||o.status==='paid'||o.status==='completed'));try{const ids=paidOrders.map(o=>o.id);if(ids.length){const {data:oi}=await supabaseClient.from('order_items').select('order_id,quantity,unit_price,total,products(cost_price)').in('order_id',ids);(oi||[]).forEach(x=>{const rev=Number(x.total||0),cost=Number(x.products?.cost_price||0)*Number(x.quantity||0),profit=rev-cost;const o=paidOrders.find(z=>z.id===x.order_id);if(o?.order_type==='butchery')but+=profit;else kitch+=profit})}}catch(e){paidOrders.forEach(o=>{if(o.order_type==='butchery')but+=Number(o.total||0);else kitch+=Number(o.total||0)})}setText2('dashboardCreditOutstanding',money2(credit));setText2('dashboardCreditCustomers',new Set((orders||[]).filter(o=>o.payment_method==='credit'&&o.payment_status!=='completed').map(o=>o.customer_phone||o.id)).size);setText2('dashboardCreditSettled',money2(settled));setText2('dashboardButcheryProfit',money2(but));setText2('dashboardKitchenProfit',money2(kitch));const {data:m}=await supabaseClient.from('inventory_movements').select('*').gte('created_at',start);const ku=(m||[]).filter(x=>String(x.movement_type||'').toLowerCase()==='kitchen_used'||String(x.notes||'').toUpperCase().startsWith('KITCHEN_USED')).reduce((a,x)=>a+Math.abs(Number(x.quantity)||0),0);setText2('dashboardKitchenUsed',ku);await loadKitchenCostProfit()}catch(e){console.warn('BI dashboard:',e)}}
-  const oldLoadDashboard=window.loadDashboard; window.loadDashboard=async function(){if(typeof oldLoadDashboard==='function')await oldLoadDashboard();enhanceDashboard()};
-  // FINAL POS PAYMENT ROUTER: one cart, one payment engine.
-  window.completeUltimateSale=async function(){
-    const posState=window.ultimatePOSState;
-    if(!posState || !Array.isArray(posState.cart) || !posState.cart.length) return showToast('Add items to the cart first','warning');
-    const method=String(posState.paymentMethod||'cash').toLowerCase();
-    const subtotal=posState.cart.reduce((sum,x)=>sum+(Number(x.price||x.unit_price)||0)*(Number(x.qty||x.quantity)||0),0);
-    const discount=Math.min(Number(document.getElementById('posDiscount')?.value||0),subtotal);
-    const total=Math.max(0,subtotal-discount);
-    if(method==='cash'){const received=Number(document.getElementById('cashReceived')?.value||0);if(received<total)return showToast('Cash received is less than the total','warning');}
-    if(method==='mpesa'){const phone=document.getElementById('mpesaPhone')?.value?.trim()||'';const legacyPhone=document.getElementById('posPhone');if(legacyPhone)legacyPhone.value=phone;if(!phone)return showToast('Enter the M-Pesa phone number','warning');}
-    cart=posState.cart.map(x=>({product_id:x.product_id||x.id,name:x.name,quantity:Number(x.qty||x.quantity||1),unit_price:Number(x.price||x.unit_price||0),total:Number(x.price||x.unit_price||0)*Number(x.qty||x.quantity||1),emoji:x.emoji}));
-    if(!cart.length)return showToast('Add items to the cart first','warning');
-    if(method==='credit'){const sel=document.getElementById('posCustomer');const opt=sel?.selectedOptions?.[0];const phone=opt?.dataset?.phone||'';const name=opt?.textContent?.replace(/•\s*CREDIT/i,'').trim()||'';if(!phone||!name||name.toLowerCase().includes('walk-in'))return showToast('Select a registered Credit User before completing a credit sale','warning');return processCreditOrder(phone,total,cart);}
-    if(typeof window.processPaymentPOS!=='function')return showToast('Payment engine is unavailable','error');
-    return window.processPaymentPOS(method);
-  };
-  async function processCreditOrder(phone,total,items){try{const userId=currentUser?.id||JSON.parse(localStorage.getItem('viewpoint_session')||'{}')?.user?.id;if(!userId)return toast('Please login again','error');const {data:o,error}=await supabaseClient.from('orders').insert({order_type:typeof posMode!=='undefined'?posMode:'butchery',user_id:userId,customer_phone:phone,subtotal:total,total,status:'completed',payment_status:'pending',payment_method:'credit'}).select().single();if(error)throw error;const rows=items.map(x=>({order_id:o.id,product_id:x.product_id,quantity:x.quantity,unit_price:x.unit_price,total:x.total}));const ir=await supabaseClient.from('order_items').insert(rows);if(ir.error)throw ir.error;for(const x of items){const {data:p}=await supabaseClient.from('products').select('stock_quantity').eq('id',x.product_id).single();if(p){const ns=Number(p.stock_quantity||0)-Number(x.quantity||0);await supabaseClient.from('products').update({stock_quantity:ns}).eq('id',x.product_id);await supabaseClient.from('inventory_movements').insert({product_id:x.product_id,movement_type:'sale',quantity:-Number(x.quantity||0),previous_stock:p.stock_quantity,new_stock:ns,created_by:userId,notes:'SALE | CREDIT SALE'});}}showToast(`Credit sale recorded: ${money2(total)}. Not added to today's paid sales.` ,'success');if(typeof window.clearUltimatePOSCart==='function')window.clearUltimatePOSCart();loadPOSProducts(posMode);loadDashboard();loadCreditUsers();loadWeeklyOrders()}catch(e){console.error(e);showToast('Credit sale failed: '+e.message,'error')}}
-  // Populate POS customer dropdown from registered customers + credit users.
-  async function populatePOSCustomers(){const sel=document.getElementById('posCustomer');if(!sel)return;try{const {data}=await supabaseClient.from('customers').select('id,name,phone').order('name');const credit=getLocal(CK,[]);const map=new Map();(data||[]).forEach(c=>map.set(c.phone,c));credit.forEach(c=>map.set(c.phone,c));sel.innerHTML='<option value="">Walk-in Customer</option>'+[...map.values()].map(c=>`<option value="${esc2(c.id||c.phone)}" data-phone="${esc2(c.phone)}">${esc2(c.name)}${credit.some(x=>x.phone===c.phone)?' • CREDIT':''}</option>`).join('')}catch(e){}}
-  const oldNavigate=window.navigateTo; window.navigateTo=function(section){if(typeof oldNavigate==='function')oldNavigate(section);if(section==='creditusers')loadCreditUsers();if(section==='weeklyorders')loadWeeklyOrders();if(section==='stockmovements')loadStockMovementLedger();if(section==='dashboard')enhanceDashboard()};
-  document.addEventListener('DOMContentLoaded',()=>{setTimeout(()=>{populatePOSCustomers();enhanceDashboard();},800)});
-})();
-</script>
-<style id="viewpoint-business-intelligence-v2-css">
-.credit-kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin:18px 0}.credit-kpi,.profit-split{background:#fff;border:1px solid #E2E8F0;border-radius:14px;padding:16px;box-shadow:0 4px 14px rgba(15,23,42,.05)}.credit-kpi span,.profit-split span{font-weight:700;color:#334155;display:block}.credit-kpi strong,.profit-split strong{display:block;font-size:22px;margin-top:8px;color:#0F172A}.credit-kpi small,.profit-split small{color:#64748B}.profit-split-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px}.profit-split{display:flex;justify-content:space-between;align-items:center}.profit-split strong{color:#2563EB}.profit-split.kitchen strong{color:#10B981}.modal textarea{min-height:80px;width:100%;padding:10px;border:1px solid #CBD5E1;border-radius:8px}.btn-success{background:#10B981!important;color:#fff!important}.modal-overlay{z-index:5000}@media(max-width:1000px){.credit-kpi-grid{grid-template-columns:1fr 1fr}}@media(max-width:600px){.credit-kpi-grid,.profit-split-grid{grid-template-columns:1fr}}
-</style>
 </body>
 </html>
